@@ -30,7 +30,7 @@ The **transition matrix** models how the state evolves over time based on the sy
 
 For a timestep `dt`, the matrix is:
 
-<img src="../image/20241121_KF_A.png" width="480" height="240">
+<img src="../image/20241121_KF_A.png" width="480" height="480">
 
 
 
