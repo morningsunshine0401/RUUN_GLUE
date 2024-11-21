@@ -15,7 +15,7 @@ The **state vector** represents the system's current state, including:
 - **Acceleration**: `[ax, ay, az]` (rate of change of velocity)
 - **Orientation**: `[roll, pitch, yaw]` (rotation in Euler angles)
 - **Angular Velocity**: `[ω_roll, ω_pitch, ω_yaw]` (rate of change of orientation)
-
+- **Angular acceleration** 
 This results in an 18-dimensional state vector:
 
 <img src="../image/20241121_KF_X.png" width="480" height="480">
