@@ -4,7 +4,7 @@ The **Essential Matrix (\(E\))** describes the relationship between two images o
 
 ---
 
-## **The Equation: \( x_2^T \cdot E \cdot x_1 = 0 \)**
+## **The Equation: \( x_2^\top E x_1 = 0 \)**
 
 This equation ensures that corresponding points in the two images satisfy the geometric relationship dictated by the camera's movement. Let’s break it down:
 
@@ -16,12 +16,12 @@ This equation ensures that corresponding points in the two images satisfy the ge
    - The Essential Matrix \(E\) transforms the point \(x_1\) from the first image into a **line (\(l_2\))** in the second image. This line, called the **epipolar line**, represents all the possible locations where the point \(x_2\) could appear in the second image.
 
 3. **What does the equation mean?**
-   - The equation \(x_2^T \cdot l_2 = 0\) (or \(x_2^T \cdot E \cdot x_1 = 0\)) ensures that:
+   - The equation \( x_2^\top \cdot l_2 = 0 \) (or \( x_2^\top E x_1 = 0 \)) ensures that:
      - The point \(x_2\) in the second image lies **exactly on the epipolar line \(l_2\)**.
 
 4. **Why Perpendicularity Matters**:
    - \(l_2\) is the **normal vector** to the epipolar line, which means it points perpendicular to the line.
-   - The dot product \(x_2^T \cdot l_2 = 0\) confirms that \(x_2\) is orthogonal to the line’s normal vector, ensuring \(x_2\) lies on the epipolar line.
+   - The dot product \(x_2^\top \cdot l_2 = 0\) confirms that \(x_2\) is orthogonal to the line’s normal vector, ensuring \(x_2\) lies on the epipolar line.
 
 ---
 
@@ -50,11 +50,9 @@ The Essential Matrix encodes the camera’s **rotation (\(R\))** and **translati
 
 ## **Connecting the Perpendicularity**
 
-The equation \(x_2^T \cdot E \cdot x_1 = 0\) ensures that:
+The equation \(x_2^\top \cdot E \cdot x_1 = 0\) ensures that:
 1. \(E \cdot x_1\) generates the **epipolar line \(l_2\)** in the second image.
 2. The point \(x_2\) is **perpendicular** to the normal vector of the epipolar line, which confirms it lies on the line.
-
-This perpendicularity between \(x_2\) and the epipolar line is key to understanding how the Essential Matrix constrains points across images.
 
 ---
 
@@ -76,7 +74,7 @@ The Essential Matrix works like the flashlight: it tells you where the point mig
    - Ensures that points in one image correspond to lines in the other image (epipolar lines).
 
 2. **Why Perpendicularity Matters**:
-   - The equation \(x_2^T \cdot E \cdot x_1 = 0\) ensures that the corresponding point \(x_2\) in the second image lies on the epipolar line defined by \(E \cdot x_1\).
+   - The equation \(x_2^\top \cdot E \cdot x_1 = 0\) ensures that the corresponding point \(x_2\) in the second image lies on the epipolar line defined by \(E \cdot x_1\).
    - This happens because \(x_2\) and the normal vector to the epipolar line are orthogonal.
 
 3. **Why Scale is Missing**:
