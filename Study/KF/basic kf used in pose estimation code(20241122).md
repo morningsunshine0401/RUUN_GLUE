@@ -18,10 +18,7 @@ The **state vector** represents the system's current state, including:
 
 This results in an 18-dimensional state vector:
 
-<img src="Study/img/20241121_KF_X.png" width="480" height="240">
-
-x = [x, y, z, vx, vy, vz, ax, ay, az, roll, pitch, yaw, ω_roll, ω_pitch, ω_yaw]^T
-
+<img src="RUUN_GLUE/Study/img/20241121_KF_X.png" width="480" height="240">
 
 ---
 
@@ -33,9 +30,8 @@ The **transition matrix** models how the state evolves over time based on the sy
 
 For a timestep `dt`, the matrix is:
 
-<img src="Study/img/20241121_KF_A.png" width="480" height="240">
+<img src="RUUN_GLUE/Study/img/20241121_KF_A.png" width="480" height="240">
 
-A = [ [1, dt, 0.5dt^2, 0, 0, 0, ..., 0], # Position (x) [0, 1, dt, 0, 0, 0, ..., 0], # Velocity (vx) [0, 0, 1, 0, 0, 0, ..., 0], # Acceleration (ax) [0, 0, 0, 1, dt, 0.5dt^2, ..., 0], # Position (y) [0, 0, 0, 0, 1, dt, ..., 0], # Velocity (vy) ... ]
 
 
 This accounts for linear motion and rotational dynamics.
@@ -50,9 +46,7 @@ The **measurement matrix** maps the current state to the observed values (e.g., 
 
 The matrix looks like:
 
-<img src="Study/img/20241121_KF_H.png" width="480" height="240">
-
-H = [ [1, 0, 0, ..., 0], # x (Position) [0, 1, 0, ..., 0], # y (Position) [0, 0, 1, ..., 0], # z (Position) [0, 0, 0, ..., 1], # roll (Orientation) [0, 0, 0, ..., 0], # pitch (Orientation) [0, 0, 0, ..., 0], # yaw (Orientation) ]
+<img src="RUUN_GLUE/Study/img/20241121_KF_H.png" width="480" height="240">
 
 
 ---
