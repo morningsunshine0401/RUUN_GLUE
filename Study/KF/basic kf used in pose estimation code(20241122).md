@@ -18,7 +18,7 @@ The **state vector** represents the system's current state, including:
 
 This results in an 18-dimensional state vector:
 
-<img src="../image/20241121_KF_X.png" width="480" height="240">
+<img src="../image/20241121_KF_X.png" width="480" height="480">
 
 ---
 
@@ -30,7 +30,7 @@ The **transition matrix** models how the state evolves over time based on the sy
 
 For a timestep `dt`, the matrix is:
 
-<img src="RUUN_GLUE/Study/img/20241121_KF_A.png" width="480" height="240">
+<img src="../image/20241121_KF_A.png" width="480" height="240">
 
 
 
@@ -46,7 +46,7 @@ The **measurement matrix** maps the current state to the observed values (e.g., 
 
 The matrix looks like:
 
-<img src="RUUN_GLUE/Study/img/20241121_KF_H.png" width="480" height="240">
+<img src="../image/20241121_KF_H.png" width="480" height="240">
 
 
 ---
