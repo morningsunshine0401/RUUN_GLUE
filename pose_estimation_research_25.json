@@ -1,0 +1,4096 @@
+[
+    {
+        "frame": 1,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 2,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 3,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 4,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 5,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 6,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 7,
+        "num_inliers": 0,
+        "total_matches": 3,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 8,
+        "num_inliers": 0,
+        "total_matches": 3,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 9,
+        "rotation_matrix": [
+            [
+                -0.19621146511017434,
+                0.350440006773873,
+                -0.9158017594499621
+            ],
+            [
+                0.9369137905651918,
+                0.34255040065731435,
+                -0.06965466286098176
+            ],
+            [
+                0.28929847909742373,
+                -0.8716943413042446,
+                -0.3955443910992499
+            ]
+        ],
+        "translation_vector": [
+            0.016106564924040383,
+            0.007849557119288994,
+            0.2950662578396416
+        ],
+        "camera_position": [
+            -0.08955628523922952,
+            0.24887433361135528,
+            0.13200898204199862
+        ],
+        "num_inliers": 4,
+        "total_matches": 4,
+        "inlier_ratio": 1.0,
+        "reprojection_errors": [
+            28.42030143737793,
+            3.518228769302368,
+            83.26446533203125,
+            54.46151351928711
+        ],
+        "mean_reprojection_error": 42.4161262512207,
+        "std_reprojection_error": 29.675779342651367,
+        "inliers": [
+            0,
+            1,
+            2,
+            3
+        ],
+        "mkpts0": [
+            [
+                512.0,
+                345.0
+            ],
+            [
+                927.0,
+                217.0
+            ],
+            [
+                752.0,
+                214.0
+            ],
+            [
+                851.0,
+                173.0
+            ]
+        ],
+        "mkpts1": [
+            [
+                640.0,
+                417.0
+            ],
+            [
+                669.0,
+                258.0
+            ],
+            [
+                604.0,
+                194.0
+            ],
+            [
+                789.0,
+                142.0
+            ]
+        ],
+        "mpts3D": [
+            [
+                0.004999999888241291,
+                -0.03799999877810478,
+                0.00800000037997961
+            ],
+            [
+                -0.04399999976158142,
+                0.03400000184774399,
+                0.03500000014901161
+            ],
+            [
+                -0.04399999976158142,
+                -0.007000000216066837,
+                0.014999999664723873
+            ],
+            [
+                -0.06400000303983688,
+                0.007000000216066837,
+                0.014999999664723873
+            ]
+        ],
+        "mconf": [
+            0.09417582303285599,
+            0.07359898090362549,
+            0.16327275335788727,
+            0.15088313817977905
+        ]
+    },
+    {
+        "frame": 10,
+        "rotation_matrix": [
+            [
+                0.027208591562214363,
+                -0.8779293981147236,
+                0.4780163851492118
+            ],
+            [
+                0.3403162483271802,
+                0.4577639693416608,
+                0.8213628914779872
+            ],
+            [
+                -0.9399173068252937,
+                0.14032861539431618,
+                0.31122875193625743
+            ]
+        ],
+        "translation_vector": [
+            -0.03498149093633533,
+            0.0005315113472925771,
+            0.2741491042874511
+        ],
+        "camera_position": [
+            0.2584484029218977,
+            -0.06942555024322933,
+            -0.06903792142437495
+        ],
+        "num_inliers": 4,
+        "total_matches": 4,
+        "inlier_ratio": 1.0,
+        "reprojection_errors": [
+            5.574619293212891,
+            52.338863372802734,
+            209.86618041992188,
+            158.80528259277344
+        ],
+        "mean_reprojection_error": 106.646240234375,
+        "std_reprojection_error": 81.45503234863281,
+        "inliers": [
+            0,
+            1,
+            2,
+            3
+        ],
+        "mkpts0": [
+            [
+                566.0,
+                641.0
+            ],
+            [
+                512.0,
+                345.0
+            ],
+            [
+                752.0,
+                214.0
+            ],
+            [
+                851.0,
+                173.0
+            ]
+        ],
+        "mkpts1": [
+            [
+                392.0,
+                607.0
+            ],
+            [
+                641.0,
+                418.0
+            ],
+            [
+                605.0,
+                195.0
+            ],
+            [
+                417.0,
+                537.0
+            ]
+        ],
+        "mpts3D": [
+            [
+                0.05400000140070915,
+                0.007000000216066837,
+                0.00800000037997961
+            ],
+            [
+                0.004999999888241291,
+                -0.03799999877810478,
+                0.00800000037997961
+            ],
+            [
+                -0.04399999976158142,
+                -0.007000000216066837,
+                0.014999999664723873
+            ],
+            [
+                -0.06400000303983688,
+                0.007000000216066837,
+                0.014999999664723873
+            ]
+        ],
+        "mconf": [
+            0.1192067489027977,
+            0.04899014160037041,
+            0.14593695104122162,
+            0.050110556185245514
+        ]
+    },
+    {
+        "frame": 11,
+        "num_inliers": 0,
+        "total_matches": 7,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 12,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 13,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 14,
+        "num_inliers": 0,
+        "total_matches": 0,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 15,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 16,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 17,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 18,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 19,
+        "num_inliers": 0,
+        "total_matches": 0,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 20,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 21,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 22,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 23,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 24,
+        "num_inliers": 0,
+        "total_matches": 0,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 25,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 26,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 27,
+        "num_inliers": 0,
+        "total_matches": 3,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 28,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 29,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 30,
+        "num_inliers": 0,
+        "total_matches": 3,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 31,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 32,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 33,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 34,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 35,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 36,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 37,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 38,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 39,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 40,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 41,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 42,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 43,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 44,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 45,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 46,
+        "num_inliers": 0,
+        "total_matches": 3,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 47,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 48,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 49,
+        "num_inliers": 0,
+        "total_matches": 0,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 50,
+        "num_inliers": 0,
+        "total_matches": 0,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 51,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 52,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 53,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 54,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 55,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 56,
+        "num_inliers": 0,
+        "total_matches": 3,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 57,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 58,
+        "rotation_matrix": [
+            [
+                0.48232981111516887,
+                -0.12364838376259552,
+                0.867219136379326
+            ],
+            [
+                0.8751051259490805,
+                0.11249220009529896,
+                -0.4706766655097355
+            ],
+            [
+                -0.039356979651008706,
+                0.9859292987383109,
+                0.16246367606986178
+            ]
+        ],
+        "translation_vector": [
+            -0.036543962279693386,
+            -0.006444343827945657,
+            0.3159234917183222
+        ],
+        "camera_position": [
+            0.035699515175811554,
+            -0.3152718901015931,
+            -0.022667670677646502
+        ],
+        "num_inliers": 4,
+        "total_matches": 4,
+        "inlier_ratio": 1.0,
+        "reprojection_errors": [
+            107.3073959350586,
+            177.25088500976562,
+            229.0760955810547,
+            300.5246887207031
+        ],
+        "mean_reprojection_error": 203.53976440429688,
+        "std_reprojection_error": 70.728271484375,
+        "inliers": [
+            0,
+            1,
+            2,
+            3
+        ],
+        "mkpts0": [
+            [
+                566.0,
+                641.0
+            ],
+            [
+                512.0,
+                345.0
+            ],
+            [
+                927.0,
+                217.0
+            ],
+            [
+                752.0,
+                214.0
+            ]
+        ],
+        "mkpts1": [
+            [
+                528.0,
+                536.0
+            ],
+            [
+                688.0,
+                400.0
+            ],
+            [
+                717.0,
+                250.0
+            ],
+            [
+                129.0,
+                101.0
+            ]
+        ],
+        "mpts3D": [
+            [
+                0.05400000140070915,
+                0.007000000216066837,
+                0.00800000037997961
+            ],
+            [
+                0.004999999888241291,
+                -0.03799999877810478,
+                0.00800000037997961
+            ],
+            [
+                -0.04399999976158142,
+                0.03400000184774399,
+                0.03500000014901161
+            ],
+            [
+                -0.04399999976158142,
+                -0.007000000216066837,
+                0.014999999664723873
+            ]
+        ],
+        "mconf": [
+            0.05498214066028595,
+            0.03588598966598511,
+            0.20812194049358368,
+            0.047236789017915726
+        ]
+    },
+    {
+        "frame": 59,
+        "num_inliers": 0,
+        "total_matches": 3,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 60,
+        "num_inliers": 0,
+        "total_matches": 0,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 61,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 62,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 63,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 64,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 65,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 66,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 67,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 68,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 69,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 70,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 71,
+        "num_inliers": 0,
+        "total_matches": 3,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 72,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 73,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 74,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 75,
+        "num_inliers": 0,
+        "total_matches": 3,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 76,
+        "rotation_matrix": [
+            [
+                0.3055120355796125,
+                0.40879988486722263,
+                0.8599680518766656
+            ],
+            [
+                -0.6093589294262985,
+                -0.6100504571832979,
+                0.5064781681562244
+            ],
+            [
+                0.7316721200404163,
+                -0.6787643875624257,
+                0.06272810321194233
+            ]
+        ],
+        "translation_vector": [
+            4722992.792604181,
+            -186076.8861946763,
+            4738124.53219172
+        ],
+        "camera_position": [
+            -5023072.37574313,
+            1171794.9969479993,
+            -4264592.595113615
+        ],
+        "num_inliers": 4,
+        "total_matches": 4,
+        "inlier_ratio": 1.0,
+        "reprojection_errors": [
+            1467.6234130859375,
+            2027.8389892578125,
+            2165.224365234375,
+            1345.0257568359375
+        ],
+        "mean_reprojection_error": 1751.4281005859375,
+        "std_reprojection_error": 351.1902160644531,
+        "inliers": [
+            0,
+            1,
+            2,
+            3
+        ],
+        "mkpts0": [
+            [
+                512.0,
+                345.0
+            ],
+            [
+                927.0,
+                217.0
+            ],
+            [
+                752.0,
+                214.0
+            ],
+            [
+                851.0,
+                173.0
+            ]
+        ],
+        "mkpts1": [
+            [
+                694.0,
+                438.0
+            ],
+            [
+                159.0,
+                23.0
+            ],
+            [
+                10.0,
+                94.0
+            ],
+            [
+                830.0,
+                151.0
+            ]
+        ],
+        "mpts3D": [
+            [
+                0.004999999888241291,
+                -0.03799999877810478,
+                0.00800000037997961
+            ],
+            [
+                -0.04399999976158142,
+                0.03400000184774399,
+                0.03500000014901161
+            ],
+            [
+                -0.04399999976158142,
+                -0.007000000216066837,
+                0.014999999664723873
+            ],
+            [
+                -0.06400000303983688,
+                0.007000000216066837,
+                0.014999999664723873
+            ]
+        ],
+        "mconf": [
+            0.04171043634414673,
+            0.13351057469844818,
+            0.10684747248888016,
+            0.10801143199205399
+        ]
+    },
+    {
+        "frame": 77,
+        "num_inliers": 0,
+        "total_matches": 5,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 78,
+        "num_inliers": 0,
+        "total_matches": 3,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 79,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 80,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 81,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 82,
+        "num_inliers": 0,
+        "total_matches": 3,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 83,
+        "num_inliers": 0,
+        "total_matches": 5,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 84,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 85,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 86,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 87,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 88,
+        "num_inliers": 0,
+        "total_matches": 3,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 89,
+        "num_inliers": 0,
+        "total_matches": 0,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 90,
+        "num_inliers": 0,
+        "total_matches": 3,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 91,
+        "num_inliers": 0,
+        "total_matches": 0,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 92,
+        "rotation_matrix": [
+            [
+                0.5318148405067855,
+                0.45225739857675523,
+                -0.7159861876107163
+            ],
+            [
+                0.8143957572286258,
+                -0.04127318006552272,
+                0.5788402847204848
+            ],
+            [
+                0.23223377451343066,
+                -0.8909319671219933,
+                -0.39026619624991893
+            ]
+        ],
+        "translation_vector": [
+            0.03446555410176015,
+            -0.007541759163815621,
+            0.2172287571907413
+        ],
+        "camera_position": [
+            -0.0626351707078214,
+            0.17763746973686556,
+            0.11381937549181433
+        ],
+        "num_inliers": 4,
+        "total_matches": 4,
+        "inlier_ratio": 1.0,
+        "reprojection_errors": [
+            12.63627815246582,
+            50.48789978027344,
+            60.6566047668457,
+            115.68951416015625
+        ],
+        "mean_reprojection_error": 59.86757278442383,
+        "std_reprojection_error": 36.86286926269531,
+        "inliers": [
+            0,
+            1,
+            2,
+            3
+        ],
+        "mkpts0": [
+            [
+                512.0,
+                345.0
+            ],
+            [
+                833.0,
+                491.0
+            ],
+            [
+                752.0,
+                214.0
+            ],
+            [
+                742.0,
+                343.0
+            ]
+        ],
+        "mkpts1": [
+            [
+                733.0,
+                423.0
+            ],
+            [
+                1097.0,
+                417.0
+            ],
+            [
+                668.0,
+                195.0
+            ],
+            [
+                673.0,
+                307.0
+            ]
+        ],
+        "mpts3D": [
+            [
+                0.004999999888241291,
+                -0.03799999877810478,
+                0.00800000037997961
+            ],
+            [
+                0.004999999888241291,
+                0.03799999877810478,
+                0.00800000037997961
+            ],
+            [
+                -0.04399999976158142,
+                -0.007000000216066837,
+                0.014999999664723873
+            ],
+            [
+                -0.014000000432133675,
+                0.007000000216066837,
+                0.014999999664723873
+            ]
+        ],
+        "mconf": [
+            0.15964896976947784,
+            0.039011888206005096,
+            0.03017113171517849,
+            0.030167965218424797
+        ]
+    },
+    {
+        "frame": 93,
+        "num_inliers": 0,
+        "total_matches": 3,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 94,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 95,
+        "num_inliers": 0,
+        "total_matches": 3,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 96,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 97,
+        "num_inliers": 0,
+        "total_matches": 3,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 98,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 99,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 100,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 101,
+        "num_inliers": 0,
+        "total_matches": 0,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 102,
+        "rotation_matrix": [
+            [
+                0.07182064656789766,
+                -0.41657369404241273,
+                -0.9062605321641384
+            ],
+            [
+                0.9714997412685002,
+                -0.17656759205269754,
+                0.15815226255716058
+            ],
+            [
+                -0.22589831217121997,
+                -0.8917904702723451,
+                0.3920200373573059
+            ]
+        ],
+        "translation_vector": [
+            0.006198823348016823,
+            -0.013439546077846616,
+            0.3516511868488072
+        ],
+        "camera_position": [
+            0.09204872161873118,
+            0.31380845574327915,
+            -0.1301110678390925
+        ],
+        "num_inliers": 4,
+        "total_matches": 4,
+        "inlier_ratio": 1.0,
+        "reprojection_errors": [
+            10.411656379699707,
+            11.798419952392578,
+            39.05160140991211,
+            37.69903564453125
+        ],
+        "mean_reprojection_error": 24.740177154541016,
+        "std_reprojection_error": 13.652329444885254,
+        "inliers": [
+            0,
+            1,
+            2,
+            3
+        ],
+        "mkpts0": [
+            [
+                512.0,
+                345.0
+            ],
+            [
+                752.0,
+                214.0
+            ],
+            [
+                742.0,
+                343.0
+            ],
+            [
+                676.0,
+                382.0
+            ]
+        ],
+        "mkpts1": [
+            [
+                708.0,
+                414.0
+            ],
+            [
+                595.0,
+                200.0
+            ],
+            [
+                628.0,
+                309.0
+            ],
+            [
+                569.0,
+                364.0
+            ]
+        ],
+        "mpts3D": [
+            [
+                0.004999999888241291,
+                -0.03799999877810478,
+                0.00800000037997961
+            ],
+            [
+                -0.04399999976158142,
+                -0.007000000216066837,
+                0.014999999664723873
+            ],
+            [
+                -0.014000000432133675,
+                0.007000000216066837,
+                0.014999999664723873
+            ],
+            [
+                0.0,
+                0.0,
+                0.014999999664723873
+            ]
+        ],
+        "mconf": [
+            0.08506888151168823,
+            0.08578744530677795,
+            0.041245121508836746,
+            0.05474711209535599
+        ]
+    },
+    {
+        "frame": 103,
+        "num_inliers": 0,
+        "total_matches": 6,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 104,
+        "num_inliers": 0,
+        "total_matches": 4,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 105,
+        "rotation_matrix": [
+            [
+                0.11201188106716986,
+                -0.42466544629664726,
+                -0.8983944552486196
+            ],
+            [
+                0.9650571978592901,
+                -0.1690381269188227,
+                0.20022666282928242
+            ],
+            [
+                -0.23689226108036832,
+                -0.889429800697866,
+                0.390892167062459
+            ]
+        ],
+        "translation_vector": [
+            0.011975553821262325,
+            -0.015432348594337258,
+            0.35185101381892653
+        ],
+        "camera_position": [
+            0.09690247700748357,
+            0.3154237257041207,
+            -0.12368706646458758
+        ],
+        "num_inliers": 4,
+        "total_matches": 4,
+        "inlier_ratio": 1.0,
+        "reprojection_errors": [
+            10.416869163513184,
+            11.895244598388672,
+            39.212318420410156,
+            37.774085998535156
+        ],
+        "mean_reprojection_error": 24.824630737304688,
+        "std_reprojection_error": 13.688010215759277,
+        "inliers": [
+            0,
+            1,
+            2,
+            3
+        ],
+        "mkpts0": [
+            [
+                512.0,
+                345.0
+            ],
+            [
+                752.0,
+                214.0
+            ],
+            [
+                742.0,
+                343.0
+            ],
+            [
+                676.0,
+                382.0
+            ]
+        ],
+        "mkpts1": [
+            [
+                733.0,
+                406.0
+            ],
+            [
+                612.0,
+                196.0
+            ],
+            [
+                651.0,
+                303.0
+            ],
+            [
+                594.0,
+                359.0
+            ]
+        ],
+        "mpts3D": [
+            [
+                0.004999999888241291,
+                -0.03799999877810478,
+                0.00800000037997961
+            ],
+            [
+                -0.04399999976158142,
+                -0.007000000216066837,
+                0.014999999664723873
+            ],
+            [
+                -0.014000000432133675,
+                0.007000000216066837,
+                0.014999999664723873
+            ],
+            [
+                0.0,
+                0.0,
+                0.014999999664723873
+            ]
+        ],
+        "mconf": [
+            0.09913855791091919,
+            0.11277385801076889,
+            0.03317440301179886,
+            0.06902346014976501
+        ]
+    },
+    {
+        "frame": 106,
+        "num_inliers": 0,
+        "total_matches": 5,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 107,
+        "rotation_matrix": [
+            [
+                -0.2025402926951534,
+                0.9702038504965946,
+                -0.13297337446475155
+            ],
+            [
+                0.7221801028452313,
+                0.05627384957083159,
+                -0.6894121792577579
+            ],
+            [
+                -0.6613874272235698,
+                -0.23566446982110162,
+                -0.7120596384956293
+            ]
+        ],
+        "translation_vector": [
+            -0.0034720199882511266,
+            -0.003806460400243505,
+            0.27400965004604977
+        ],
+        "camera_position": [
+            0.18327226349704792,
+            0.06815711024553092,
+            0.19202530598226702
+        ],
+        "num_inliers": 4,
+        "total_matches": 4,
+        "inlier_ratio": 1.0,
+        "reprojection_errors": [
+            0.36064818501472473,
+            0.6251651048660278,
+            1.5937905311584473,
+            1.3154287338256836
+        ],
+        "mean_reprojection_error": 0.9737581014633179,
+        "std_reprojection_error": 0.49964985251426697,
+        "inliers": [
+            0,
+            1,
+            2,
+            3
+        ],
+        "mkpts0": [
+            [
+                512.0,
+                345.0
+            ],
+            [
+                752.0,
+                214.0
+            ],
+            [
+                742.0,
+                343.0
+            ],
+            [
+                676.0,
+                382.0
+            ]
+        ],
+        "mkpts1": [
+            [
+                402.0,
+                372.0
+            ],
+            [
+                620.0,
+                175.0
+            ],
+            [
+                663.0,
+                281.0
+            ],
+            [
+                605.0,
+                334.0
+            ]
+        ],
+        "mpts3D": [
+            [
+                0.004999999888241291,
+                -0.03799999877810478,
+                0.00800000037997961
+            ],
+            [
+                -0.04399999976158142,
+                -0.007000000216066837,
+                0.014999999664723873
+            ],
+            [
+                -0.014000000432133675,
+                0.007000000216066837,
+                0.014999999664723873
+            ],
+            [
+                0.0,
+                0.0,
+                0.014999999664723873
+            ]
+        ],
+        "mconf": [
+            0.1524335891008377,
+            0.09639204293489456,
+            0.06806273013353348,
+            0.030320169404149055
+        ]
+    },
+    {
+        "frame": 108,
+        "num_inliers": 0,
+        "total_matches": 5,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 109,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 110,
+        "num_inliers": 0,
+        "total_matches": 6,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 111,
+        "rotation_matrix": [
+            [
+                -0.11494685746561017,
+                0.988033611982245,
+                -0.10284357807903799
+            ],
+            [
+                0.7214001598594466,
+                0.011853888310191296,
+                -0.6924169947991561
+            ],
+            [
+                -0.6829121680813323,
+                -0.15378253127468022,
+                -0.7141301728405027
+            ]
+        ],
+        "translation_vector": [
+            -0.000995525390562579,
+            -0.0013082438448505733,
+            0.27296339763904603
+        ],
+        "camera_position": [
+            0.1872393604921657,
+            0.0429761225581465,
+            0.1939231646703529
+        ],
+        "num_inliers": 4,
+        "total_matches": 6,
+        "inlier_ratio": 0.6666666666666666,
+        "reprojection_errors": [
+            0.09511598944664001,
+            0.14208996295928955,
+            0.36628320813179016,
+            0.31753429770469666
+        ],
+        "mean_reprojection_error": 0.2302558720111847,
+        "std_reprojection_error": 0.1141895055770874,
+        "inliers": [
+            0,
+            3,
+            4,
+            5
+        ],
+        "mkpts0": [
+            [
+                512.0,
+                345.0
+            ],
+            [
+                833.0,
+                491.0
+            ],
+            [
+                927.0,
+                217.0
+            ],
+            [
+                752.0,
+                214.0
+            ],
+            [
+                742.0,
+                343.0
+            ],
+            [
+                676.0,
+                382.0
+            ]
+        ],
+        "mkpts1": [
+            [
+                412.0,
+                395.0
+            ],
+            [
+                1082.0,
+                325.0
+            ],
+            [
+                223.0,
+                359.0
+            ],
+            [
+                615.0,
+                189.0
+            ],
+            [
+                672.0,
+                293.0
+            ],
+            [
+                623.0,
+                348.0
+            ]
+        ],
+        "mpts3D": [
+            [
+                0.004999999888241291,
+                -0.03799999877810478,
+                0.00800000037997961
+            ],
+            [
+                0.004999999888241291,
+                0.03799999877810478,
+                0.00800000037997961
+            ],
+            [
+                -0.04399999976158142,
+                0.03400000184774399,
+                0.03500000014901161
+            ],
+            [
+                -0.04399999976158142,
+                -0.007000000216066837,
+                0.014999999664723873
+            ],
+            [
+                -0.014000000432133675,
+                0.007000000216066837,
+                0.014999999664723873
+            ],
+            [
+                0.0,
+                0.0,
+                0.014999999664723873
+            ]
+        ],
+        "mconf": [
+            0.11522014439105988,
+            0.059481482952833176,
+            0.15872640907764435,
+            0.10894134640693665,
+            0.03178132697939873,
+            0.06664019078016281
+        ]
+    },
+    {
+        "frame": 112,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 113,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 114,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 115,
+        "num_inliers": 0,
+        "total_matches": 3,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 116,
+        "rotation_matrix": [
+            [
+                -0.032987713421742004,
+                0.9927196061522521,
+                -0.11584297270064653
+            ],
+            [
+                0.7170167221444388,
+                -0.05724030951739312,
+                -0.6947017828763633
+            ],
+            [
+                -0.6962749679030906,
+                -0.10597797189638397,
+                -0.7099083310852744
+            ]
+        ],
+        "translation_vector": [
+            -0.003139485345557,
+            0.004293257395700574,
+            0.2670915491366015
+        ],
+        "camera_position": [
+            0.1827872580142154,
+            0.03166819672609027,
+            0.1922293621465062
+        ],
+        "num_inliers": 4,
+        "total_matches": 4,
+        "inlier_ratio": 1.0,
+        "reprojection_errors": [
+            0.5559466481208801,
+            1.0009922981262207,
+            2.4989805221557617,
+            2.028313398361206
+        ],
+        "mean_reprojection_error": 1.5210583209991455,
+        "std_reprojection_error": 0.7771018147468567,
+        "inliers": [
+            0,
+            1,
+            2,
+            3
+        ],
+        "mkpts0": [
+            [
+                512.0,
+                345.0
+            ],
+            [
+                752.0,
+                214.0
+            ],
+            [
+                742.0,
+                343.0
+            ],
+            [
+                676.0,
+                382.0
+            ]
+        ],
+        "mkpts1": [
+            [
+                394.0,
+                442.0
+            ],
+            [
+                582.0,
+                218.0
+            ],
+            [
+                655.0,
+                320.0
+            ],
+            [
+                607.0,
+                380.0
+            ]
+        ],
+        "mpts3D": [
+            [
+                0.004999999888241291,
+                -0.03799999877810478,
+                0.00800000037997961
+            ],
+            [
+                -0.04399999976158142,
+                -0.007000000216066837,
+                0.014999999664723873
+            ],
+            [
+                -0.014000000432133675,
+                0.007000000216066837,
+                0.014999999664723873
+            ],
+            [
+                0.0,
+                0.0,
+                0.014999999664723873
+            ]
+        ],
+        "mconf": [
+            0.1225011795759201,
+            0.1385630965232849,
+            0.0334223173558712,
+            0.0414806567132473
+        ]
+    },
+    {
+        "frame": 117,
+        "num_inliers": 0,
+        "total_matches": 3,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 118,
+        "num_inliers": 0,
+        "total_matches": 3,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 119,
+        "rotation_matrix": [
+            [
+                -0.6290963629349478,
+                -0.030982371025955024,
+                0.7767096361109669
+            ],
+            [
+                0.7303928904699932,
+                -0.36550585797856194,
+                0.577002333907103
+            ],
+            [
+                0.2660150215550037,
+                0.9302932658409205,
+                0.2525677094129919
+            ]
+        ],
+        "translation_vector": [
+            -0.05982835508310727,
+            -0.01590011511041443,
+            0.32181837419112874
+        ],
+        "camera_position": [
+            -0.11163299129611151,
+            -0.30705067584432794,
+            -0.025637266182647805
+        ],
+        "num_inliers": 4,
+        "total_matches": 4,
+        "inlier_ratio": 1.0,
+        "reprojection_errors": [
+            3.969313383102417,
+            1.1814675331115723,
+            14.27070140838623,
+            11.283233642578125
+        ],
+        "mean_reprojection_error": 7.676178932189941,
+        "std_reprojection_error": 5.301431179046631,
+        "inliers": [
+            0,
+            1,
+            2,
+            3
+        ],
+        "mkpts0": [
+            [
+                512.0,
+                345.0
+            ],
+            [
+                927.0,
+                217.0
+            ],
+            [
+                752.0,
+                214.0
+            ],
+            [
+                851.0,
+                173.0
+            ]
+        ],
+        "mkpts1": [
+            [
+                346.0,
+                453.0
+            ],
+            [
+                612.0,
+                239.0
+            ],
+            [
+                533.0,
+                219.0
+            ],
+            [
+                602.0,
+                152.0
+            ]
+        ],
+        "mpts3D": [
+            [
+                0.004999999888241291,
+                -0.03799999877810478,
+                0.00800000037997961
+            ],
+            [
+                -0.04399999976158142,
+                0.03400000184774399,
+                0.03500000014901161
+            ],
+            [
+                -0.04399999976158142,
+                -0.007000000216066837,
+                0.014999999664723873
+            ],
+            [
+                -0.06400000303983688,
+                0.007000000216066837,
+                0.014999999664723873
+            ]
+        ],
+        "mconf": [
+            0.08365346491336823,
+            0.034444913268089294,
+            0.13254551589488983,
+            0.03643934428691864
+        ]
+    },
+    {
+        "frame": 120,
+        "num_inliers": 0,
+        "total_matches": 0,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 121,
+        "num_inliers": 0,
+        "total_matches": 0,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 122,
+        "num_inliers": 0,
+        "total_matches": 0,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 123,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 124,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 125,
+        "rotation_matrix": [
+            [
+                0.06092597079197093,
+                0.9955283650228952,
+                -0.07218933797935423
+            ],
+            [
+                0.6962381256990313,
+                -0.09421030891517623,
+                -0.7116016371659126
+            ],
+            [
+                -0.7152205942268134,
+                -0.006905948808710594,
+                -0.69886465747303
+            ]
+        ],
+        "translation_vector": [
+            -0.0057673818933353434,
+            0.0028584277218711993,
+            0.26035979956331073
+        ],
+        "camera_position": [
+            0.18457592753770286,
+            0.0078089170730543484,
+            0.18357398050740986
+        ],
+        "num_inliers": 4,
+        "total_matches": 4,
+        "inlier_ratio": 1.0,
+        "reprojection_errors": [
+            0.3677399754524231,
+            0.6364188194274902,
+            1.8909022808074951,
+            1.617630124092102
+        ],
+        "mean_reprojection_error": 1.128172755241394,
+        "std_reprojection_error": 0.6405866146087646,
+        "inliers": [
+            0,
+            1,
+            2,
+            3
+        ],
+        "mkpts0": [
+            [
+                512.0,
+                345.0
+            ],
+            [
+                752.0,
+                214.0
+            ],
+            [
+                742.0,
+                343.0
+            ],
+            [
+                676.0,
+                382.0
+            ]
+        ],
+        "mkpts1": [
+            [
+                372.0,
+                442.0
+            ],
+            [
+                548.0,
+                210.0
+            ],
+            [
+                635.0,
+                310.0
+            ],
+            [
+                595.0,
+                367.0
+            ]
+        ],
+        "mpts3D": [
+            [
+                0.004999999888241291,
+                -0.03799999877810478,
+                0.00800000037997961
+            ],
+            [
+                -0.04399999976158142,
+                -0.007000000216066837,
+                0.014999999664723873
+            ],
+            [
+                -0.014000000432133675,
+                0.007000000216066837,
+                0.014999999664723873
+            ],
+            [
+                0.0,
+                0.0,
+                0.014999999664723873
+            ]
+        ],
+        "mconf": [
+            0.16320808231830597,
+            0.12407409399747849,
+            0.05377495661377907,
+            0.058437664061784744
+        ]
+    },
+    {
+        "frame": 126,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 127,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 128,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 129,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 130,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 131,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 132,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 133,
+        "num_inliers": 0,
+        "total_matches": 0,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 134,
+        "num_inliers": 0,
+        "total_matches": 0,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 135,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 136,
+        "num_inliers": 0,
+        "total_matches": 3,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 137,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 138,
+        "num_inliers": 0,
+        "total_matches": 0,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 139,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 140,
+        "num_inliers": 0,
+        "total_matches": 3,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 141,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 142,
+        "num_inliers": 0,
+        "total_matches": 5,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 143,
+        "rotation_matrix": [
+            [
+                -0.20233965081763117,
+                0.9698244007041128,
+                0.13601212264319462
+            ],
+            [
+                0.25973657742278417,
+                -0.08076608947576258,
+                0.9622960818477289
+            ],
+            [
+                0.9442433881450784,
+                0.23003797640759527,
+                -0.23555668819755782
+            ]
+        ],
+        "translation_vector": [
+            -0.005592428544601468,
+            -0.021188736248667617,
+            0.17498286513712502
+        ],
+        "camera_position": [
+            -0.16085449365020646,
+            -0.03654036190813692,
+            0.0623688601515005
+        ],
+        "num_inliers": 4,
+        "total_matches": 4,
+        "inlier_ratio": 1.0,
+        "reprojection_errors": [
+            5.133249282836914,
+            3.3589420318603516,
+            18.639760971069336,
+            20.621490478515625
+        ],
+        "mean_reprojection_error": 11.938360214233398,
+        "std_reprojection_error": 7.749539852142334,
+        "inliers": [
+            0,
+            1,
+            2,
+            3
+        ],
+        "mkpts0": [
+            [
+                512.0,
+                345.0
+            ],
+            [
+                752.0,
+                214.0
+            ],
+            [
+                742.0,
+                343.0
+            ],
+            [
+                676.0,
+                382.0
+            ]
+        ],
+        "mkpts1": [
+            [
+                251.0,
+                331.0
+            ],
+            [
+                624.0,
+                207.0
+            ],
+            [
+                678.0,
+                306.0
+            ],
+            [
+                626.0,
+                362.0
+            ]
+        ],
+        "mpts3D": [
+            [
+                0.004999999888241291,
+                -0.03799999877810478,
+                0.00800000037997961
+            ],
+            [
+                -0.04399999976158142,
+                -0.007000000216066837,
+                0.014999999664723873
+            ],
+            [
+                -0.014000000432133675,
+                0.007000000216066837,
+                0.014999999664723873
+            ],
+            [
+                0.0,
+                0.0,
+                0.014999999664723873
+            ]
+        ],
+        "mconf": [
+            0.09158719331026077,
+            0.05741637572646141,
+            0.047507744282484055,
+            0.060836851596832275
+        ]
+    },
+    {
+        "frame": 144,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 145,
+        "rotation_matrix": [
+            [
+                0.6752043206335943,
+                0.20834630565913675,
+                -0.707595182513219
+            ],
+            [
+                0.726947198380121,
+                -0.025276479327866752,
+                0.6862280017312619
+            ],
+            [
+                0.12508755399726668,
+                -0.9777284472239607,
+                -0.1685235512443392
+            ]
+        ],
+        "translation_vector": [
+            0.019011727311140914,
+            -0.011459123474371351,
+            0.12798416100116916
+        ],
+        "camera_position": [
+            -0.02051584836763254,
+            0.12088308555784397,
+            0.04288452337497224
+        ],
+        "num_inliers": 4,
+        "total_matches": 4,
+        "inlier_ratio": 1.0,
+        "reprojection_errors": [
+            46.32292938232422,
+            25.336593627929688,
+            58.55732345581055,
+            118.39871215820312
+        ],
+        "mean_reprojection_error": 62.15388870239258,
+        "std_reprojection_error": 34.57798385620117,
+        "inliers": [
+            0,
+            1,
+            2,
+            3
+        ],
+        "mkpts0": [
+            [
+                512.0,
+                345.0
+            ],
+            [
+                833.0,
+                491.0
+            ],
+            [
+                742.0,
+                343.0
+            ],
+            [
+                676.0,
+                382.0
+            ]
+        ],
+        "mkpts1": [
+            [
+                766.0,
+                406.0
+            ],
+            [
+                1080.0,
+                354.0
+            ],
+            [
+                682.0,
+                309.0
+            ],
+            [
+                629.0,
+                361.0
+            ]
+        ],
+        "mpts3D": [
+            [
+                0.004999999888241291,
+                -0.03799999877810478,
+                0.00800000037997961
+            ],
+            [
+                0.004999999888241291,
+                0.03799999877810478,
+                0.00800000037997961
+            ],
+            [
+                -0.014000000432133675,
+                0.007000000216066837,
+                0.014999999664723873
+            ],
+            [
+                0.0,
+                0.0,
+                0.014999999664723873
+            ]
+        ],
+        "mconf": [
+            0.06806928664445877,
+            0.0837237760424614,
+            0.04576048627495766,
+            0.030681466683745384
+        ]
+    },
+    {
+        "frame": 146,
+        "num_inliers": 0,
+        "total_matches": 5,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 147,
+        "rotation_matrix": [
+            [
+                -0.23930970236258475,
+                0.9634151908779462,
+                -0.12067326274175749
+            ],
+            [
+                0.7104455741362707,
+                0.0890320118915916,
+                -0.6980976916225405
+            ],
+            [
+                -0.6618141374625625,
+                -0.25279333623366257,
+                -0.7057602826814064
+            ]
+        ],
+        "translation_vector": [
+            0.004199352511036683,
+            -0.0002626812631431467,
+            0.28139617319045673
+        ],
+        "camera_position": [
+            0.1874235321856483,
+            0.06711274446456074,
+            0.19892161512183962
+        ],
+        "num_inliers": 4,
+        "total_matches": 6,
+        "inlier_ratio": 0.6666666666666666,
+        "reprojection_errors": [
+            0.23456978797912598,
+            0.33080846071243286,
+            0.8889440894126892,
+            0.7892816662788391
+        ],
+        "mean_reprojection_error": 0.5609009861946106,
+        "std_reprojection_error": 0.282490998506546,
+        "inliers": [
+            0,
+            3,
+            4,
+            5
+        ],
+        "mkpts0": [
+            [
+                512.0,
+                345.0
+            ],
+            [
+                833.0,
+                491.0
+            ],
+            [
+                927.0,
+                217.0
+            ],
+            [
+                752.0,
+                214.0
+            ],
+            [
+                742.0,
+                343.0
+            ],
+            [
+                676.0,
+                382.0
+            ]
+        ],
+        "mkpts1": [
+            [
+                451.0,
+                385.0
+            ],
+            [
+                1108.0,
+                367.0
+            ],
+            [
+                66.0,
+                31.0
+            ],
+            [
+                669.0,
+                200.0
+            ],
+            [
+                707.0,
+                305.0
+            ],
+            [
+                651.0,
+                356.0
+            ]
+        ],
+        "mpts3D": [
+            [
+                0.004999999888241291,
+                -0.03799999877810478,
+                0.00800000037997961
+            ],
+            [
+                0.004999999888241291,
+                0.03799999877810478,
+                0.00800000037997961
+            ],
+            [
+                -0.04399999976158142,
+                0.03400000184774399,
+                0.03500000014901161
+            ],
+            [
+                -0.04399999976158142,
+                -0.007000000216066837,
+                0.014999999664723873
+            ],
+            [
+                -0.014000000432133675,
+                0.007000000216066837,
+                0.014999999664723873
+            ],
+            [
+                0.0,
+                0.0,
+                0.014999999664723873
+            ]
+        ],
+        "mconf": [
+            0.09910353273153305,
+            0.09111787378787994,
+            0.03748532012104988,
+            0.08690010011196136,
+            0.04600982367992401,
+            0.19618138670921326
+        ]
+    },
+    {
+        "frame": 148,
+        "num_inliers": 0,
+        "total_matches": 5,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 149,
+        "rotation_matrix": [
+            [
+                -0.2989417866800633,
+                0.9466551810001667,
+                -0.12032363218450942
+            ],
+            [
+                0.702220068589045,
+                0.13284866551473373,
+                -0.6994556507325904
+            ],
+            [
+                -0.6461584816802519,
+                -0.29359019117895624,
+                -0.7044742835591484
+            ]
+        ],
+        "translation_vector": [
+            0.0011647809413539527,
+            -0.00014350494917096044,
+            0.27782158097655313
+        ],
+        "camera_position": [
+            0.17996574469276566,
+            0.08048210960067526,
+            0.1957579345416845
+        ],
+        "num_inliers": 4,
+        "total_matches": 5,
+        "inlier_ratio": 0.8,
+        "reprojection_errors": [
+            0.2732257544994354,
+            0.36739036440849304,
+            1.0478549003601074,
+            0.9502069354057312
+        ],
+        "mean_reprojection_error": 0.6596695184707642,
+        "std_reprojection_error": 0.342733770608902,
+        "inliers": [
+            0,
+            2,
+            3,
+            4
+        ],
+        "mkpts0": [
+            [
+                512.0,
+                345.0
+            ],
+            [
+                833.0,
+                491.0
+            ],
+            [
+                752.0,
+                214.0
+            ],
+            [
+                742.0,
+                343.0
+            ],
+            [
+                676.0,
+                382.0
+            ]
+        ],
+        "mkpts1": [
+            [
+                435.0,
+                376.0
+            ],
+            [
+                1097.0,
+                383.0
+            ],
+            [
+                668.0,
+                198.0
+            ],
+            [
+                695.0,
+                306.0
+            ],
+            [
+                634.0,
+                356.0
+            ]
+        ],
+        "mpts3D": [
+            [
+                0.004999999888241291,
+                -0.03799999877810478,
+                0.00800000037997961
+            ],
+            [
+                0.004999999888241291,
+                0.03799999877810478,
+                0.00800000037997961
+            ],
+            [
+                -0.04399999976158142,
+                -0.007000000216066837,
+                0.014999999664723873
+            ],
+            [
+                -0.014000000432133675,
+                0.007000000216066837,
+                0.014999999664723873
+            ],
+            [
+                0.0,
+                0.0,
+                0.014999999664723873
+            ]
+        ],
+        "mconf": [
+            0.22946606576442719,
+            0.07951702922582626,
+            0.2611234486103058,
+            0.1458953469991684,
+            0.2887323498725891
+        ]
+    },
+    {
+        "frame": 150,
+        "num_inliers": 0,
+        "total_matches": 6,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 151,
+        "num_inliers": 0,
+        "total_matches": 3,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 152,
+        "num_inliers": 0,
+        "total_matches": 5,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 153,
+        "num_inliers": 0,
+        "total_matches": 3,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 154,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 155,
+        "num_inliers": 0,
+        "total_matches": 5,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 156,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 157,
+        "num_inliers": 0,
+        "total_matches": 3,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 158,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 159,
+        "num_inliers": 0,
+        "total_matches": 3,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 160,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 161,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 162,
+        "rotation_matrix": [
+            [
+                0.691331106102671,
+                0.39436742568950095,
+                0.6054218655531809
+            ],
+            [
+                0.4340046050099961,
+                0.4432563828134405,
+                -0.7843237736580871
+            ],
+            [
+                -0.5776688537258825,
+                0.8049832996094893,
+                0.1352796466023039
+            ]
+        ],
+        "translation_vector": [
+            0.006366106711341306,
+            0.021161412241509185,
+            0.06650519760760844
+        ],
+        "camera_position": [
+            0.02483274331315136,
+            -0.0654260895721655,
+            0.003746418874130391
+        ],
+        "num_inliers": 4,
+        "total_matches": 4,
+        "inlier_ratio": 1.0,
+        "reprojection_errors": [
+            38.562110900878906,
+            80.6963119506836,
+            340.9014587402344,
+            365.07208251953125
+        ],
+        "mean_reprojection_error": 206.3079833984375,
+        "std_reprojection_error": 147.68075561523438,
+        "inliers": [
+            0,
+            1,
+            2,
+            3
+        ],
+        "mkpts0": [
+            [
+                512.0,
+                345.0
+            ],
+            [
+                927.0,
+                217.0
+            ],
+            [
+                752.0,
+                214.0
+            ],
+            [
+                851.0,
+                173.0
+            ]
+        ],
+        "mkpts1": [
+            [
+                657.0,
+                445.0
+            ],
+            [
+                688.0,
+                301.0
+            ],
+            [
+                29.0,
+                37.0
+            ],
+            [
+                624.0,
+                329.0
+            ]
+        ],
+        "mpts3D": [
+            [
+                0.004999999888241291,
+                -0.03799999877810478,
+                0.00800000037997961
+            ],
+            [
+                -0.04399999976158142,
+                0.03400000184774399,
+                0.03500000014901161
+            ],
+            [
+                -0.04399999976158142,
+                -0.007000000216066837,
+                0.014999999664723873
+            ],
+            [
+                -0.06400000303983688,
+                0.007000000216066837,
+                0.014999999664723873
+            ]
+        ],
+        "mconf": [
+            0.061327069997787476,
+            0.2681058645248413,
+            0.2579711675643921,
+            0.05029044300317764
+        ]
+    },
+    {
+        "frame": 163,
+        "num_inliers": 0,
+        "total_matches": 3,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 164,
+        "rotation_matrix": [
+            [
+                0.917659368329794,
+                0.2205555993971503,
+                0.3305397272509417
+            ],
+            [
+                0.321017348072303,
+                0.07878199131169314,
+                -0.9437908984947831
+            ],
+            [
+                -0.23419894524354512,
+                0.9721875464227712,
+                0.0014928587618812234
+            ]
+        ],
+        "translation_vector": [
+            0.008132120486861374,
+            0.010517749164303801,
+            0.07178482604625717
+        ],
+        "camera_position": [
+            0.005973034050955324,
+            -0.07241050783592651,
+            0.007131402439688811
+        ],
+        "num_inliers": 4,
+        "total_matches": 4,
+        "inlier_ratio": 1.0,
+        "reprojection_errors": [
+            4.551192760467529,
+            36.002845764160156,
+            23.977664947509766,
+            63.548702239990234
+        ],
+        "mean_reprojection_error": 32.020103454589844,
+        "std_reprojection_error": 21.384204864501953,
+        "inliers": [
+            0,
+            1,
+            2,
+            3
+        ],
+        "mkpts0": [
+            [
+                512.0,
+                345.0
+            ],
+            [
+                833.0,
+                491.0
+            ],
+            [
+                752.0,
+                214.0
+            ],
+            [
+                742.0,
+                343.0
+            ]
+        ],
+        "mkpts1": [
+            [
+                958.0,
+                485.0
+            ],
+            [
+                999.0,
+                497.0
+            ],
+            [
+                64.0,
+                22.0
+            ],
+            [
+                633.0,
+                325.0
+            ]
+        ],
+        "mpts3D": [
+            [
+                0.004999999888241291,
+                -0.03799999877810478,
+                0.00800000037997961
+            ],
+            [
+                0.004999999888241291,
+                0.03799999877810478,
+                0.00800000037997961
+            ],
+            [
+                -0.04399999976158142,
+                -0.007000000216066837,
+                0.014999999664723873
+            ],
+            [
+                -0.014000000432133675,
+                0.007000000216066837,
+                0.014999999664723873
+            ]
+        ],
+        "mconf": [
+            0.19689364731311798,
+            0.03234485909342766,
+            0.1309584677219391,
+            0.04063471034169197
+        ]
+    },
+    {
+        "frame": 165,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 166,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 167,
+        "num_inliers": 0,
+        "total_matches": 3,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 168,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 169,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 170,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 171,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 172,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 173,
+        "rotation_matrix": [
+            [
+                -0.15028924196190957,
+                -0.9693214211536982,
+                0.19449711114330104
+            ],
+            [
+                0.4346830755632402,
+                -0.24148300367151063,
+                -0.8676039319624294
+            ],
+            [
+                0.8879548229326745,
+                -0.045846934797870276,
+                0.45763991412489674
+            ]
+        ],
+        "translation_vector": [
+            -0.004192035179161712,
+            0.00921297207349463,
+            0.1639341695902775
+        ],
+        "camera_position": [
+            -0.15020087735648865,
+            0.005677225856006362,
+            -0.06621426976524881
+        ],
+        "num_inliers": 4,
+        "total_matches": 4,
+        "inlier_ratio": 1.0,
+        "reprojection_errors": [
+            19.918996810913086,
+            13.638294219970703,
+            67.02420806884766,
+            74.45526123046875
+        ],
+        "mean_reprojection_error": 43.75918960571289,
+        "std_reprojection_error": 27.198957443237305,
+        "inliers": [
+            0,
+            1,
+            2,
+            3
+        ],
+        "mkpts0": [
+            [
+                512.0,
+                345.0
+            ],
+            [
+                752.0,
+                214.0
+            ],
+            [
+                742.0,
+                343.0
+            ],
+            [
+                676.0,
+                382.0
+            ]
+        ],
+        "mkpts1": [
+            [
+                950.0,
+                544.0
+            ],
+            [
+                765.0,
+                166.0
+            ],
+            [
+                643.0,
+                328.0
+            ],
+            [
+                558.0,
+                353.0
+            ]
+        ],
+        "mpts3D": [
+            [
+                0.004999999888241291,
+                -0.03799999877810478,
+                0.00800000037997961
+            ],
+            [
+                -0.04399999976158142,
+                -0.007000000216066837,
+                0.014999999664723873
+            ],
+            [
+                -0.014000000432133675,
+                0.007000000216066837,
+                0.014999999664723873
+            ],
+            [
+                0.0,
+                0.0,
+                0.014999999664723873
+            ]
+        ],
+        "mconf": [
+            0.1201799213886261,
+            0.11740020662546158,
+            0.07865627110004425,
+            0.05175325274467468
+        ]
+    },
+    {
+        "frame": 174,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 175,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 176,
+        "num_inliers": 0,
+        "total_matches": 3,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 177,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 178,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 179,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 180,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 181,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 182,
+        "num_inliers": 0,
+        "total_matches": 3,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 183,
+        "rotation_matrix": [
+            [
+                -0.8773154305360212,
+                0.4165825886340827,
+                0.23827837121804063
+            ],
+            [
+                0.4533465003567544,
+                0.5564771034614335,
+                0.696283120531768
+            ],
+            [
+                0.15746296694041745,
+                0.7188825913666986,
+                -0.6770622082735243
+            ]
+        ],
+        "translation_vector": [
+            -0.021713431632334024,
+            -0.024891290201310753,
+            0.2519572838956651
+        ],
+        "camera_position": [
+            -0.04743909078326747,
+            -0.1582308345304604,
+            0.19309598136333556
+        ],
+        "num_inliers": 4,
+        "total_matches": 4,
+        "inlier_ratio": 1.0,
+        "reprojection_errors": [
+            1.780983805656433,
+            1.1582070589065552,
+            5.158486843109131,
+            6.030336380004883
+        ],
+        "mean_reprojection_error": 3.532003402709961,
+        "std_reprojection_error": 2.0969083309173584,
+        "inliers": [
+            0,
+            1,
+            2,
+            3
+        ],
+        "mkpts0": [
+            [
+                512.0,
+                345.0
+            ],
+            [
+                752.0,
+                214.0
+            ],
+            [
+                742.0,
+                343.0
+            ],
+            [
+                676.0,
+                382.0
+            ]
+        ],
+        "mkpts1": [
+            [
+                359.0,
+                149.0
+            ],
+            [
+                755.0,
+                162.0
+            ],
+            [
+                615.0,
+                308.0
+            ],
+            [
+                529.0,
+                327.0
+            ]
+        ],
+        "mpts3D": [
+            [
+                0.004999999888241291,
+                -0.03799999877810478,
+                0.00800000037997961
+            ],
+            [
+                -0.04399999976158142,
+                -0.007000000216066837,
+                0.014999999664723873
+            ],
+            [
+                -0.014000000432133675,
+                0.007000000216066837,
+                0.014999999664723873
+            ],
+            [
+                0.0,
+                0.0,
+                0.014999999664723873
+            ]
+        ],
+        "mconf": [
+            0.1622023582458496,
+            0.16207943856716156,
+            0.215831458568573,
+            0.20987221598625183
+        ]
+    },
+    {
+        "frame": 184,
+        "num_inliers": 0,
+        "total_matches": 5,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 185,
+        "num_inliers": 0,
+        "total_matches": 5,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 186,
+        "rotation_matrix": [
+            [
+                -0.9096684732372802,
+                -0.21224978664040967,
+                0.3570060179734457
+            ],
+            [
+                0.3798200692552887,
+                -0.07733479425418144,
+                0.9218221328372252
+            ],
+            [
+                -0.1680475640676275,
+                0.9741505826456011,
+                0.150965752878501
+            ]
+        ],
+        "translation_vector": [
+            -0.013715461724621807,
+            -0.016703070967125776,
+            0.08398985407925098
+        ],
+        "camera_position": [
+            0.007981928829142254,
+            -0.0860215976690027,
+            0.007614171323592295
+        ],
+        "num_inliers": 4,
+        "total_matches": 4,
+        "inlier_ratio": 1.0,
+        "reprojection_errors": [
+            4.579200744628906,
+            18.25056266784668,
+            74.0037841796875,
+            57.1568489074707
+        ],
+        "mean_reprojection_error": 38.49760055541992,
+        "std_reprojection_error": 28.1480770111084,
+        "inliers": [
+            0,
+            1,
+            2,
+            3
+        ],
+        "mkpts0": [
+            [
+                512.0,
+                345.0
+            ],
+            [
+                752.0,
+                214.0
+            ],
+            [
+                742.0,
+                343.0
+            ],
+            [
+                676.0,
+                382.0
+            ]
+        ],
+        "mkpts1": [
+            [
+                398.0,
+                274.0
+            ],
+            [
+                1237.0,
+                72.0
+            ],
+            [
+                622.0,
+                316.0
+            ],
+            [
+                536.0,
+                331.0
+            ]
+        ],
+        "mpts3D": [
+            [
+                0.004999999888241291,
+                -0.03799999877810478,
+                0.00800000037997961
+            ],
+            [
+                -0.04399999976158142,
+                -0.007000000216066837,
+                0.014999999664723873
+            ],
+            [
+                -0.014000000432133675,
+                0.007000000216066837,
+                0.014999999664723873
+            ],
+            [
+                0.0,
+                0.0,
+                0.014999999664723873
+            ]
+        ],
+        "mconf": [
+            0.0761229395866394,
+            0.05840969458222389,
+            0.06400524079799652,
+            0.1189148798584938
+        ]
+    },
+    {
+        "frame": 187,
+        "rotation_matrix": [
+            [
+                -0.7692904022914782,
+                0.6386569292318858,
+                0.017595558709907866
+            ],
+            [
+                0.4792073711066358,
+                0.5585739032728015,
+                0.6770195640154385
+            ],
+            [
+                0.42255481587515104,
+                0.5292565741931653,
+                -0.7357546508545032
+            ]
+        ],
+        "translation_vector": [
+            0.004610487657473527,
+            -0.011255194455730666,
+            0.14305307825203112
+        ],
+        "camera_position": [
+            -0.05150739108995821,
+            -0.07236944411380847,
+            0.11279083038005445
+        ],
+        "num_inliers": 4,
+        "total_matches": 4,
+        "inlier_ratio": 1.0,
+        "reprojection_errors": [
+            75.933837890625,
+            66.77328491210938,
+            118.42084503173828,
+            247.99168395996094
+        ],
+        "mean_reprojection_error": 127.2799072265625,
+        "std_reprojection_error": 72.36588287353516,
+        "inliers": [
+            0,
+            1,
+            2,
+            3
+        ],
+        "mkpts0": [
+            [
+                512.0,
+                345.0
+            ],
+            [
+                833.0,
+                491.0
+            ],
+            [
+                752.0,
+                214.0
+            ],
+            [
+                742.0,
+                343.0
+            ]
+        ],
+        "mkpts1": [
+            [
+                389.0,
+                156.0
+            ],
+            [
+                943.0,
+                606.0
+            ],
+            [
+                1230.0,
+                26.0
+            ],
+            [
+                631.0,
+                323.0
+            ]
+        ],
+        "mpts3D": [
+            [
+                0.004999999888241291,
+                -0.03799999877810478,
+                0.00800000037997961
+            ],
+            [
+                0.004999999888241291,
+                0.03799999877810478,
+                0.00800000037997961
+            ],
+            [
+                -0.04399999976158142,
+                -0.007000000216066837,
+                0.014999999664723873
+            ],
+            [
+                -0.014000000432133675,
+                0.007000000216066837,
+                0.014999999664723873
+            ]
+        ],
+        "mconf": [
+            0.23030245304107666,
+            0.03330247849225998,
+            0.18147777020931244,
+            0.4147045314311981
+        ]
+    },
+    {
+        "frame": 188,
+        "rotation_matrix": [
+            [
+                -0.894886050973486,
+                0.34611466486802284,
+                0.28175094416234986
+            ],
+            [
+                0.43813431706371914,
+                0.5611471952739037,
+                0.7022479230637417
+            ],
+            [
+                0.0849545524629952,
+                0.7518766281774736,
+                -0.6538075099112011
+            ]
+        ],
+        "translation_vector": [
+            -0.020164352760867782,
+            -0.02325405044270506,
+            0.25215745530097944
+        ],
+        "camera_position": [
+            -0.029278324268231848,
+            -0.16956317387872227,
+            0.18687387201088465
+        ],
+        "num_inliers": 4,
+        "total_matches": 4,
+        "inlier_ratio": 1.0,
+        "reprojection_errors": [
+            1.2826347351074219,
+            0.9068956971168518,
+            4.07869291305542,
+            4.587652683258057
+        ],
+        "mean_reprojection_error": 2.7139689922332764,
+        "std_reprojection_error": 1.634579062461853,
+        "inliers": [
+            0,
+            1,
+            2,
+            3
+        ],
+        "mkpts0": [
+            [
+                512.0,
+                345.0
+            ],
+            [
+                752.0,
+                214.0
+            ],
+            [
+                742.0,
+                343.0
+            ],
+            [
+                676.0,
+                382.0
+            ]
+        ],
+        "mkpts1": [
+            [
+                389.0,
+                158.0
+            ],
+            [
+                776.0,
+                181.0
+            ],
+            [
+                628.0,
+                322.0
+            ],
+            [
+                542.0,
+                337.0
+            ]
+        ],
+        "mpts3D": [
+            [
+                0.004999999888241291,
+                -0.03799999877810478,
+                0.00800000037997961
+            ],
+            [
+                -0.04399999976158142,
+                -0.007000000216066837,
+                0.014999999664723873
+            ],
+            [
+                -0.014000000432133675,
+                0.007000000216066837,
+                0.014999999664723873
+            ],
+            [
+                0.0,
+                0.0,
+                0.014999999664723873
+            ]
+        ],
+        "mconf": [
+            0.4476706087589264,
+            0.23019088804721832,
+            0.21615588665008545,
+            0.08415781706571579
+        ]
+    },
+    {
+        "frame": 189,
+        "rotation_matrix": [
+            [
+                -0.8178168609415282,
+                0.555794686473346,
+                -0.1492241550411344
+            ],
+            [
+                0.5435376172430569,
+                0.8311919390973073,
+                0.11699067920735405
+            ],
+            [
+                0.18905671265915286,
+                0.014568008362608895,
+                -0.9818581020345362
+            ]
+        ],
+        "translation_vector": [
+            -0.014646350360041149,
+            -0.014593166737761815,
+            0.2549755304780573
+        ],
+        "camera_position": [
+            -0.052250932799730136,
+            0.016555600604403437,
+            0.24987146565195772
+        ],
+        "num_inliers": 4,
+        "total_matches": 4,
+        "inlier_ratio": 1.0,
+        "reprojection_errors": [
+            1.0555760860443115,
+            1.9745334386825562,
+            6.1147966384887695,
+            6.531495571136475
+        ],
+        "mean_reprojection_error": 3.919100284576416,
+        "std_reprojection_error": 2.430370569229126,
+        "inliers": [
+            0,
+            1,
+            2,
+            3
+        ],
+        "mkpts0": [
+            [
+                566.0,
+                641.0
+            ],
+            [
+                512.0,
+                345.0
+            ],
+            [
+                742.0,
+                343.0
+            ],
+            [
+                676.0,
+                382.0
+            ]
+        ],
+        "mkpts1": [
+            [
+                305.0,
+                545.0
+            ],
+            [
+                385.0,
+                151.0
+            ],
+            [
+                622.0,
+                321.0
+            ],
+            [
+                537.0,
+                336.0
+            ]
+        ],
+        "mpts3D": [
+            [
+                0.05400000140070915,
+                0.007000000216066837,
+                0.00800000037997961
+            ],
+            [
+                0.004999999888241291,
+                -0.03799999877810478,
+                0.00800000037997961
+            ],
+            [
+                -0.014000000432133675,
+                0.007000000216066837,
+                0.014999999664723873
+            ],
+            [
+                0.0,
+                0.0,
+                0.014999999664723873
+            ]
+        ],
+        "mconf": [
+            0.04349399730563164,
+            0.19888417422771454,
+            0.1687740683555603,
+            0.189002126455307
+        ]
+    },
+    {
+        "frame": 190,
+        "num_inliers": 0,
+        "total_matches": 2,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 191,
+        "num_inliers": 0,
+        "total_matches": 6,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 192,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 193,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 194,
+        "num_inliers": 0,
+        "total_matches": 3,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    }
+]

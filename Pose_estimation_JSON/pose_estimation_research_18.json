@@ -1,0 +1,98 @@
+[
+    {
+        "frame": 1,
+        "num_inliers": 0,
+        "total_matches": 3,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 2,
+        "num_inliers": 0,
+        "total_matches": 6,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 3,
+        "num_inliers": 0,
+        "total_matches": 8,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 11,
+        "num_inliers": 0,
+        "total_matches": 5,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 12,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 13,
+        "num_inliers": 0,
+        "total_matches": 5,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 36,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 41,
+        "num_inliers": 0,
+        "total_matches": 7,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 44,
+        "num_inliers": 0,
+        "total_matches": 5,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 45,
+        "num_inliers": 0,
+        "total_matches": 3,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 48,
+        "num_inliers": 0,
+        "total_matches": 1,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    },
+    {
+        "frame": 60,
+        "num_inliers": 0,
+        "total_matches": 0,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null
+    }
+]

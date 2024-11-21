@@ -1,0 +1,112 @@
+[
+    {
+        "frame": 1,
+        "image_name": "00010001.png",
+        "num_inliers": 0,
+        "total_matches": 7,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null,
+        "rotation_error_rad": null,
+        "translation_error": null
+    },
+    {
+        "frame": 2,
+        "image_name": "00010002.png",
+        "num_inliers": 0,
+        "total_matches": 7,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null,
+        "rotation_error_rad": null,
+        "translation_error": null
+    },
+    {
+        "frame": 3,
+        "image_name": "00010003.png",
+        "num_inliers": 0,
+        "total_matches": 7,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null,
+        "rotation_error_rad": null,
+        "translation_error": null
+    },
+    {
+        "frame": 4,
+        "image_name": "00010004.png",
+        "num_inliers": 0,
+        "total_matches": 7,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null,
+        "rotation_error_rad": null,
+        "translation_error": null
+    },
+    {
+        "frame": 5,
+        "image_name": "00010005.png",
+        "num_inliers": 0,
+        "total_matches": 7,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null,
+        "rotation_error_rad": null,
+        "translation_error": null
+    },
+    {
+        "frame": 6,
+        "image_name": "00010006.png",
+        "num_inliers": 0,
+        "total_matches": 7,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null,
+        "rotation_error_rad": null,
+        "translation_error": null
+    },
+    {
+        "frame": 7,
+        "image_name": "00010007.png",
+        "num_inliers": 0,
+        "total_matches": 7,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null,
+        "rotation_error_rad": null,
+        "translation_error": null
+    },
+    {
+        "frame": 8,
+        "image_name": "00010008.png",
+        "num_inliers": 0,
+        "total_matches": 7,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null,
+        "rotation_error_rad": null,
+        "translation_error": null
+    },
+    {
+        "frame": 9,
+        "image_name": "00010009.png",
+        "num_inliers": 0,
+        "total_matches": 7,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null,
+        "rotation_error_rad": null,
+        "translation_error": null
+    },
+    {
+        "frame": 10,
+        "image_name": "00010010.png",
+        "num_inliers": 0,
+        "total_matches": 7,
+        "inlier_ratio": 0,
+        "mean_reprojection_error": null,
+        "std_reprojection_error": null,
+        "rotation_error_rad": null,
+        "translation_error": null
+    }
+]

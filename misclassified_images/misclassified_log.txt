@@ -1,0 +1,56 @@
+Misclassified Images Log:
+
+Image: 00010084.png
+  Ground Truth: 2
+  Predicted: 3
+  Probabilities:
+    1: 0.22%
+    2: 31.80%
+    3: 67.96%
+    4: 0.03%
+
+Image: 00010085.png
+  Ground Truth: 2
+  Predicted: 3
+  Probabilities:
+    1: 0.23%
+    2: 1.85%
+    3: 97.89%
+    4: 0.03%
+
+Image: 00010086.png
+  Ground Truth: 2
+  Predicted: 3
+  Probabilities:
+    1: 0.13%
+    2: 0.67%
+    3: 99.18%
+    4: 0.02%
+
+Image: 00010090.png
+  Ground Truth: 2
+  Predicted: 1
+  Probabilities:
+    1: 71.66%
+    2: 26.26%
+    3: 1.99%
+    4: 0.09%
+
+Image: 00010134.png
+  Ground Truth: 3
+  Predicted: 4
+  Probabilities:
+    1: 0.00%
+    2: 0.03%
+    3: 11.49%
+    4: 88.47%
+
+Image: 00010135.png
+  Ground Truth: 3
+  Predicted: 4
+  Probabilities:
+    1: 0.00%
+    2: 0.03%
+    3: 11.01%
+    4: 88.96%
+
