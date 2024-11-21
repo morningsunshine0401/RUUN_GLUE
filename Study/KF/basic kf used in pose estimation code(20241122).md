@@ -18,7 +18,7 @@ The **state vector** represents the system's current state, including:
 
 This results in an 18-dimensional state vector:
 
-<img src="../img/20241121_KF_X.png" width="480" height="240">
+<img src="../image/20241121_KF_X.png" width="480" height="240">
 
 ---
 
