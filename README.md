@@ -10,10 +10,13 @@ Overview
 
 The project consists of the following scripts:
 
-    main.py: The main script that orchestrates the pose estimation process.
-    utils.py: Contains utility functions used across the project.
-    kalman_filter.py: Implements a Kalman filter for smoothing pose estimates.
-    pose_estimator.py: Contains the PoseEstimator class, which handles keypoint detection, matching, and pose estimation.
+    - main.py: The main script that orchestrates the pose estimation process.
+    
+    - utils.py: Contains utility functions used across the project.
+    
+    - kalman_filter.py: Implements a Kalman filter for smoothing pose estimates.
+    
+    - pose_estimator.py: Contains the PoseEstimator class, which handles keypoint detection, matching, and pose estimation.
 
 # Script Details
 
