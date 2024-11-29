@@ -569,14 +569,28 @@ if __name__ == '__main__':
             #cx = frame.shape[1] / 2  # Principal point x-coordinate
             #cy = frame.shape[0] / 2  # Principal point y-coordinate
             
-            # Real calibration values from XML Webcam!!!!!!!!!!!!!(perspectiveProjWithoutDistortion)
-            focal_length_x = 1526.22  # px
-            focal_length_y = 1531.18  # py
-            cx = 637.98  # Principal point u0
-            cy = 416.04  # Principal point v0
+            #################################################################################################################################################################
+            # # Real calibration values from XML Webcam!!!!!!!!!!!!!(perspectiveProjWithoutDistortion)
+            # focal_length_x = 1526.22  # px
+            # focal_length_y = 1531.18  # py
+            # cx = 637.98  # Principal point u0
+            # cy = 416.04  # Principal point v0
+
+            # # Distortion coefficients from "perspectiveProjWithDistortion" model in the XML
+            # distCoeffs = np.array([0.0319171567, 2.38832491, 0.0165411907, -0.00283550938, -1.07711172], dtype=np.float32)
+            
+            #################################################################################################################################################################
+            # Real calibration values from Phone cam!!!!!!!!!!!!!(perspectiveProjWithoutDistortion)
+            focal_length_x = 1079.83796  # px
+            focal_length_y = 1081.11500  # py
+            cx = 627.318141  # Principal point u0
+            cy = 332.745740  # Principal point v0
 
             # Distortion coefficients from "perspectiveProjWithDistortion" model in the XML
-            distCoeffs = np.array([0.0319171567, 2.38832491, 0.0165411907, -0.00283550938, -1.07711172], dtype=np.float32)
+            distCoeffs = np.array([0.0314, -0.2847, -0.0105, -0.00005, 1.0391], dtype=np.float32)
+
+
+            #################################################################################################################################################################
 
 
             print(f"Principal point cx: {cx}")

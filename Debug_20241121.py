@@ -15,7 +15,7 @@ def load_pose_data(pose_file):
         pose_data = json.load(f)
     return pose_data
 
-def is_pose_valid(frame_data, position_threshold=1.0, reproj_error_threshold=5.0):
+def is_pose_valid(frame_data, position_threshold=2.0, reproj_error_threshold=5.0):
     """
     Validates the pose data based on position difference and reprojection error.
     Args:
@@ -30,12 +30,17 @@ def is_pose_valid(frame_data, position_threshold=1.0, reproj_error_threshold=5.0
 
     raw_position = np.array(frame_data['camera_position'])
     kf_position = np.array(frame_data['kf_translation_vector'])
+
+    # Convert to meters if necessary
+    #raw_position /= 1000.0  # Assuming input is in millimeters
+    #kf_position /= 1000.0  # Assuming input is in millimeters
     position_diff = np.linalg.norm(raw_position - kf_position)
 
     mean_reproj_error = frame_data.get('mean_reprojection_error', float('inf'))
 
     # Validate based on thresholds
-    if position_diff > position_threshold or mean_reproj_error > reproj_error_threshold:
+    if mean_reproj_error > reproj_error_threshold or position_diff > position_threshold:
+        print('position_diff:',position_diff)
         return False
     return True
 
@@ -86,18 +91,11 @@ def visualize_pose_and_matches(pose_data, video_path, anchor_image_path, anchor_
             print(f'Frame data for frame {frame_idx + 1} not found.')
             return
 
-        # Validate pose data
-        if not is_pose_valid(frame_data):
-            print(f'Frame {frame_idx + 1} skipped due to invalid pose data.')
-            return
-
         # Get matched keypoints
         mkpts0 = np.array(frame_data.get('mkpts0', []))
         mkpts1 = np.array(frame_data.get('mkpts1', []))
         mconf = np.array(frame_data.get('mconf', []))
         inliers = np.array(frame_data.get('inliers', []), dtype=int)
-        num_inliers = frame_data.get('num_inliers', 0)
-        total_matches = frame_data.get('total_matches', 0)
 
         # Prepare keypoints for plotting
         anchor_image_gray = cv2.cvtColor(anchor_image, cv2.COLOR_BGR2GRAY)
@@ -139,39 +137,44 @@ def visualize_pose_and_matches(pose_data, video_path, anchor_image_path, anchor_
 
         ax_image.set_title(f'Frame {frame_idx + 1}: Matches (Confidence Colored)')
 
-        # 3D Pose Visualization
-        raw_position = np.array(frame_data['camera_position'])
-        kf_position = np.array(frame_data['kf_translation_vector'])
-        camera_positions.append(raw_position)
-        kf_camera_positions.append(kf_position)
+        # Validate pose data for 3D plot
+        if is_pose_valid(frame_data):
+            raw_position = np.array(frame_data['camera_position'])
+            kf_position = np.array(frame_data['kf_translation_vector'])
+            camera_positions.append(raw_position)
+            kf_camera_positions.append(kf_position)
 
-        # Plot the anchor 3D points
-        ax_3d.scatter(anchor_keypoints_3D[:, 0], anchor_keypoints_3D[:, 1], anchor_keypoints_3D[:, 2],
-                      c='b', marker='o', label='Anchor 3D Points')
+            # Plot the anchor 3D points
+            ax_3d.scatter(anchor_keypoints_3D[:, 0], anchor_keypoints_3D[:, 1], anchor_keypoints_3D[:, 2],
+                        c='b', marker='o', label='Anchor 3D Points')
 
-        # Plot the raw camera trajectory
-        camera_positions_np = np.array(camera_positions)
-        ax_3d.plot(camera_positions_np[:, 0], camera_positions_np[:, 1], camera_positions_np[:, 2],
-                   c='r', marker='o', label='Raw Camera Trajectory')
+            # Plot the raw camera trajectory
+            camera_positions_np = np.array(camera_positions)
+            ax_3d.plot(camera_positions_np[:, 0], camera_positions_np[:, 1], camera_positions_np[:, 2],
+                    c='r', marker='o', label='Raw Camera Trajectory')
 
-        # Plot the KF camera trajectory
-        kf_camera_positions_np = np.array(kf_camera_positions)
-        ax_3d.plot(kf_camera_positions_np[:, 0], kf_camera_positions_np[:, 1], kf_camera_positions_np[:, 2],
-                   c='g', marker='x', label='KF Camera Trajectory')
+            # Plot the KF camera trajectory
+            kf_camera_positions_np = np.array(kf_camera_positions)
+            ax_3d.plot(kf_camera_positions_np[:, 0], kf_camera_positions_np[:, 1], kf_camera_positions_np[:, 2],
+                    c='g', marker='x', label='KF Camera Trajectory')
 
-        # Plot current camera positions
-        ax_3d.scatter(raw_position[0], raw_position[1], raw_position[2],
-                      c='orange', marker='^', s=100, label='Raw Current Position')
-        ax_3d.scatter(kf_position[0], kf_position[1], kf_position[2],
-                      c='purple', marker='^', s=100, label='KF Current Position')
+            # Plot current camera positions
+            ax_3d.scatter(raw_position[0], raw_position[1], raw_position[2],
+                        c='orange', marker='^', s=100, label='Raw Current Position')
+            ax_3d.scatter(kf_position[0], kf_position[1], kf_position[2],
+                        c='purple', marker='^', s=100, label='KF Current Position')
 
-        ax_3d.set_xlabel('X')
-        ax_3d.set_ylabel('Y')
-        ax_3d.set_zlabel('Z')
-        ax_3d.legend()
+            ax_3d.set_xlabel('X')
+            ax_3d.set_ylabel('Y')
+            ax_3d.set_zlabel('Z')
+            ax_3d.legend()
+        else:
+            ax_3d.text2D(0.5, 0.5, "Pose not valid for 3D visualization",
+                        transform=ax_3d.transAxes, ha='center', va='center', fontsize=12, color='red')
 
         plt.draw()
         plt.pause(0.001)
+
 
     def on_key(event):
         nonlocal frame_idx
@@ -194,11 +197,11 @@ def visualize_pose_and_matches(pose_data, video_path, anchor_image_path, anchor_
 
 if __name__ == '__main__':
     # Paths and parameters
-    pose_file = '/home/runbk0401/SuperGluePretrainedNetwork/pose_estimation_research_44.json'  # Replace with your actual path
-    video_path = '/home/runbk0401/SuperGluePretrainedNetwork/Ruun_code/20241121.avi'          # Replace with your actual path
+    pose_file = '/home/runbk0401/SuperGluePretrainedNetwork/pose_estimation_research_60.json'  # Replace with your actual path
+    video_path = '/home/runbk0401/SuperGluePretrainedNetwork/assets/Ruun_images/video/20241129/vibration_test.mp4'          # Replace with your actual path
     anchor_image_path = '/home/runbk0401/SuperGluePretrainedNetwork/assets/Ruun_images/viewpoint/anchor/realAnchor.png'       # Replace with your actual path
     
-
+    ####################################################################################################
     # Real calibration values from XML (perspectiveProjWithoutDistortion)
     focal_length_x = 1526.22  # px
     focal_length_y = 1531.18  # py
@@ -207,6 +210,19 @@ if __name__ == '__main__':
 
     # Distortion coefficients from "perspectiveProjWithDistortion" model in the XML
     distCoeffs = np.array([0.2728747755008597, -0.25885103136641374, 0, 0], dtype=np.float32)
+    
+    ####################################################################################################
+
+    # # Real calibration Phone (perspectiveProjWithoutDistortion)
+    # focal_length_x = 1195.08491  # px
+    # focal_length_y = 1354.35538  # py
+    # cx = 581.022033  # Principal point u0
+    # cy = 571.458522  # Principal point v0
+
+    # # Distortion coefficients from "perspectiveProjWithDistortion" model in the XML
+    # distCoeffs = np.array([0.10058526, 0.4507094, 0.13687279, -0.01839536, 0.13001669], dtype=np.float32)
+   
+    ####################################################################################################
 
     # Intrinsic camera matrix (K)
     K = np.array([

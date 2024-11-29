@@ -48,3 +48,26 @@ python3 20241119_RuunPose-realtime.py --anchor assets/Ruun_images/viewpoint/anch
 python3 20241119_RuunPose-realtime.py --anchor assets/Ruun_images/viewpoint/anchor/realAnchor.png --resize 1280 720 --superglue outdoor --nms_radius 3 --show_keypoints --match_threshold 0.2 --keypoint_threshold 0.03 --no_display --output_dir dump_match_pairs/20241121/ --input Ruun_code/back.avi
 
 python3 20241121_RuunPose-realtime.py --anchor assets/Ruun_images/viewpoint/anchor/realAnchor.png --resize 1280 720 --superglue outdoor --nms_radius 3 --show_keypoints --match_threshold 0.2 --keypoint_threshold 0.03 --no_display --input Ruun_code/back.avi
+
+python3 20241121_RuunPose-realtime.py --anchor assets/Ruun_images/viewpoint/anchor/realAnchor.png --resize 1280 720 --superglue outdoor --nms_radius 3 --show_keypoints --match_threshold 0.2 --keypoint_threshold 0.03 --no_display --input Ruun_code/rotate.avi
+
+# 20241122
+python3 20241121_RuunPose-realtime.py --anchor assets/Ruun_images/viewpoint/anchor/realAnchor.png --resize 1280 720 --superglue outdoor --nms_radius 3 --show_keypoints --match_threshold 0.2 --keypoint_threshold 0.03 --no_display --input assets/Ruun_images/video/20241122/ --output_dir dump_match_pairs/20241122/1/
+
+python3 20241121_RuunPose-realtime.py --anchor assets/Ruun_images/viewpoint/anchor/realAnchor.png --resize 1280 720 --superglue outdoor --nms_radius 3 --show_keypoints --match_threshold 0.2 --keypoint_threshold 0.03 --input assets/Ruun_images/video/20241122/20241122_outdoor_sun_2.avi --no_display --output_dir dump_match_pairs/20241122/1/
+
+python3 20241121_RuunPose-realtime.py --anchor assets/Ruun_images/viewpoint/anchor/realAnchor.png --resize 1280 720 --superglue outdoor --nms_radius 3 --show_keypoints --match_threshold 0.2 --keypoint_threshold 0.03 --input assets/Ruun_images/video/20241122/20241122_outdoor_sun_2.avi --no_display
+
+python3 20241121_RuunPose-realtime.py --anchor assets/Ruun_images/viewpoint/anchor/realAnchor.png --resize 1280 720 --superglue outdoor --nms_radius 3 --show_keypoints --match_threshold 0.2 --keypoint_threshold 0.03 --input assets/Ruun_images/video/20241122/20241122_outdoor_sun_2.avi --no_display --output_dir dump_match_pairs/2024112
+
+#20241128
+python3 20241128_RTK_POSE.py --anchor assets/Ruun_images/viewpoint/anchor/realAnchor.png --resize 1280 720 --superglue outdoor --nms_radius 3 --show_keypoints --match_threshold 0.2 --keypoint_threshold 0.03 --input assets/Ruun_images/video/20241128/20241128_test.mp4 --no_display --output_dir dump_match_pairs/20241128/5/
+
+python3 20241128_RTK.py --input assets/Ruun_images/video/20241128/20241128_test.mp4 --anchor assets/Ruun_images/viewpoint/anchor/realAnchor.png --output_timestamps frame_timestamps.csv --enu_file assets/RTK/20241128/last/reach_rover_solution_20241128101701.LLH 
+
+#20241129
+
+python3 20241129_RuunPose_KF_NoiseHandle.py --anchor assets/Ruun_images/viewpoint/anchor/realAnchor.png --resize 1280 720 --superglue outdoor --nms_radius 3 --show_keypoints --match_threshold 0.2 --keypoint_threshold 0.03 --input assets/Ruun_images/video/20241129/vibration_test.mp4 --no_display --output_dir dump_match_pairs/20241129/?
+
+python3 main.py --anchor assets/Ruun_images/viewpoint/anchor/realAnchor.png --resize 1280 720 --superglue outdoor --nms_radius 3 --show_keypoints --match_threshold 0.2 --keypoint_threshold 0.03 --input assets/Ruun_images/video/20241129/vibration_test.mp4 --no_display --output_dir dump_match_pairs/20241129/?
+
