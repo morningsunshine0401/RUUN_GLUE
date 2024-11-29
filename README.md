@@ -3,7 +3,7 @@ Pose estimation using deep features and matchers.
 #<img src="assets/20241115_arch_1.png" width="960" height="480">
 #<img src="assets/20241115_arch_2.png" width="960" height="480">
 
-Pose Estimation Project Guide
+# Pose Estimation Project Guide
 
 This guide provides an overview of the pose estimation project, explaining the purpose of each script and detailing the functions within them. The explanations focus on the inputs, outputs, and intuitive purposes of the functions to help you understand and navigate the codebase effectively.
 Overview
@@ -15,12 +15,14 @@ The project consists of the following scripts:
     kalman_filter.py: Implements a Kalman filter for smoothing pose estimates.
     pose_estimator.py: Contains the PoseEstimator class, which handles keypoint detection, matching, and pose estimation.
 
-Script Details
-1. main.py
+# Script Details
+
+# 1. main.py
 
 Purpose:
 This script serves as the entry point of the pose estimation process. It parses command-line arguments, initializes the PoseEstimator, processes the input video or image sequence, and handles visualization and output.
-Key Components:
+
+## Key Components:
 
     Argument Parsing: Uses argparse to parse command-line arguments for input video, anchor image, output directory, and various parameters related to the SuperPoint and SuperGlue models.
 
@@ -32,7 +34,7 @@ Key Components:
 
     Visualization and Output: Displays the pose estimation results (if enabled) and saves the output frames and pose data to files.
 
-Main Flow:
+## Main Flow:
 
     Parse Arguments:
         Inputs: Command-line arguments.
@@ -61,7 +63,7 @@ Main Flow:
         Destroys OpenCV windows.
         Saves pose data to a JSON file.
 
-2. utils.py
+# 2. utils.py
 
 Purpose:
 Provides utility functions that are used across the project, such as image preprocessing, unique filename generation, and rotation conversions.
@@ -121,13 +123,12 @@ Functions:
         Description:
         The function constructs the rotation matrix by multiplying the individual rotation matrices around the X, Y, and Z axes corresponding to the provided Euler angles.
 
-3. kalman_filter.py
+# 3. kalman_filter.py
 
 Purpose:
 Implements a Kalman filter for smoothing the pose estimates over time. The Kalman filter helps to reduce noise and provide more stable pose estimates by considering both the current measurement and the predicted state.
-Class:
 
-KalmanFilterPose
+    Class:KalmanFilterPose
 
     Purpose:
     Encapsulates the Kalman filter logic for pose estimation, handling the prediction and correction steps.
@@ -184,13 +185,12 @@ KalmanFilterPose
             Description:
             Converts the rotation matrix to Euler angles, constructs the measurement vector, and calls the Kalman filter's correct method to update the state estimate.
 
-4. pose_estimator.py
+# 4. pose_estimator.py
 
 Purpose:
 Contains the PoseEstimator class, which handles keypoint detection using SuperPoint, feature matching using SuperGlue, pose estimation using PnP algorithms, and applies the Kalman filter to smooth the estimates.
-Class:
 
-PoseEstimator
+    Class:PoseEstimator
 
     Purpose:
     Manages the entire pose estimation process for each frame, including feature extraction, matching, pose computation, and visualization.
@@ -373,7 +373,7 @@ PoseEstimator
             Description:
             Converts images to grayscale, filters inlier matches, and uses make_matching_plot_fast to create a visualization of the matched keypoints. It overlays pose information such as the camera position on the image.
 
-Summary
+# Summary
 
 This codebase provides a complete pipeline for estimating the pose of an object in a video sequence using feature detection and matching with SuperPoint and SuperGlue, pose estimation with PnP algorithms, and pose smoothing with a Kalman filter. The modular design allows for easy modification and extension, and the scripts and functions are organized to clearly separate different stages of the processing pipeline.
 
