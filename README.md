@@ -407,3 +407,8 @@ At the core of the pipeline, the `PoseEstimator` class serves as the central com
 - Visualization of results.
 
 By combining these functionalities, the `PoseEstimator` class processes each frame to produce accurate and stable pose estimates, making this codebase a robust and efficient solution for object pose estimation tasks.
+
+---
+
+# About This Repository
+This project is a modification of [SuperGlue](https://github.com/magicleap/SuperGluePretrainedNetwork), created by Magic Leap, Inc., and is licensed under the terms of the original license agreement provided by Magic Leap.
