@@ -1,11 +1,39 @@
 #anchor_image_path = '/assets/Ruun_images/boxcraft/frame_00001.png'  # Replace with your anchor image path
     other_image_path = '/home/runbk0401/Pictures/Webcam/20241002.jpg'    # Replace with your other image path
 
+####################################################################################################################################
+#Phone calibration result
+(array([[1.07983796e+03, 0.00000000e+00, 6.27318141e+02],
+       [0.00000000e+00, 1.08111500e+03, 3.32745740e+02],
+       [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]]), array([[ 3.14036119e-02, -2.84684266e-01, -1.05156620e-02,
+        -5.19830453e-05,  1.03916677e+00]]))
+ Focal Length:
+
+ fx=1079.83796 (in pixels, along the x-axis)
+ fy=1081.11500 (in pixels, along the y-axis)
+
+Principal Point:
+
+ cx=627.318141 (x-coordinate of the optical center)
+ cy=332.745740 (y-coordinate of the optical center)
+
+ Distortion Coefficients (1x5 array):
+
+    These coefficients describe lens distortion, which includes radial and tangential components:
+    [0.0314,-0.2847,-0.0105,-0.00005,1.0391]
+    k1​,k2​,k3​: Radial distortion coefficients.
+    p1,p2p1​,p2​: Tangential distortion coefficients.
 
 
+####################################################################################################################################
+DJI camera resized 1280 720 calibration
+Item 1/1:
+(array([[862.50161462,   0.        , 640.63186788],
+       [  0.        , 866.22679723, 333.16553314],
+       [  0.        ,   0.        ,   1.        ]]), array([[ 0.17265434, -0.77566785, -0.00292312,  0.00237793,  1.0973675 ]]))
+####################################################################################################################################    
 
 
-    
 ###blender data
 ## used /assets/Ruun_images/boxcraft/blender/00010001.png  and  /assets/Ruun_images/boxcraft/blender/00010002.png
 (base) runbk0401@runbk0401:~/SuperGluePretrainedNetwork/Ruun_code$ python3 manual_match_3d_only.py 
