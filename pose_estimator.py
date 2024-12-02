@@ -264,12 +264,20 @@ class PoseEstimator:
             return None, frame
 
     def _get_camera_intrinsics(self):
-        # Replace with your camera's intrinsic parameters
-        focal_length_x = 1079.83796  # px
-        focal_length_y = 1081.11500  # py
-        cx = 627.318141
-        cy = 332.745740
-        distCoeffs = np.array([0.0314, -0.2847, -0.0105, -0.00005, 1.0391], dtype=np.float32)
+        ## Replace with your camera's intrinsic parameters
+        #focal_length_x = 1079.83796  # px
+        #focal_length_y = 1081.11500  # py
+        #cx = 627.318141
+        #cy = 332.745740
+        #distCoeffs = np.array([0.0314, -0.2847, -0.0105, -0.00005, 1.0391], dtype=np.float32)
+
+        # DJI calibration
+        focal_length_x = 862.50 # px
+        focal_length_y = 866.23  # py
+        cx = 640.63
+        cy = 333.17
+        distCoeffs = np.array([0.17265434, -0.77566785, -0.00292312,  0.00237793,  1.0973675], dtype=np.float32)
+
         K = np.array([
             [focal_length_x, 0, cx],
             [0, focal_length_y, cy],
