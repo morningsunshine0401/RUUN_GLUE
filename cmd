@@ -73,7 +73,7 @@ python3 main.py --anchor assets/Ruun_images/viewpoint/anchor/realAnchor.png --re
 
 python3 main.py --anchor assets/Ruun_images/viewpoint/anchor/realAnchor.png --resize 1280 720 --superglue outdoor --nms_radius 3 --show_keypoints --match_threshold 0.2 --keypoint_threshold 0.03 --input assets/Ruun_images/video/20241129/Big.mp4 --no_display --output_dir dump_match_pairs/20241129/?
 
-python3 main.py --anchor assets/Ruun_images/viewpoint/anchor/realAnchor.png --superglue outdoor --nms_radius 3 --match_threshold 0.2 --keypoint_threshold 0.03 --input assets/Ruun_images/video/20241129/viewpoint.mp4 --no_display
+python3 main.py --anchor assets/Ruun_images/viewpoint/anchor/realAnchor.png --superglue outdoor --nms_radius 3 --match_threshold 0.2 --keypoint_threshold 0.03 --input assets/Ruun_images/video/20241129/viewpoint.mp4 --no_display --resize 1280 720
 
 python3 main_fast.py --anchor assets/Ruun_images/viewpoint/anchor/realAnchor.png --superglue outdoor --nms_radius 3 --match_threshold 0.2 --keypoint_threshold 0.03 --input assets/Ruun_images/video/20241129/viewpoint.mp4 --no_display --resize 1280 720
 
@@ -83,3 +83,6 @@ python3 main.py --anchor assets/Ruun_images/viewpoint/anchor/realAnchor_2.png --
 python3 main.py --anchor assets/Ruun_images/viewpoint/anchor/Proto_under.png --superglue outdoor --nms_radius 3 --match_threshold 0.2 --keypoint_threshold 0.003 --input assets/Ruun_images/video/20241204/20240628_fly3.mp4 --no_display --resize 1280 720 --output_dir dump_match_pairs/20241203/3/ --show_keypoints
 
 ./match_pairs.py --resize 1600 --superglue outdoor --max_keypoints 2048 --nms_radius 3  --resize_float --input_dir dump_match_pairs/20241204/2/ --input_pairs assets/scannet_sample_pairs_with_gt.txt --output_dir dump_match_pairs/20241204/3/ --viz
+
+#20241206
+python3 main.py --anchor assets/Ruun_images/viewpoint/anchor/realAnchor.png --superglue outdoor --nms_radius 3 --match_threshold 0.2 --keypoint_threshold 0.03 --input assets/Ruun_images/video/20241129/viewpoint.mp4 --no_display --resize 1280 720 --output_dir dump_match_pairs/20241206/1/
