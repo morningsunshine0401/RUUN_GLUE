@@ -58,3 +58,11 @@ def euler_angles_to_rotation_matrix(theta):
     ])
     R = R_z @ R_y @ R_x
     return R
+
+def preprocess_image_for_lightglue(img):
+    # If needed, resizing is done in PoseEstimator before this call
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY).astype(np.float32) / 255.0
+    # shape: (H,W) -> (1,1,H,W)
+    gray = gray[None, None]
+    return gray
+

@@ -197,30 +197,30 @@ def visualize_pose_and_matches(pose_data, video_path, anchor_image_path, anchor_
 
 if __name__ == '__main__':
     # Paths and parameters
-    pose_file = '/home/runbk0401/SuperGluePretrainedNetwork/pose_estimation_research_60.json'  # Replace with your actual path
-    video_path = '/home/runbk0401/SuperGluePretrainedNetwork/assets/Ruun_images/video/20241129/vibration_test.mp4'          # Replace with your actual path
+    pose_file = '/home/runbk0401/SuperGluePretrainedNetwork/pose_estimation_research_98.json'  # Replace with your actual path
+    video_path = '/home/runbk0401/SuperGluePretrainedNetwork/assets/Ruun_images/video/20241210/Steady.mp4'          # Replace with your actual path
     anchor_image_path = '/home/runbk0401/SuperGluePretrainedNetwork/assets/Ruun_images/viewpoint/anchor/realAnchor.png'       # Replace with your actual path
     
     ####################################################################################################
-    # Real calibration values from XML (perspectiveProjWithoutDistortion)
-    focal_length_x = 1526.22  # px
-    focal_length_y = 1531.18  # py
-    cx = 637.98  # Principal point u0
-    cy = 416.04  # Principal point v0
+    # # Real calibration values from XML (perspectiveProjWithoutDistortion)
+    # focal_length_x = 1526.22  # px
+    # focal_length_y = 1531.18  # py
+    # cx = 637.98  # Principal point u0
+    # cy = 416.04  # Principal point v0
 
-    # Distortion coefficients from "perspectiveProjWithDistortion" model in the XML
-    distCoeffs = np.array([0.2728747755008597, -0.25885103136641374, 0, 0], dtype=np.float32)
+    # # Distortion coefficients from "perspectiveProjWithDistortion" model in the XML
+    # distCoeffs = np.array([0.2728747755008597, -0.25885103136641374, 0, 0], dtype=np.float32)
     
     ####################################################################################################
 
-    # # Real calibration Phone (perspectiveProjWithoutDistortion)
-    # focal_length_x = 1195.08491  # px
-    # focal_length_y = 1354.35538  # py
-    # cx = 581.022033  # Principal point u0
-    # cy = 571.458522  # Principal point v0
+    # Real calibration Phone (perspectiveProjWithoutDistortion)
+    focal_length_x = 1195.08491  # px
+    focal_length_y = 1354.35538  # py
+    cx = 581.022033  # Principal point u0
+    cy = 571.458522  # Principal point v0
 
-    # # Distortion coefficients from "perspectiveProjWithDistortion" model in the XML
-    # distCoeffs = np.array([0.10058526, 0.4507094, 0.13687279, -0.01839536, 0.13001669], dtype=np.float32)
+    # Distortion coefficients from "perspectiveProjWithDistortion" model in the XML
+    distCoeffs = np.array([0.10058526, 0.4507094, 0.13687279, -0.01839536, 0.13001669], dtype=np.float32)
    
     ####################################################################################################
 

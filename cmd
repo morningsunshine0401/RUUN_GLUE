@@ -86,3 +86,11 @@ python3 main.py --anchor assets/Ruun_images/viewpoint/anchor/Proto_under.png --s
 
 #20241206
 python3 main.py --anchor assets/Ruun_images/viewpoint/anchor/realAnchor.png --superglue outdoor --nms_radius 3 --match_threshold 0.2 --keypoint_threshold 0.03 --input assets/Ruun_images/video/20241129/viewpoint.mp4 --no_display --resize 1280 720 --output_dir dump_match_pairs/20241206/1/
+
+#20241210
+python3 main.py --anchor assets/Ruun_images/viewpoint/anchor/realAnchor.png --superglue outdoor --nms_radius 3 --match_threshold 0.2 --keypoint_threshold 0.03 --input assets/Ruun_images/video/20241210/Steady.mp4 --no_display --resize 1280 720 
+
+python3 match_pairs.py --resize 1280 720 --superglue outdoor --max_keypoints 2048 --nms_radius 3  --resize_float --input_dir dump_match_pairs/20241210/test/ --input_pairs assets/scannet_sample_pairs_with_gt.txt --output_dir dump_match_pairs/20241210/match/ --show_keypoints --match_threshold 0.2 --keypoint_threshold 0.03 --viz
+
+#20241212
+python3 main_LG.py --anchor assets/Ruun_images/viewpoint/anchor/realAnchor.png --input assets/Ruun_images/video/20241210/Steady.mp4 --resize 1280 720

@@ -1,0 +1,45 @@
+Tests today:
+
+I used LightGlue
+
+Default params were:
+
+success, rvec_o, tvec_o, inliers = cv2.solvePnPRansac(
+            objectPoints=objectPoints,
+            imagePoints=imagePoints,
+            cameraMatrix=K,
+            distCoeffs=distCoeffs,
+            reprojectionError=5
+            confidence=0.9,
+            iterationsCount=1500,
+            flags=cv2.SOLVEPNP_P3P
+        )
+        
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+pose_estimation_research_77.json: reprojectionError=2 => Slightly cleaner result?
+
+pose_estimation_research_78.json: iterationsCount=1000 => iterationsCount=1000 => Not much difference with default. Speed is about same and the quality is too
+
+pose_estimation_research_80.json: flags=cv2.SOLVEPNP_AP3P => 별차이 없음
+
+pose_estimation_research_81.json: flags=cv2.SOLVEPNP_ITERATIVE => Fuck
+
+pose_estimation_research_82.json: flags=cv2.SOLVEPNP_EPNP => Not bad?
+
+pose_estimation_research_83.json: flags=cv2.SOLVEPNP_DLS => Not bad?
+
+pose_estimation_research_84.json: adaptive RE param => 걍 첨부터 2로하명 되는거 아니임? 싶음
+
+pose_estimation_research_89.json: reprojectionError=8 and confidence=0.99 => Better? RE 한계 좀 키운것도 좋은듯?
+
+pose_estimation_research_90.json: reprojectionError=8 and confidence=0.99 and EPNP => Best so far?
+
+pose_estimation_research_91.json: reprojectionError=8 and confidence=0.99 and EPNP And I gave GT init => Best so far!
+
+pose_estimation_research_97.json: reprojectionError=8 and confidence=0.99 and DLS => Best?!
+
+pose_estimation_research_98.json: Tested ekf and not bad? but needs checking
+
+
+

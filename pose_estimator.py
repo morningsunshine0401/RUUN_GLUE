@@ -19,6 +19,7 @@ class PoseEstimator:
         self.matching = self._init_matching()
         self.anchor_image, self.anchor_tensor = self._load_anchor_image()
         self.anchor_keypoints_sp, self.anchor_descriptors_sp, self.anchor_scores_sp = self._extract_anchor_features()
+        print("Anchor features precomputed successfully!")
         self.matched_anchor_keypoints, self.matched_descriptors, self.matched_scores, self.matched_3D_keypoints = self._match_anchor_keypoints()
         self.kf_pose = self._init_kalman_filter()
 
@@ -126,7 +127,7 @@ class PoseEstimator:
 
         sp_tree = cKDTree(self.anchor_keypoints_sp)
         distances, indices = sp_tree.query(anchor_keypoints_2D, k=1)
-        distance_threshold = 1
+        distance_threshold = 10000
         valid_matches = distances < distance_threshold
 
         if not np.any(valid_matches):
@@ -206,6 +207,12 @@ class PoseEstimator:
         objectPoints = mpts3D.reshape(-1, 1, 3)
         imagePoints = mkpts1.reshape(-1, 1, 2)
 
+        print("objectPoints:\n",objectPoints)
+        print("imagePoints dtype:\n", imagePoints.dtype)
+        print("imagegPoints:\n",imagePoints)
+       
+
+
         # Solve PnP
         success, rvec_o, tvec_o, inliers = cv2.solvePnPRansac(
             objectPoints=objectPoints,
@@ -264,19 +271,27 @@ class PoseEstimator:
             return None, frame
 
     def _get_camera_intrinsics(self):
-        ## Replace with your camera's intrinsic parameters
-        #focal_length_x = 1079.83796  # px
-        #focal_length_y = 1081.11500  # py
-        #cx = 627.318141
-        #cy = 332.745740
-        #distCoeffs = np.array([0.0314, -0.2847, -0.0105, -0.00005, 1.0391], dtype=np.float32)
+        # # Replace with your camera's intrinsic parameters
+        # focal_length_x = 1079.83796  # px
+        # focal_length_y = 1081.11500  # py
+        # cx = 627.318141
+        # cy = 332.745740
+        # distCoeffs = np.array([0.0314, -0.2847, -0.0105, -0.00005, 1.0391], dtype=np.float32)
+        # Real calibration Phone (perspectiveProjWithoutDistortion)
+        focal_length_x = 1195.08491  # px
+        focal_length_y = 1354.35538  # py
+        cx = 581.022033  # Principal point u0
+        cy = 571.458522  # Principal point v0
 
-        # DJI calibration
-        focal_length_x = 862.50 # px
-        focal_length_y = 866.23  # py
-        cx = 640.63
-        cy = 333.17
-        distCoeffs = np.array([0.17265434, -0.77566785, -0.00292312,  0.00237793,  1.0973675], dtype=np.float32)
+        # Distortion coefficients from "perspectiveProjWithDistortion" model in the XML
+        distCoeffs = np.array([0.10058526, 0.4507094, 0.13687279, -0.01839536, 0.13001669], dtype=np.float32)
+
+        # # DJI calibration
+        # focal_length_x = 862.50 # px
+        # focal_length_y = 866.23  # py
+        # cx = 640.63
+        # cy = 333.17
+        # distCoeffs = np.array([0.17265434, -0.77566785, -0.00292312,  0.00237793,  1.0973675], dtype=np.float32)
 
         K = np.array([
             [focal_length_x, 0, cx],
