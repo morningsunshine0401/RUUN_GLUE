@@ -1,0 +1,101 @@
+20241213 Test
+
+
+
+Outdoor with sunlight and moving away:
+
+    Test robustness to illumination changes.
+    Analyze how keypoint matching performs as the object size reduces in the frame.
+
+Indoor with large and fast side movements:
+
+    Evaluate how the methods handle motion blur.
+    Measure frame-to-frame pose estimation accuracy.
+
+
+Outdoor with object rotation:
+
+    Measure performance under viewpoint changes.
+    Analyze stability of matching and pose estimation.
+
+Indoor wide baseline:
+
+    Test capability to handle large changes in perspective.
+    Measure matching accuracy across significant baseline differences.
+
+################################################################
+
+107 json: Sun SG 14.06 FPS
+
+102 json: Sun LG 10.12 FPS
+
+Analysis of SuperGlue and LightGlue Results
+Scenario: Outdoor with sunlight and moving away
+Objective:
+
+    Test robustness to illumination changes.
+    Analyze how keypoint matching performs as the object size reduces in the frame.
+
+1. Matching Performance:
+
+    SuperGlue:
+        Average inlier ratio: 58.9%
+        Total matches: 1342
+        Inlier matches: 790
+    LightGlue:
+        Average inlier ratio: 67.4%
+        Total matches: 1096
+        Inlier matches: 738
+
+Observation:
+While LightGlue has a higher average inlier ratio, indicating better precision in matching, SuperGlue detects more total matches, resulting in slightly more inlier matches overall. This suggests that SuperGlue captures a broader set of matches, but LightGlue maintains higher matching quality.
+2. Reprojection Error Analysis:
+
+    Unfiltered Results (All Errors):
+        SuperGlue Mean Reprojection Error: 3.106
+        LightGlue Mean Reprojection Error: 2.864
+
+    Filtered Results (Excluding Errors >10):
+        SuperGlue Filtered Mean Reprojection Error: 1.877
+        LightGlue Filtered Mean Reprojection Error: 2.249
+
+Observation:
+The unfiltered reprojection errors indicate that LightGlue produces more stable pose estimations overall. However, after excluding extreme outliers, SuperGlue shows slightly better performance in terms of average reprojection error. This indicates that SuperGlue may handle a subset of poses more accurately, but it is also more prone to occasional high errors.
+3. Frame-to-Frame Consistency:
+
+    SuperGlue exhibits higher variability in reprojection error, as seen from the standard deviation. While this variability may indicate a broader range of matching situations, it can also imply reduced stability in challenging frames.
+    LightGlue provides a steadier performance, aligning with its goal of optimizing speed and robustness.
+
+4. Practical Implications:
+
+    SuperGlue may be better suited for scenarios requiring a higher volume of detected matches, particularly when completeness is critical.
+    LightGlue performs well under challenging illumination conditions, maintaining a high inlier ratio and stable reprojection errors, making it more reliable for precision-focused tasks.
+
+Conclusion:
+
+    Both SuperGlue and LightGlue have their strengths:
+        SuperGlue excels in match quantity and can better utilize redundancy to overcome challenges.
+        LightGlue demonstrates robustness to illumination changes, offering higher-quality matches with lower error variability.
+    For this scenario, LightGlue shows slightly more consistency in handling object movement away from the camera under sunlight, but SuperGlue's ability to capture more matches might make it more versatile for applications that rely on match volume.
+    
+    
+##########################################################
+
+
+103: WideBase SG FAIL
+
+104: WideBaseline LG
+
+##########################################################
+
+108: Big move SG
+
+106: Big move LG
+
+#############################################################
+
+109: Rotation SG
+
+110: Rotation LG
+
+

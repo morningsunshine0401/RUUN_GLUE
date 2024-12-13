@@ -94,3 +94,18 @@ python3 match_pairs.py --resize 1280 720 --superglue outdoor --max_keypoints 204
 
 #20241212
 python3 main_LG.py --anchor assets/Ruun_images/viewpoint/anchor/realAnchor.png --input assets/Ruun_images/video/20241210/Steady.mp4 --resize 1280 720
+
+#20241213
+python3 main_LG.py --anchor assets/Ruun_images/viewpoint/anchor/realAnchor.png --input assets/Ruun_images/video/20241210/Steady.mp4 --resize 1280 720
+
+python3 main.py --anchor assets/Ruun_images/viewpoint/anchor/realAnchor.png --input assets/Ruun_images/video/20241210/Steady.mp4 --resize 1280 720 --show_keypoints --superglue outdoor
+
+python3 main.py --anchor assets/Ruun_images/viewpoint/anchor/realAnchor.png --input assets/Ruun_images/video/20241213/WideBaseLine.mp4 --resize 1280 720 --no_display --output_dir dump_match_pairs/20241213/WideBase/ --superglue indoor
+
+python3 main.py --anchor assets/Ruun_images/viewpoint/anchor/realAnchor.png --input assets/Ruun_images/video/20241213/WideBaseLine.mp4 --resize 1280 720 --no_display --output_dir dump_match_pairs/20241213/WideBase/ --superglue outdoor
+
+python3 main.py --anchor assets/Ruun_images/viewpoint/anchor/realAnchor.png --input assets/Ruun_images/video/20241213/Difficult.mp4 --resize 1280 720 --no_display --superglue outdoor
+
+python3 main.py --anchor assets/Ruun_images/viewpoint/anchor/realAnchor.png --input assets/Ruun_images/video/20241213/Big.mp4 --resize 1280 720 --no_display --superglue outdoor
+
+python3 main.py --anchor assets/Ruun_images/viewpoint/anchor/realAnchor.png --input assets/Ruun_images/video/20241213/Roll_rotation.mp4 --resize 1280 720 --no_display --superglue outdoor --output_dir dump_match_pairs/20241213/Rotate/
