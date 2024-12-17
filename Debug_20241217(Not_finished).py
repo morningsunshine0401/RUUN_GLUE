@@ -3,12 +3,18 @@ import json
 import numpy as np
 import os
 import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.cm as cm
 
 # Ensure interactive mode is off for proper figure updates
 plt.ioff()
+
+# GT to World rotation matrix
+R_gt_to_world = np.array([
+    [1,  0,  0],
+    [0,  0,  1],
+    [0, -1,  0]
+], dtype=float)
 
 def load_pose_data(pose_file):
     with open(pose_file, 'r') as f:
@@ -17,33 +23,31 @@ def load_pose_data(pose_file):
 
 def load_gt_data(gt_file):
     """
-    Load ground truth data from JSON file.
+    Load and transform ground truth data from JSON file to World coordinate frame.
     Args:
         gt_file (str): Path to the GT JSON file.
     Returns:
-        gt_camera_positions (list): List of GT camera positions.
-        gt_target_positions (list): List of GT target positions.
+        gt_camera_positions (list): List of GT camera positions in World frame.
+        gt_target_positions (list): List of GT target positions in World frame.
     """
     with open(gt_file, 'r') as f:
         gt_data = json.load(f)
+        
+    # Extract GT positions
     gt_camera_positions = [np.array([item['camera_position']['X'], 
                                      item['camera_position']['Y'], 
                                      item['camera_position']['Z']]) for item in gt_data]
     gt_target_positions = [np.array([item['target_position']['X'], 
                                      item['target_position']['Y'], 
                                      item['target_position']['Z']]) for item in gt_data]
-    return gt_camera_positions, gt_target_positions
+    
+    # Convert GT positions to World coordinate frame
+    gt_camera_positions_world = np.dot(np.array(gt_camera_positions), R_gt_to_world.T)
+    gt_target_positions_world = np.dot(np.array(gt_target_positions), R_gt_to_world.T)
+    
+    return gt_camera_positions_world, gt_target_positions_world
 
 def is_pose_valid(frame_data, position_threshold=2.0, reproj_error_threshold=5.0):
-    """
-    Validates the pose data based on position difference and reprojection error.
-    Args:
-        frame_data (dict): Pose data for the current frame.
-        position_threshold (float): Maximum allowable difference between KF and raw positions.
-        reproj_error_threshold (float): Maximum allowable reprojection error.
-    Returns:
-        bool: True if the pose is valid, False otherwise.
-    """
     if 'camera_position' not in frame_data or 'kf_translation_vector' not in frame_data:
         return False
 
@@ -65,7 +69,6 @@ def visualize_pose_and_matches(pose_data, gt_camera_positions, gt_target_positio
         print('Error opening video file.')
         return
 
-    # Load the anchor image
     anchor_image = cv2.imread(anchor_image_path)
     assert anchor_image is not None, 'Failed to load anchor image.'
 
@@ -107,34 +110,24 @@ def visualize_pose_and_matches(pose_data, gt_camera_positions, gt_target_positio
         anchor_image_gray = cv2.cvtColor(anchor_image, cv2.COLOR_BGR2GRAY)
         frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
+        # Combine images
         height1, width1 = anchor_image_gray.shape
         height2, width2 = frame_gray.shape
-        max_height = max(height1, height2)
-        total_width = width1 + width2
-        combined_image = np.zeros((max_height, total_width), dtype=np.uint8)
+        combined_image = np.zeros((max(height1, height2), width1 + width2), dtype=np.uint8)
         combined_image[:height1, :width1] = anchor_image_gray
-        combined_image[:height2, width1:total_width] = frame_gray
+        combined_image[:height2, width1:] = frame_gray
 
         mkpts1_plot = mkpts1.copy()
         if mkpts1_plot.ndim == 2 and mkpts1_plot.shape[0] > 0:
             mkpts1_plot[:, 0] += width1
-
-        if len(mconf) > 0:
-            mconf_norm = (mconf - mconf.min()) / (mconf.max() - mconf.min() + 1e-8)
-            colors = cm.viridis(mconf_norm)
-        else:
-            colors = []
 
         ax_image.imshow(combined_image, cmap='gray')
         ax_image.axis('off')
         for i in range(len(mkpts0)):
             x0, y0 = mkpts0[i]
             x1, y1 = mkpts1_plot[i]
-            color = colors[i] if len(colors) > 0 else 'yellow'
-            linewidth = 2 if i in inliers else 1
-            linestyle = '-' if i in inliers else '--'
-            ax_image.plot([x0, x1], [y0, y1], color=color, linewidth=linewidth, linestyle=linestyle)
-        ax_image.set_title(f'Frame {frame_idx + 1}: Matches (Confidence Colored)')
+            ax_image.plot([x0, x1], [y0, y1], color='yellow' if i not in inliers else 'lime', linewidth=1)
+        ax_image.set_title(f'Frame {frame_idx + 1}: Matches')
 
         if is_pose_valid(frame_data):
             raw_position = np.array(frame_data['camera_position'])
@@ -142,24 +135,19 @@ def visualize_pose_and_matches(pose_data, gt_camera_positions, gt_target_positio
             camera_positions.append(raw_position)
             kf_camera_positions.append(kf_position)
 
-            ax_3d.scatter(anchor_keypoints_3D[:, 0], anchor_keypoints_3D[:, 1], anchor_keypoints_3D[:, 2],
-                          c='b', marker='o', label='Anchor 3D Points')
-
-            ax_3d.plot(np.array(camera_positions)[:, 0], np.array(camera_positions)[:, 1], np.array(camera_positions)[:, 2],
-                       c='r', marker='o', label='Raw Camera Trajectory')
-            ax_3d.plot(np.array(kf_camera_positions)[:, 0], np.array(kf_camera_positions)[:, 1], np.array(kf_camera_positions)[:, 2],
-                       c='g', marker='x', label='KF Camera Trajectory')
-
-            # Plot GT camera and target positions
-            ax_3d.plot(np.array(gt_camera_positions)[:, 0], np.array(gt_camera_positions)[:, 1], np.array(gt_camera_positions)[:, 2],
+            # Plot GT and estimated trajectories
+            ax_3d.plot(gt_camera_positions[:, 0], gt_camera_positions[:, 1], gt_camera_positions[:, 2],
                        c='blue', marker='.', label='GT Camera Trajectory')
-            ax_3d.plot(np.array(gt_target_positions)[:, 0], np.array(gt_target_positions)[:, 1], np.array(gt_target_positions)[:, 2],
+            ax_3d.plot(gt_target_positions[:, 0], gt_target_positions[:, 1], gt_target_positions[:, 2],
                        c='cyan', marker='x', label='GT Target Trajectory')
 
-            ax_3d.set_xlabel('X')
-            ax_3d.set_ylabel('Y')
-            ax_3d.set_zlabel('Z')
+            ax_3d.plot(np.array(camera_positions)[:, 0], np.array(camera_positions)[:, 1], np.array(camera_positions)[:, 2],
+                       c='r', marker='o', label='Estimated Camera Trajectory')
+            
             ax_3d.legend()
+            ax_3d.set_xlabel('X (World)')
+            ax_3d.set_ylabel('Y (World)')
+            ax_3d.set_zlabel('Z (World)')
 
         plt.draw()
         plt.pause(0.001)
@@ -390,5 +378,5 @@ if __name__ == '__main__':
     # Load the pose data
     pose_data = load_pose_data(pose_file)
     gt_camera_positions, gt_target_positions = load_gt_data(gt_file)
-    visualize_pose_and_matches(pose_data, gt_camera_positions, gt_target_positions, video_path,
-                               anchor_image_path, anchor_keypoints_2D, anchor_keypoints_3D, K)
+    visualize_pose_and_matches(pose_data, gt_camera_positions, gt_target_positions, 
+                               video_path, anchor_image_path, [], [], K)
