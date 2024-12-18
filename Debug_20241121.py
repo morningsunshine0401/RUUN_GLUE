@@ -197,8 +197,8 @@ def visualize_pose_and_matches(pose_data, video_path, anchor_image_path, anchor_
 
 if __name__ == '__main__':
     # Paths and parameters
-    pose_file = '/home/runbk0401/SuperGluePretrainedNetwork/pose_estimation_research_98.json'  # Replace with your actual path
-    video_path = '/home/runbk0401/SuperGluePretrainedNetwork/assets/Ruun_images/video/20241210/Steady.mp4'          # Replace with your actual path
+    pose_file = '/home/runbk0401/SuperGluePretrainedNetwork/pose_estimation_research_103_Opti.json'  # Replace with your actual path
+    video_path = '/home/runbk0401/SuperGluePretrainedNetwork/assets/Ruun_images/video/20241217/Opti_Test1.mp4'          # Replace with your actual path
     anchor_image_path = '/home/runbk0401/SuperGluePretrainedNetwork/assets/Ruun_images/viewpoint/anchor/realAnchor.png'       # Replace with your actual path
     
     ####################################################################################################

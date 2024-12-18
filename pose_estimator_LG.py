@@ -70,7 +70,7 @@ class PoseEstimator:
             [386, 549], [779, 518], [783, 570]
         ], dtype=np.float32)
 
-        anchor_keypoints_3D_raw = np.array([
+        anchor_keypoints_3D = np.array([
             [0.03, -0.165, 0.05],
             [-0.190, -0.165, 0.050],
             [0.010, -0.025, 0.0],
@@ -100,14 +100,6 @@ class PoseEstimator:
             [0.135, -0.147, 0.050],
             [0.135, -0.172, 0.050]
         ], dtype=np.float32)
-
-        R_anchor_to_cv = np.array([
-            [1, 0, 0],
-            [0, -1, 0],
-            [0, 0, -1]
-        ], dtype=np.float32)
-        
-        anchor_keypoints_3D = anchor_keypoints_3D_raw @ R_anchor_to_cv.T
 
         # Build KDTree on anchor_keypoints_sp
         sp_tree = cKDTree(self.anchor_keypoints_sp)
@@ -247,7 +239,7 @@ class PoseEstimator:
             reprojectionError=8,#reprojectionError,
             confidence=0.99,#confidence,
             iterationsCount=1500,#iterationsCount,
-            flags=cv2.SOLVEPNP_DLS
+            flags=cv2.SOLVEPNP_P3P
         )
 
         if success and inliers is not None and len(inliers) >= 3:
