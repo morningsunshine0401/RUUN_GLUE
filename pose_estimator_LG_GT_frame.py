@@ -60,6 +60,49 @@ class PoseEstimator:
         self.anchor_keypoints_sp = keypoints[0]
         logger.info("Extracted anchor keypoints")
 
+        #$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+        # # Known 2D and 3D correspondences (pre-defined : Opti_BOX
+        # anchor_keypoints_2D = np.array([
+        #     [780, 216],  
+        #     [464, 111],  
+        #     [258, 276], 
+        #     [611, 538],  
+        #     [761, 324],
+        #     [644, 168],
+        #     [479, 291] ,
+        #     [586, 149] ,
+        #     [550, 182] ,
+        #     [610, 202] ,
+        #     [361, 193] ,
+        #     [319, 298] ,
+        #     [344, 418] ,
+        #     [440, 460] ,
+        #     [502, 489] ,
+        #     [496, 372]
+        # ], dtype=np.float32)
+
+        # anchor_keypoints_3D = np.array([
+        #     [0.049, 0.045, 0],     
+        #     [-0.051, 0.045, 0],    
+        #     [-0.051, -0.044, 0],    
+        #     [0.049, -0.044, -0.04],     
+        #     [0.049, 0.045, 0],
+        #     [0.01, 0.045, 0],
+        #     [-0.003, -0.023, 0],
+        #     [-0.001, 0.045, 0],
+        #     [-0.001, 0.025, 0],
+        #     [0.001, 0.025, 0],
+        #     [-0.051, -0.005, 0],
+        #     [-0.035, -0.044, 0],
+        #     [-0.035, -0.044, -0.04],
+        #     [-0.002, -0.044, -0.04], 
+        #     [0.017, -0.044, -0.04],
+        #     [0.017, -0.044, 0.0]
+        # ], dtype=np.float32)
+
+        #$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
         # Known 2D and 3D correspondences (pre-defined)
         anchor_keypoints_2D = np.array([
             [563, 565], [77, 582], [515, 318], [606, 317], [612, 411],
@@ -70,38 +113,38 @@ class PoseEstimator:
             [386, 549], [779, 518], [783, 570]
         ], dtype=np.float32)
 
-        anchor_keypoints_3D = np.array([
-            [0.03, -0.165, 0.05],
-            [-0.190, -0.165, 0.050],
-            [0.010, -0.025, 0.0],
-            [0.060, -0.025, 0.0],
-            [0.06, -0.080, 0.0],
-            [0.010, -0.080, 0.0],
-            [-0.035, -0.087, 0.0],
-            [-0.035, -0.105, 0.0],
-            [0.065, -0.105, 0.0],
-            [0.0, 0.045, 0.0],
-            [-0.045, 0.078, 0.0],
-            [-0.045, 0.046, 0.0],
-            [-0.045, 0.023, 0.0],
-            [0.0, -0.0, 0.0],
-            [0.045, 0.022, 0.0],
-            [-0.120, 0.160, 0.0],
-            [-0.095, -0.035,0.0],
-            [-0.080, -0.035, 0.0],
-            [-0.080, -0.055, 0.0],
-            [-0.095, -0.055, 0.0],
-            [-0.050, -0.040, 0.010],
-            [-0.135, -0.100, 0.0],
-            [-0.060, -0.155, 0.050],
-            [-0.060, -0.175, 0.050],
-            [-0.052, -0.175, 0.050],
-            [-0.052, -0.155, 0.050],
-            [0.135, -0.147, 0.050],
-            [0.135, -0.172, 0.050]
-        ], dtype=np.float32)
+        # anchor_keypoints_3D = np.array([
+        #     [0.03, -0.165, 0.05],
+        #     [-0.190, -0.165, 0.050],
+        #     [0.010, -0.025, 0.0],
+        #     [0.060, -0.025, 0.0],
+        #     [0.06, -0.080, 0.0],
+        #     [0.010, -0.080, 0.0],
+        #     [-0.035, -0.087, 0.0],
+        #     [-0.035, -0.105, 0.0],
+        #     [0.065, -0.105, 0.0],
+        #     [0.0, 0.045, 0.0],
+        #     [-0.045, 0.078, 0.0],
+        #     [-0.045, 0.046, 0.0],
+        #     [-0.045, 0.023, 0.0],
+        #     [0.0, -0.0, 0.0],
+        #     [0.045, 0.022, 0.0],
+        #     [-0.120, 0.160, 0.0],
+        #     [-0.095, -0.035,0.0],
+        #     [-0.080, -0.035, 0.0],
+        #     [-0.080, -0.055, 0.0],
+        #     [-0.095, -0.055, 0.0],
+        #     [-0.050, -0.040, 0.010],
+        #     [-0.135, -0.100, 0.0],
+        #     [-0.060, -0.155, 0.050],
+        #     [-0.060, -0.175, 0.050],
+        #     [-0.052, -0.175, 0.050],
+        #     [-0.052, -0.155, 0.050],
+        #     [0.135, -0.147, 0.050],
+        #     [0.135, -0.172, 0.050]
+        # ], dtype=np.float32)
 
-        # anchor_keypoints_3D_raw = np.array([
+        # anchor_keypoints_3D = np.array([
         #     [0.03, -0.165, 0.05],
         #     [-0.190, -0.165, 0.050],
         #     [0.010, -0.025, 0.0],
@@ -142,36 +185,36 @@ class PoseEstimator:
 
 
         # This is a test I changed it into GT coordinate frame 20241218 #########################################
-        # anchor_keypoints_3D_raw = np.array([
-        #     [0.03, -0.05, -0.165],
-        #     [-0.190, -0.050, -0.165],
-        #     [0.010, -0.0, -0.025],
-        #     [0.060, -0.0, -0.025],
-        #     [0.06, -0.0, -0.080],
-        #     [0.010, -0.0, -0.080],
-        #     [-0.035, -0.0, -0.087],
-        #     [-0.035, -0.0, -0.105],
-        #     [0.065, -0.0, -0.105],
-        #     [0.0, 0.0, 0.045],
-        #     [-0.045, 0.0,0.078 ],
-        #     [-0.045, 0.0, 0.046],
-        #     [-0.045, 0.0, 0.023],
-        #     [0.0, -0.0, 0.0],
-        #     [0.045, 0.0, 0.022],
-        #     [-0.120, 0.0, 0.160],
-        #     [-0.095, -0.0,-0.035],
-        #     [-0.080, -0.0, -0.035],
-        #     [-0.080, -0.0, -0.055],
-        #     [-0.095, -0.0, -0.055],
-        #     [-0.050, -0.010, -0.040],
-        #     [-0.135, -0.0, -0.1],
-        #     [-0.060, -0.050,-0.155],
-        #     [-0.060, -0.050,-0.175],
-        #     [-0.052, -0.050, -0.175],
-        #     [-0.052, -0.050, -0.155],
-        #     [0.135, -0.050, -0.147],
-        #     [0.135, -0.050, -0.172]
-        # ], dtype=np.float32)
+        anchor_keypoints_3D = np.array([
+            [0.03, -0.05, -0.165],
+            [-0.190, -0.050, -0.165],
+            [0.010, -0.0, -0.025],
+            [0.060, -0.0, -0.025],
+            [0.06, -0.0, -0.080],
+            [0.010, -0.0, -0.080],
+            [-0.035, -0.0, -0.087],
+            [-0.035, -0.0, -0.105],
+            [0.065, -0.0, -0.105],
+            [0.0, 0.0, 0.045],
+            [-0.045, 0.0,0.078 ],
+            [-0.045, 0.0, 0.046],
+            [-0.045, 0.0, 0.023],
+            [0.0, -0.0, 0.0],
+            [0.045, 0.0, 0.022],
+            [-0.120, 0.0, 0.160],
+            [-0.095, -0.0,-0.035],
+            [-0.080, -0.0, -0.035],
+            [-0.080, -0.0, -0.055],
+            [-0.095, -0.0, -0.055],
+            [-0.050, -0.010, -0.040],
+            [-0.135, -0.0, -0.1],
+            [-0.060, -0.050,-0.155],
+            [-0.060, -0.050,-0.175],
+            [-0.052, -0.050, -0.175],
+            [-0.052, -0.050, -0.155],
+            [0.135, -0.050, -0.147],
+            [0.135, -0.050, -0.172]
+        ], dtype=np.float32)
 
         # # Define the transformation matrix
         # T = np.array([
@@ -279,40 +322,40 @@ class PoseEstimator:
         imagePoints = imagePoints.astype(np.float32)
 
         ################################################################################################
-        #@@@@@@@@@@@@@ NEEDs UPGRADE OR FOR LATER USAGE@@@@@@@@@@@@@@@@@@@@@@@@@ 
-        # Use Kalman Filter to adaptively set reprojectionError threshold (Needs further testing and upgrade)
-        translation_estimated, eulers_estimated = self.kf_pose.predict()
+        # #@@@@@@@@@@@@@ NEEDs UPGRADE OR FOR LATER USAGE@@@@@@@@@@@@@@@@@@@@@@@@@ 
+        # # Use Kalman Filter to adaptively set reprojectionError threshold (Needs further testing and upgrade)
+        # translation_estimated, eulers_estimated = self.kf_pose.predict()
 
-        # Convert Kalman Filter predicted Euler angles to rotation matrix
-        R_predicted = euler_angles_to_rotation_matrix(eulers_estimated)
+        # # Convert Kalman Filter predicted Euler angles to rotation matrix
+        # R_predicted = euler_angles_to_rotation_matrix(eulers_estimated)
 
-        # Calculate rvec from predicted rotation matrix
-        rvec_predicted, _ = cv2.Rodrigues(R_predicted)
+        # # Calculate rvec from predicted rotation matrix
+        # rvec_predicted, _ = cv2.Rodrigues(R_predicted)
 
-        # Compare predicted rvec with initial or current rvec_o (from solvePnPRansac)
-        if 'rvec_o' in locals():  # Ensure rvec_o is defined
-            rvec_error = np.linalg.norm(rvec_predicted.flatten() - rvec_o.flatten())
-        else:
-            rvec_error = float('inf')  # Default to a large error if rvec_o is unavailable
+        # # Compare predicted rvec with initial or current rvec_o (from solvePnPRansac)
+        # if 'rvec_o' in locals():  # Ensure rvec_o is defined
+        #     rvec_error = np.linalg.norm(rvec_predicted.flatten() - rvec_o.flatten())
+        # else:
+        #     rvec_error = float('inf')  # Default to a large error if rvec_o is unavailable
 
-        translation_change = np.linalg.norm(translation_estimated - objectPoints.mean(axis=0).flatten())
+        # translation_change = np.linalg.norm(translation_estimated - objectPoints.mean(axis=0).flatten())
 
-        if translation_change < 2.0:  # Low translation change
-            reprojectionError = 1.0  # Strict threshold
-        elif translation_change < 5.0:
-            reprojectionError = 3.0  # Moderate threshold
-        else:
-            reprojectionError = 5.0  # Flexible threshold
+        # if translation_change < 2.0:  # Low translation change
+        #     reprojectionError = 1.0  # Strict threshold
+        # elif translation_change < 5.0:
+        #     reprojectionError = 3.0  # Moderate threshold
+        # else:
+        #     reprojectionError = 5.0  # Flexible threshold
 
-        if translation_change < 3 and rvec_error < 0.05:
-            confidence = 0.99  # High confidence
-        else:
-            confidence = 0.8   # Lower confidence to allow more matches
+        # if translation_change < 3 and rvec_error < 0.05:
+        #     confidence = 0.99  # High confidence
+        # else:
+        #     confidence = 0.8   # Lower confidence to allow more matches
 
-        if translation_change < 3 and rvec_error < 0.05:
-            iterationsCount = 1000  # Lower iterations for efficiency
-        else:
-            iterationsCount = 1500  # Higher iterations for robustness
+        # if translation_change < 3 and rvec_error < 0.05:
+        #     iterationsCount = 1000  # Lower iterations for efficiency
+        # else:
+        #     iterationsCount = 1500  # Higher iterations for robustness
         ################################################################################################
 
         success, rvec_o, tvec_o, inliers = cv2.solvePnPRansac(
@@ -322,11 +365,11 @@ class PoseEstimator:
             distCoeffs=distCoeffs,
             reprojectionError=8,#reprojectionError,
             confidence=0.99,#confidence,
-            iterationsCount=1500,#iterationsCount,
-            flags=cv2.SOLVEPNP_DLS
+            iterationsCount=2000,#iterationsCount,
+            flags=cv2.SOLVEPNP_P3P
         )
 
-        if success and inliers is not None and len(inliers) >= 3:
+        if success and inliers is not None and len(inliers) >= 7:#3:
             objectPoints_inliers = mpts3D[inliers.flatten()].reshape(-1, 1, 3)
             imagePoints_inliers = mkpts1[inliers.flatten()].reshape(-1, 1, 2)
             imagePoints_inliers = imagePoints_inliers.astype(np.float32)
@@ -374,8 +417,9 @@ class PoseEstimator:
         num_inliers = len(inliers)
         inlier_ratio = num_inliers / len(mkpts0) if len(mkpts0) > 0 else 0
 
-        reprojection_error_threshold = 15
-        max_translation_jump = 2.0
+        reprojection_error_threshold = 10#15
+        max_translation_jump = 4
+        min_inlier = 5
 
         translation_estimated, eulers_estimated = self.kf_pose.predict()
         eulers_measured = rotation_matrix_to_euler_angles(R)
@@ -385,19 +429,25 @@ class PoseEstimator:
         ###############################################################################################
         # Apply ground truth Z for the first frame only
         if not self.initial_z_set:
-            #tvec[2] = 0.85
+            # tvec[0] = 0.0
+            # tvec[1] = -1.0
+            # tvec[2] = 0.0
             self.initial_z_set = True
         ###############################################################################################
-        if mean_reprojection_error < reprojection_error_threshold:
+        if mean_reprojection_error < reprojection_error_threshold and num_inliers > min_inlier:
+            print("*****************************************.")
             if translation_change < max_translation_jump:
                 self.kf_pose.correct(tvec, R)
+                print("Correct ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
             else:
-                print("Skipping Kalman update due to large jump in translation.")
+                print("Skipping Kalman update due to large jump in translation $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$4.")
         else:
-            print("Skipping Kalman update due to high reprojection error.")
+            print("Skipping Kalman update due to high reprojection error.^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
 
         translation_estimated, eulers_estimated = self.kf_pose.predict()
         R_estimated = euler_angles_to_rotation_matrix(eulers_estimated)
+        
+        #translation_estimated = -R_estimated.T @ translation_estimated
 
         pose_data = {
             'frame': frame_idx,
@@ -456,7 +506,12 @@ class PoseEstimator:
         focal_length_y = 1354.35538
         cx = 581.022033
         cy = 571.458522
+
+        # cx = 620.022033
+        # cy = 500.458522
+
         distCoeffs = np.array([0.10058526, 0.4507094, 0.13687279, -0.01839536, 0.13001669], dtype=np.float32)
+        
 
         K = np.array([
             [focal_length_x, 0, cx],

@@ -9,11 +9,18 @@ import matplotlib.cm as cm
 # Ensure interactive mode is off for proper figure updates
 plt.ioff()
 
+# # GT to World rotation matrix
+# R_gt_to_world = np.array([
+#     [1,  0,  0],
+#     [0,  0,  1],
+#     [0, -1,  0]
+# ], dtype=float)
+
 # GT to World rotation matrix
 R_gt_to_world = np.array([
     [1,  0,  0],
-    [0,  0,  1],
-    [0, -1,  0]
+    [0,  1,  0],
+    [0, 0,  1]
 ], dtype=float)
 
 def load_pose_data(pose_file):
@@ -171,10 +178,10 @@ def visualize_pose_and_matches(pose_data, gt_camera_positions, gt_target_positio
 
 if __name__ == '__main__':
     # Paths and parameters
-    pose_file = '/home/runbk0401/SuperGluePretrainedNetwork/pose_estimation_research_103.json'  # Replace with your actual path
-    video_path = '/home/runbk0401/SuperGluePretrainedNetwork/assets/Ruun_images/video/20241217/Opti_Test1.mp4'          # Replace with your actual path
-    anchor_image_path = '/home/runbk0401/SuperGluePretrainedNetwork/assets/Ruun_images/viewpoint/anchor/realAnchor.png'       # Replace with your actual path
-    gt_file = '/home/runbk0401/SuperGluePretrainedNetwork/GT/extracted_positions(1).json'
+    pose_file = '/home/runbk0401/SuperGluePretrainedNetwork/pose_estimation_research_104.json'  # Replace with your actual path
+    video_path = '/home/runbk0401/SuperGluePretrainedNetwork/assets/Ruun_images/video/20241218/20241218_HD.mp4'          # Replace with your actual path
+    anchor_image_path = '/home/runbk0401/SuperGluePretrainedNetwork/assets/Ruun_images/video/20241218/Box_Anchor/Opti_Box_Anchor.png'       # Replace with your actual path
+    gt_file = '/home/runbk0401/SuperGluePretrainedNetwork/GT/20241218/20241218_extracted_positions.json'
 
     ####################################################################################################
     # # Real calibration values from XML (perspectiveProjWithoutDistortion)
@@ -248,71 +255,112 @@ if __name__ == '__main__':
     #     [0.000, 0.000, 0.015]
     # ]
 
-     # Provided 2D and 3D keypoints for the anchor image
+    # Provided 2D and 3D keypoints for the anchor image
     anchor_keypoints_2D = np.array([
-        [563, 565], 
-        [77, 582], 
-        [515, 318], 
-        [606, 317], 
-        [612, 411],
-        [515, 414], 
-        [420, 434], 
-        [420, 465], 
-        [618, 455], 
-        [500, 123], 
-        [418, 153], 
-        [417, 204], 
-        [417, 243], 
-        [502, 279],
-        [585, 240],  
-        [289, 26],  
-        [322, 339], 
-        [349, 338], 
-        [349, 374], 
-        [321, 375],
-        [390, 349], 
-        [243, 462], 
-        [367, 550], 
-        [368, 595], 
-        [383, 594],
-        [386, 549], 
-        [779, 518], 
-        [783, 570]
+        [780, 216],  
+    [464, 111],  
+    [258, 276], 
+    [611, 538],  
+    [761, 324],
+    [644, 168],
+    [479, 291] ,
+    [586, 149] ,
+    [550, 182] ,
+    [610, 202] ,
+    [361, 193] ,
+    [319, 298] ,
+    [344, 418] ,
+    [440, 460] ,
+    [502, 489] ,
+    [496, 372]
         
     ], dtype=np.float32)
 
     anchor_keypoints_3D = np.array([
-        [0.03, -0.165, 0.05],
-        [-0.190, -0.165, 0.050],
-        [0.010, -0.025, 0.0],
-        [0.060, -0.025, 0.0],
-        [0.06, -0.080, 0.0],
-        [0.010, -0.080, 0.0],
-        [-0.035, -0.087, 0.0],
-        [-0.035, -0.105, 0.0],
-        [0.065, -0.105, 0.0],
-        [0.0, 0.045, 0.0],
-        [-0.045, 0.078, 0.0],
-        [-0.045, 0.046, 0.0],
-        [-0.045, 0.023, 0.0],
-        [0.0, -0.0, 0.0],
-        [0.045, 0.022, 0.0],
-        [-0.120, 0.160, 0.0],
-        [-0.095, -0.035,0.0],
-        [-0.080, -0.035, 0.0],
-        [-0.080, -0.055, 0.0],
-        [-0.095, -0.055, 0.0],
-        [-0.050, -0.040, 0.010],
-        [-0.135, -0.100, 0.0],
-        [-0.060, -0.155, 0.050],
-        [-0.060, -0.175, 0.050],
-        [-0.052, -0.175, 0.050],
-        [-0.052, -0.155, 0.050],
-        [0.135, -0.147, 0.050],
-        [0.135, -0.172, 0.050]
+            [0.049, 0.045, 0],     
+    [-0.051, 0.045, 0],    
+    [-0.051, -0.044, 0],    
+    [0.049, -0.044, -0.04],     
+    [0.049, 0.045, 0],
+    [0.01, 0.045, 0],
+    [-0.003, -0.023, 0],
+    [-0.001, 0.045, 0],
+    [-0.001, 0.025, 0],
+    [0.001, 0.025, 0],
+    [-0.051, -0.005, 0],
+    [-0.035, -0.044, 0],
+    [-0.035, -0.044, -0.04],
+    [-0.002, -0.044, -0.04], 
+    [0.017, -0.044, -0.04],
+    [0.017, -0.044, 0.0]
+        ], dtype=np.float32) 
+     
+    ####################################################3#######################3
+    #  # Provided 2D and 3D keypoints for the anchor image : TAIL
+    # anchor_keypoints_2D = np.array([
+    #     [563, 565], 
+    #     [77, 582], 
+    #     [515, 318], 
+    #     [606, 317], 
+    #     [612, 411],
+    #     [515, 414], 
+    #     [420, 434], 
+    #     [420, 465], 
+    #     [618, 455], 
+    #     [500, 123], 
+    #     [418, 153], 
+    #     [417, 204], 
+    #     [417, 243], 
+    #     [502, 279],
+    #     [585, 240],  
+    #     [289, 26],  
+    #     [322, 339], 
+    #     [349, 338], 
+    #     [349, 374], 
+    #     [321, 375],
+    #     [390, 349], 
+    #     [243, 462], 
+    #     [367, 550], 
+    #     [368, 595], 
+    #     [383, 594],
+    #     [386, 549], 
+    #     [779, 518], 
+    #     [783, 570]
+        
+    # ], dtype=np.float32)
 
-    ], dtype=np.float32)
+    # anchor_keypoints_3D = np.array([
+    #         [0.03, -0.05, -0.165],
+    #         [-0.190, -0.050, -0.165],
+    #         [0.010, -0.0, -0.025],
+    #         [0.060, -0.0, -0.025],
+    #         [0.06, -0.0, -0.080],
+    #         [0.010, -0.0, -0.080],
+    #         [-0.035, -0.0, -0.087],
+    #         [-0.035, -0.0, -0.105],
+    #         [0.065, -0.0, -0.105],
+    #         [0.0, 0.0, 0.045],
+    #         [-0.045, 0.0,0.078 ],
+    #         [-0.045, 0.0, 0.046],
+    #         [-0.045, 0.0, 0.023],
+    #         [0.0, -0.0, 0.0],
+    #         [0.045, 0.0, 0.022],
+    #         [-0.120, 0.0, 0.160],
+    #         [-0.095, -0.0,-0.035],
+    #         [-0.080, -0.0, -0.035],
+    #         [-0.080, -0.0, -0.055],
+    #         [-0.095, -0.0, -0.055],
+    #         [-0.050, -0.010, -0.040],
+    #         [-0.135, -0.0, -0.1],
+    #         [-0.060, -0.050,-0.155],
+    #         [-0.060, -0.050,-0.175],
+    #         [-0.052, -0.050, -0.175],
+    #         [-0.052, -0.050, -0.155],
+    #         [0.135, -0.050, -0.147],
+    #         [0.135, -0.050, -0.172]
+    #     ], dtype=np.float32)
 
+    #############################################################################
 
     # # Provided 2D and 3D keypoints for the anchor image
     # anchor_keypoints_2D = np.array([

@@ -109,3 +109,12 @@ python3 main.py --anchor assets/Ruun_images/viewpoint/anchor/realAnchor.png --in
 python3 main.py --anchor assets/Ruun_images/viewpoint/anchor/realAnchor.png --input assets/Ruun_images/video/20241213/Big.mp4 --resize 1280 720 --no_display --superglue outdoor
 
 python3 main.py --anchor assets/Ruun_images/viewpoint/anchor/realAnchor.png --input assets/Ruun_images/video/20241213/Roll_rotation.mp4 --resize 1280 720 --no_display --superglue outdoor --output_dir dump_match_pairs/20241213/Rotate/
+
+python3 main_LG.py --anchor assets/Ruun_images/viewpoint/anchor/realAnchor.png --input assets/Ruun_images/video/20241210/Steady.mp4 --resize 1280 720
+
+#20241219
+
+python3 main_LG_Box_GT.py --anchor assets/Ruun_images/video/20241218/Box_Anchor/Opti_Box_Anchor.png --input assets/Ruun_images/video/20241218/20241218_HD.mp4 --resize 1280 720
+
+python3 main_LG_GT_frame.py --anchor assets/Ruun_images/viewpoint/anchor/realAnchor.png --input assets/Ruun_images/video/20241217/Opti_Test1.mp4 --resize 1280 720
+python3 Debug_29241219_GTvsMine
