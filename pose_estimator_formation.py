@@ -352,14 +352,25 @@ class PoseEstimator:
         return out
 
     def _get_camera_intrinsics(self):
-        # Replace with your real camera intrinsics
-        focal_length_x = 1121.87155
-        focal_length_y = 1125.27185
-        cx = 642.208561
-        cy = 394.971663
+        # # Replace with your real camera intrinsics: Lab
+        # focal_length_x = 1121.87155
+        # focal_length_y = 1125.27185
+        # cx = 642.208561
+        # cy = 394.971663
+
+        # distCoeffs = np.array(
+        #     [-2.28097367e-03, 1.33152199e+00, 1.09716884e-02, 1.68743767e-03, -8.17039260e+00],
+        #     dtype=np.float32
+        # )
+        
+        # Calib_Phone_Opti
+        focal_length_x = 1078.06451
+        focal_length_y = 1081.77221
+        cx = 628.078538
+        cy = 362.156441
 
         distCoeffs = np.array(
-            [-2.28097367e-03, 1.33152199e+00, 1.09716884e-02, 1.68743767e-03, -8.17039260e+00],
+            [5.63748710e-02, -7.51721332e-01, -6.97952865e-04, -3.84299642e-03,6.18234012e+00],
             dtype=np.float32
         )
 

@@ -131,7 +131,7 @@ objpoints = []
 imgpoints = []
 
 # Load images
-images = glob.glob('assets/Calibration/20241224/*.jpg')
+images = glob.glob('assets/Calibration/20241224/opti/*.jpg')
 
 for image_path in images:
     print(f"Processing: {image_path}")

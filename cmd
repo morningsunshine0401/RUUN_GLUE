@@ -125,3 +125,6 @@ python3 Debug_29241219_GTvsMine
 python3 main_LG_GT_frame.py --anchor assets/Ruun_images/viewpoint/anchor/realAnchor.png --input assets/Ruun_images/video/20241224/20241224_new_cali.mp4 --resize 1280 720
 
 python3 Debug_29241219_GTvsMine
+
+python3 main_LG_GT_frame.py --anchor assets/Ruun_images/viewpoint/anchor/realAnchor.png --input assets/Ruun_images/video/20241224/20241224_test2.mp4 --resize 1280 720
+
