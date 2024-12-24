@@ -117,4 +117,11 @@ python3 main_LG.py --anchor assets/Ruun_images/viewpoint/anchor/realAnchor.png -
 python3 main_LG_Box_GT.py --anchor assets/Ruun_images/video/20241218/Box_Anchor/Opti_Box_Anchor.png --input assets/Ruun_images/video/20241218/20241218_HD.mp4 --resize 1280 720
 
 python3 main_LG_GT_frame.py --anchor assets/Ruun_images/viewpoint/anchor/realAnchor.png --input assets/Ruun_images/video/20241217/Opti_Test1.mp4 --resize 1280 720
+
+python3 Debug_29241219_GTvsMine
+
+#290241224
+
+python3 main_LG_GT_frame.py --anchor assets/Ruun_images/viewpoint/anchor/realAnchor.png --input assets/Ruun_images/video/20241224/20241224_new_cali.mp4 --resize 1280 720
+
 python3 Debug_29241219_GTvsMine

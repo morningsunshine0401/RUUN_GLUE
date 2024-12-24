@@ -399,8 +399,9 @@ class PoseEstimator:
 
             pose_data = self._kalman_filter_update(
                 R, tvec, reprojection_errors, mean_reprojection_error, std_reprojection_error,
-                inliers, mkpts0, mkpts1, mpts3D, mconf, frame_idx, camera_position
+                inliers, mkpts0, mkpts1, mpts3D, mconf, frame_idx, camera_position,rvec_o,rvec
             )
+
 
             visualization = self._visualize_matches(
                 frame, inliers, mkpts0, mkpts1, mconf, pose_data, frame_keypoints
@@ -413,7 +414,7 @@ class PoseEstimator:
 
     def _kalman_filter_update(self, R, tvec, reprojection_errors, mean_reprojection_error,
                               std_reprojection_error, inliers, mkpts0, mkpts1, mpts3D,
-                              mconf, frame_idx, camera_position):
+                              mconf, frame_idx, camera_position,rvec_o,rvec):
         num_inliers = len(inliers)
         inlier_ratio = num_inliers / len(mkpts0) if len(mkpts0) > 0 else 0
 
@@ -447,11 +448,13 @@ class PoseEstimator:
         translation_estimated, eulers_estimated = self.kf_pose.predict()
         R_estimated = euler_angles_to_rotation_matrix(eulers_estimated)
         
-        #translation_estimated = -R_estimated.T @ translation_estimated
+        KF_estimated_camera_pose= -R_estimated.T @ translation_estimated
 
         pose_data = {
             'frame': frame_idx,
             'rotation_matrix': R.tolist(),
+            'raw_rvec' : rvec_o.flatten().tolist(),
+            'refined_raw_rvec' : rvec.flatten().tolist(),
             'translation_vector': tvec.flatten().tolist(),
             'camera_position': camera_position.flatten().tolist(),
             'num_inliers': num_inliers,
@@ -467,7 +470,8 @@ class PoseEstimator:
             'mconf': mconf.tolist(),
             'kf_translation_vector': translation_estimated.tolist(),
             'kf_rotation_matrix': R_estimated.tolist(),
-            'kf_euler_angles': eulers_estimated.tolist()
+            'kf_euler_angles': eulers_estimated.tolist(),
+            'kF': KF_estimated_camera_pose.flatten().tolist()
         }
         return pose_data
 
@@ -502,16 +506,16 @@ class PoseEstimator:
 
     def _get_camera_intrinsics(self):
         # Replace with your camera's intrinsic parameters
-        focal_length_x = 1195.08491
-        focal_length_y = 1354.35538
-        cx = 581.022033
-        cy = 571.458522
+        focal_length_x = 1121.87155
+        focal_length_y = 1125.27185
+        cx = 642.208561
+        cy = 394.971663
 
         # cx = 620.022033
         # cy = 500.458522
 
-        distCoeffs = np.array([0.10058526, 0.4507094, 0.13687279, -0.01839536, 0.13001669], dtype=np.float32)
-        
+        distCoeffs = np.array([-2.28097367e-03, 1.33152199e+00, 1.09716884e-02, 1.68743767e-03, -8.17039260e+00], dtype=np.float32)
+
 
         K = np.array([
             [focal_length_x, 0, cx],
