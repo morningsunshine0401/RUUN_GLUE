@@ -305,6 +305,7 @@ class PoseEstimator:
 
         reprojection_error_threshold = 10
         max_translation_jump = 4
+        max_orientation_jump = 230 # Threshold for orientation changes (degrees)
         min_inlier = 5
 
         # Predict
@@ -312,6 +313,8 @@ class PoseEstimator:
         eulers_measured = rotation_matrix_to_euler_angles(R)
 
         translation_change = np.linalg.norm(tvec.flatten() - translation_estimated)
+        orientation_change = np.linalg.norm(eulers_measured - eulers_estimated) * (180 / np.pi)  # Convert radians to degrees
+        print("@@@@@@@@@@@@@orientation_change:",orientation_change)
 
         # Apply ground truth Z for the first frame only (if desired)
         if not self.initial_z_set:
@@ -320,13 +323,16 @@ class PoseEstimator:
 
         # Update conditions
         if mean_reprojection_error < reprojection_error_threshold and num_inliers > min_inlier:
-            if translation_change < max_translation_jump:
+            if translation_change < max_translation_jump and orientation_change < max_orientation_jump:
                 self.kf_pose.correct(tvec, R)
                 logger.debug("Kalman Filter corrected.")
             else:
-                logger.debug("Skipping Kalman update: large jump in translation.")
+                if translation_change >= max_translation_jump:
+                    logger.debug(f"Skipping Kalman update: large jump in translation ({translation_change:.3f} units).")
+                if orientation_change >= max_orientation_jump:
+                    logger.debug(f"Skipping Kalman update: large jump in orientation ({orientation_change:.3f} degrees).")
         else:
-            logger.debug("Skipping Kalman update: high reprojection error.")
+            logger.debug("Skipping Kalman update: high reprojection error or insufficient inliers.")
 
         # Final predicted
         translation_estimated, eulers_estimated = self.kf_pose.predict()

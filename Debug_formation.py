@@ -275,7 +275,7 @@ class TrajectoryViewer:
 if __name__ == "__main__":
     # Example usage:
     # 1) Provide your JSON file path
-    json_path = "pose_estimation_research_154.json"
+    json_path = "20241226_test2.json"
     
     # 2) Initialize the viewer
     viewer = TrajectoryViewer(json_path)
