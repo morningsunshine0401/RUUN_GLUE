@@ -20,6 +20,52 @@ The project consists of the following scripts:
 
 ---
 
+Requirements
+
+The project relies on the following dependencies and system configurations:
+
+Python Version
+
+Python 3.11.10
+
+CUDA Version
+
+CUDA 12.2, release 12.2, build 12.2.140
+
+Key Dependencies
+
+Below is the list of major Python packages required for the project, along with their versions:
+
+PyTorch: For deep learning computations.
+
+torch==2.4.1+cu121
+
+torchaudio==2.4.1+cu121
+
+torchvision==0.19.1+cu121
+
+SuperPoint and SuperGlue: For keypoint detection and feature matching.
+
+Included as part of the project and relies on PyTorch.
+
+OpenCV: For image and video processing.
+
+opencv-python==4.10.0.84
+
+NumPy: For numerical computations.
+
+numpy==2.1.1
+
+Matplotlib: For visualizations.
+
+matplotlib==3.9.2
+
+Kornia: For geometric transformations and image processing.
+
+kornia==0.7.4
+
+For a complete list of dependencies, see the requirements.txt file.
+
 ## Script Details
 
 ### 1. `main.py`
