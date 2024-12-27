@@ -135,3 +135,5 @@ python3 main_formation_aircraft.py --anchor assets/Ruun_images/viewpoint/anchor/
 #20241227
 
 python3 main_formation_aircraft.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --input assets/Ruun_images/video/20241227/20241227_test1.mp4 --resize 1280 720 --save_pose 20241227_test1.json
+
+python3 main_formation_aircraft.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --input assets/Ruun_images/video/20241227/20241227_test1.mp4 --resize 1280 720 --save_pose 20241227_C_test1.json

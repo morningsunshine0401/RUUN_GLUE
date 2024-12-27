@@ -74,12 +74,15 @@
 
 #     def plot_rotations(self):
 #         """Plot roll, pitch, yaw rotations over time."""
+#         # Convert radians to degrees for plotting
+#         euler_angles_deg = np.degrees(self.euler_angles)
+
 #         plt.figure(figsize=(10, 6))
-#         plt.plot(self.euler_angles[:, 0], label='Roll (rad)')
-#         plt.plot(self.euler_angles[:, 1], label='Pitch (rad)')
-#         plt.plot(self.euler_angles[:, 2], label='Yaw (rad)')
+#         plt.plot(euler_angles_deg[:, 0], label='Roll (deg)')
+#         plt.plot(euler_angles_deg[:, 1], label='Pitch (deg)')
+#         plt.plot(euler_angles_deg[:, 2], label='Yaw (deg)')
 #         plt.xlabel('Frame Index')
-#         plt.ylabel('Rotation (Radians)')
+#         plt.ylabel('Rotation (Degrees)')
 #         plt.title('Rotations (Roll, Pitch, Yaw) Over Time')
 #         plt.legend()
 #         plt.grid()
@@ -88,7 +91,7 @@
 
 # if __name__ == "__main__":
 #     # Example usage:
-#     json_path = "pose_estimation_research_152.json"  # Replace with your JSON file path
+#     json_path = "20241226_test8.json"  # Replace with your JSON file path
 #     viewer = TrajectoryViewer(json_path)
 
 
@@ -275,7 +278,7 @@ class TrajectoryViewer:
 if __name__ == "__main__":
     # Example usage:
     # 1) Provide your JSON file path
-    json_path = "20241226_test2.json"
+    json_path = "20241227_C_test4.json"
     
     # 2) Initialize the viewer
     viewer = TrajectoryViewer(json_path)
