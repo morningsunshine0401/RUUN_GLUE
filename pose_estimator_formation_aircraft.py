@@ -412,9 +412,9 @@ class PoseEstimator:
         num_inliers = len(inliers)
         inlier_ratio = num_inliers / len(mkpts0) if len(mkpts0) > 0 else 0
 
-        reprojection_error_threshold = 10
-        max_translation_jump = 4
-        max_orientation_jump = 100#15 # Threshold for orientation changes (degrees)
+        reprojection_error_threshold = 8
+        max_translation_jump = 3
+        max_orientation_jump = 10  # Threshold for orientation changes (degrees)
         min_inlier = 5
 
         # Predict
@@ -423,44 +423,42 @@ class PoseEstimator:
 
         translation_change = np.linalg.norm(tvec.flatten() - translation_estimated)
         orientation_change = np.linalg.norm(eulers_measured - eulers_estimated) * (180 / np.pi)  # Convert radians to degrees
-        print("@@@@@@@@@@@@@orientation_change:",orientation_change)
-
+        print("orientation_change@@@@@@@@@@@@@@@@@@@@@@:",orientation_change)
         # Apply ground truth Z for the first frame only (if desired)
         if not self.initial_z_set:
             # tvec[2] = ...
             self.initial_z_set = True
 
-        # Update conditions
-        if mean_reprojection_error < reprojection_error_threshold and num_inliers > min_inlier:
-            if translation_change < max_translation_jump and orientation_change < max_orientation_jump:
-                self.kf_pose.correct(tvec, R)
-                logger.debug("Kalman Filter corrected.")
-            else:
-                if translation_change >= max_translation_jump:
-                    logger.debug(f"Skipping Kalman update: large jump in translation ({translation_change:.3f} units).")
-                if orientation_change >= max_orientation_jump:
-                    logger.debug(f"Skipping Kalman update: large jump in orientation ({orientation_change:.3f} degrees).")
+        # Skip validation checks for the first frame update
+        if not hasattr(self, 'kf_initialized'):
+            self.kf_pose.correct(tvec, R)
+            self.kf_initialized = True
+            logger.debug("Kalman Filter initialized with the first frame.")
         else:
-            logger.debug("Skipping Kalman update: high reprojection error or insufficient inliers.")
+            # Update conditions
+            if mean_reprojection_error < reprojection_error_threshold and num_inliers > min_inlier:
+                if translation_change < max_translation_jump and orientation_change < max_orientation_jump:
+                    self.kf_pose.correct(tvec, R)
+                    logger.debug("Kalman Filter corrected.")
+                    print("Kalman Filter corrected.######################################:")
+                else:
+                    if translation_change >= max_translation_jump:
+                        logger.debug(f"Skipping Kalman update: large jump in translation ({translation_change:.3f} units).")
+                    if orientation_change >= max_orientation_jump:
+                        logger.debug(f"Skipping Kalman update: large jump in orientation ({orientation_change:.3f} degrees).")
+            else:
+                logger.debug("Skipping Kalman update: high reprojection error or insufficient inliers.")
 
         # Final predicted
         translation_estimated, eulers_estimated = self.kf_pose.predict()
         R_estimated = euler_angles_to_rotation_matrix(eulers_estimated)
 
-        # Just for reference, if you want to see the final predicted object position in camera frame:
-        # predicted_tvec = translation_estimated
-        # predicted_R     = R_estimated
-
         pose_data = {
             'frame': frame_idx,
-            # The next two store the refined object->camera transform:
             'object_rotation_in_cam': R.tolist(),
             'object_translation_in_cam': tvec.flatten().tolist(),
-
             'raw_rvec': rvec_o.flatten().tolist(),
             'refined_raw_rvec': rvec.flatten().tolist(),
-
-            # If you still want to store how many inliers, errors, etc.
             'num_inliers': num_inliers,
             'total_matches': len(mkpts0),
             'inlier_ratio': inlier_ratio,
@@ -472,13 +470,12 @@ class PoseEstimator:
             'mkpts1': mkpts1.tolist(),
             'mpts3D': mpts3D.tolist(),
             'mconf': mconf.tolist(),
-
-            # Kalman filter states (predicted transform):
             'kf_translation_vector': translation_estimated.tolist(),
             'kf_rotation_matrix': R_estimated.tolist(),
             'kf_euler_angles': eulers_estimated.tolist()
         }
         return pose_data
+
 
     def _visualize_matches(self, frame, inliers, mkpts0, mkpts1, mconf, pose_data, frame_keypoints):
         anchor_image_gray = cv2.cvtColor(self.anchor_image, cv2.COLOR_BGR2GRAY)
