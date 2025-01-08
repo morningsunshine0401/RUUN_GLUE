@@ -126,7 +126,7 @@ if __name__ == '__main__':
         # EXAMPLE: Switch anchor after N frames (e.g., after 200 frames).
         # Adjust to your own logic or condition.
         # ---------------------------------------------------------
-        if frame_idx == 550:
+        if frame_idx == 540:
             logger.info("Switching to a new anchor after 550 frames...")
 
             # Example new anchor image

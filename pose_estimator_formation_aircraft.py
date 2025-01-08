@@ -412,10 +412,10 @@ class PoseEstimator:
         num_inliers = len(inliers)
         inlier_ratio = num_inliers / len(mkpts0) if len(mkpts0) > 0 else 0
 
-        reprojection_error_threshold = 8
-        max_translation_jump = 3
-        max_orientation_jump = 30#10  # Threshold for orientation changes (degrees)
-        min_inlier = 5
+        reprojection_error_threshold = 4#8
+        max_translation_jump = 0.15#3
+        max_orientation_jump = 10#30#10  # Threshold for orientation changes (degrees)
+        min_inlier = 8
 
         # Predict
         translation_estimated, eulers_estimated = self.kf_pose.predict()

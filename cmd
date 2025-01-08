@@ -151,3 +151,30 @@ python3 main_formation_aircraft.py --anchor assets/Ruun_images/viewpoint/anchor/
 
 python3 main_formation_aircraft.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --input assets/Ruun_images/video/20241230/20241230_test1.mp4 --resize 1280 720 --save_pose 20241230_test1.json --output_dir dump_match_pairs/20241230/test1/
 
+#20250106
+
+python3 main_formation_aircraft.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --input assets/Ruun_images/video/20250106/20250106_test2.mp4 --resize 1280 720 --save_pose 20250106_test2.json --output_dir dump_match_pairs/20250106/
+
+
+python3 main_formation_aircraft.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --input assets/Ruun_images/video/20250106/20250106_test3.mp4 --resize 1280 720 --save_pose 20250106_test3.json --output_dir dump_match_pairs/20250106/test3/
+
+#20250107
+
+python3 20250106_main.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --input assets/Ruun_images/video/20250106/20250106_test2.mp4 --resize 1280 720 --save_pose 20250107_test2.json --output_dir dump_match_pairs/20250107/
+
+python3 main_formation_aircraft.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --input assets/Ruun_images/video/20250107/20250107_test1.mp4 --resize 1280 720 --save_pose 20250107_test1.json --output_dir dump_match_pairs/20250107/test1/
+
+python3 20250106_main.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --input assets/Ruun_images/video/20250107/20250107_test2.mp4 --resize 1280 720 --save_pose 20250107_test2_thresh_15cm.json --output_dir dump_match_pairs/20250107/test2_thresh15/
+
+#20250108
+
+python3 20250106_main.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --input assets/Ruun_images/video/20250107/20250107_test2.mp4 --resize 1280 720 --save_pose 20250108_test2_thresh.json --output_dir dump_match_pairs/20250108/
+
+python3 main_formation_aircraft.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --input assets/Ruun_images/video/20250107/20250107_test3.mp4 --resize 1280 720 --save_pose 20250108_thresh_test3.json --output_dir dump_match_pairs/20250108/test3/
+
+python3 main_formation_aircraft.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --input assets/Ruun_images/video/20250107/20250107_test18.mp4 --resize 1280 720 --save_pose 20250108_thresh_test18.json --output_dir dump_match_pairs/20250108/test18/
+
+python3 main_formation_aircraft.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --input assets/Ruun_images/video/20250107/20250107_test16.mp4 --resize 1280 720 --save_pose 20250108_thresh_test16.json --output_dir dump_match_pairs/20250108/test16/
+
+python3 20250108_main_pnp.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --input assets/Ruun_images/video/20250107/20250107_test2.mp4 --resize 1280 720 --save_pose 20250108_test2_pnp.json --output_dir dump_match_pairs/20250108/pnp/
+

@@ -352,44 +352,47 @@ class PoseEstimator:
         num_inliers = len(inliers)
         inlier_ratio = num_inliers / len(mkpts0) if len(mkpts0) > 0 else 0
 
-        reprojection_error_threshold = 8
-        max_translation_jump = 3
-        max_orientation_jump = 400#50  # Threshold for orientation changes (degrees)
-        min_inlier = 5
+        reprojection_error_threshold = 4
+        max_translation_jump = 0.15
+        max_orientation_jump = 10#50  # degrees, for example
+        min_inlier = 7#5
 
-        # Predict
+        # First: Predict
         translation_estimated, eulers_estimated = self.kf_pose.predict()
         eulers_measured = rotation_matrix_to_euler_angles(R)
 
+        # Optional debug:
         translation_change = np.linalg.norm(tvec.flatten() - translation_estimated)
-        orientation_change = np.linalg.norm(eulers_measured - eulers_estimated) * (180 / np.pi)  # Convert radians to degrees
-        print("orientation_change@@@@@@@@@@@@@@@@@@@@@@:",orientation_change)
-        # Apply ground truth Z for the first frame only (if desired)
-        if not self.initial_z_set:
-            # tvec[2] = ...
-            self.initial_z_set = True
+        orientation_change = np.linalg.norm(eulers_measured - eulers_estimated) * (180 / np.pi)
+        logger.debug(f"[Frame {frame_idx}] orientation_change = {orientation_change:.3f} deg, translation_change = {translation_change:.3f} m")
 
-        # Skip validation checks for the first frame update
-        if not hasattr(self, 'kf_initialized'):
+        # If we haven't updated the Kalman filter at all yet...
+        if not hasattr(self, 'kf_pose_first_update'):
+            # Introduce this boolean in __init__ if you'd like
+            self.kf_pose_first_update = True
+
+        if self.kf_pose_first_update:
+            # -- First frame (or first valid frame) update: no thresholds, just correct
             self.kf_pose.correct(tvec, R)
-            self.kf_initialized = True
-            logger.debug("Kalman Filter initialized with the first frame.")
+            self.kf_pose_first_update = False
+            logger.debug("Kalman Filter first update: skipping threshold checks.")
         else:
-            # Update conditions
+            # -- Normal subsequent frames, apply thresholds
             if mean_reprojection_error < reprojection_error_threshold and num_inliers > min_inlier:
                 if translation_change < max_translation_jump and orientation_change < max_orientation_jump:
                     self.kf_pose.correct(tvec, R)
-                    logger.debug("Kalman Filter corrected.")
-                    print("Kalman Filter corrected.######################################:")
+                    print("################################################################")
+                    logger.debug("Kalman Filter corrected (within thresholds).")
                 else:
+                    # Exceeded thresholds, skip correction
                     if translation_change >= max_translation_jump:
-                        logger.debug(f"Skipping Kalman update: large jump in translation ({translation_change:.3f} units).")
+                        logger.debug(f"Skipping Kalman update: large translation jump = {translation_change:.3f} m.")
                     if orientation_change >= max_orientation_jump:
-                        logger.debug(f"Skipping Kalman update: large jump in orientation ({orientation_change:.3f} degrees).")
+                        logger.debug(f"Skipping Kalman update: large orientation jump = {orientation_change:.3f} deg.")
             else:
                 logger.debug("Skipping Kalman update: high reprojection error or insufficient inliers.")
 
-        # Final predicted
+        # Final predicted state after potential update
         translation_estimated, eulers_estimated = self.kf_pose.predict()
         R_estimated = euler_angles_to_rotation_matrix(eulers_estimated)
 
@@ -414,7 +417,9 @@ class PoseEstimator:
             'kf_rotation_matrix': R_estimated.tolist(),
             'kf_euler_angles': eulers_estimated.tolist()
         }
+
         return pose_data
+
 
 
     def _visualize_matches(self, frame, inliers, mkpts0, mkpts1, mconf, pose_data, frame_keypoints):
