@@ -1,0 +1,260 @@
+function plot_relative_poses_with_cameras_and_axes_resampled()
+    %% (0) Preparations
+    clear all;
+    close all;
+    clc;
+
+    % Example total duration in seconds (if known or assumed):
+    T = 14;%22;  % e.g., 25 seconds of data
+
+    jsonPath   = '20250108_thresh_test16.json';   % JSON file (estimated poses)
+    folderPath = '20250107_test16.db3';             % ROS2 bag (.db3) file (GT data)
+
+    %% (A) Load ground truth (OptiTrack) from ROS2 bag
+    bagReader  = ros2bagreader(folderPath);
+    msgs       = readMessages(bagReader);
+    N_opt      = length(msgs);  % total frames in bag (e.g., 218)
+
+    cam_pos_world  = zeros(N_opt,3);
+    cam_quat_world = zeros(N_opt,4);
+    tgt_pos_world  = zeros(N_opt,3);
+    tgt_quat_world = zeros(N_opt,4);
+
+    for i = 1:N_opt
+        d = msgs{i}.data;
+        cam_pos_world(i,:)  = d(1:3);
+        cam_quat_world(i,:) = d(4:7);
+        tgt_pos_world(i,:)  = d(8:10);
+        tgt_quat_world(i,:) = d(11:14);
+    end
+
+    % Convert quaternions to rotation matrices
+    R_cam_in_world = zeros(3,3,N_opt);
+    R_tgt_in_world = zeros(3,3,N_opt);
+    for i = 1:N_opt
+        R_cam_in_world(:,:,i) = quat2rotm(cam_quat_world(i,:));
+        R_tgt_in_world(:,:,i) = quat2rotm(tgt_quat_world(i,:));
+    end
+
+    %% (B) Load the algorithm’s estimated data from JSON
+    jsonText = fileread(jsonPath);
+    algData  = jsondecode(jsonText);
+
+    N_json = length(algData);  % frames in JSON (e.g., 768)
+
+    R_tgt_in_cam_alg = cell(N_json,1);
+    t_tgt_in_cam_alg = zeros(N_json,3);
+
+    for i = 1:N_json
+        %R_arr = algData(i).object_rotation_in_cam;
+        %t_arr = algData(i).object_translation_in_cam;
+        R_arr = algData(i).kf_rotation_matrix;
+        t_arr = algData(i).kf_translation_vector;
+
+        R_tgt_in_cam_alg{i} = reshape(R_arr, [3,3]);
+        t_tgt_in_cam_alg(i,:) = t_arr;
+    end
+
+    %% (B2) Create artificial time vectors for OptiTrack vs JSON
+    %   We assume both start at t=0 and end at t=T seconds
+    time_opt  = linspace(0, T, N_opt);   % e.g., 218 samples
+    time_json = linspace(0, T, N_json); % e.g., 768 samples
+
+    %% (C) Transform OptiTrack Data to OpenCV Frame FIRST (original procedure)
+    % We'll store the results in arrays, then we will resample them.
+
+    R_alignment = [1,  0,  0; 
+                   0, -1,  0; 
+                   0,  0, -1];
+
+    R_tgt_in_cam_opt_cell  = cell(N_opt,1);
+    t_tgt_in_cam_opt_array = zeros(N_opt,3);
+    R_cam_in_pnp_opt_cell  = cell(N_opt,1);
+
+    cam_pos_opencv = zeros(N_opt,3);
+    tgt_pos_opencv = zeros(N_opt,3);
+
+    for i = 1:N_opt
+        % 1) Align Camera Rotation
+        R_cam_in_pnp_opt_cell{i} = R_alignment * R_cam_in_world(:,:,i) * R_alignment';
+
+        % 2) Align Target Rotation
+        R_tgt_in_world_aligned = R_alignment * R_tgt_in_world(:,:,i) * R_alignment';
+
+        % 3) Compute Target Rotation in Camera Frame
+        R_tgt_in_cam_opt_cell{i} = R_cam_in_pnp_opt_cell{i}' * R_tgt_in_world_aligned;
+
+        % 4) Align Positions
+        cam_pos_opencv(i,:) = (R_alignment * cam_pos_world(i,:).')';
+        tgt_pos_opencv(i,:) = (R_alignment * tgt_pos_world(i,:).')';
+
+        % 5) Compute Relative Position in Camera Frame
+        t_tgt_in_cam_opt_array(i,:) = ( ...
+            R_cam_in_pnp_opt_cell{i}' * (tgt_pos_opencv(i,:) - cam_pos_opencv(i,:)).' ...
+        )';
+    end
+
+    % At this point, we have N_opt (e.g. 218) "OptiTrack" frames
+    %   t_tgt_in_cam_opt_array(i,:) is the relative position
+    %   R_tgt_in_cam_opt_cell{i}    is the relative rotation
+
+    %% (D) Resample the OptiTrack data to match the JSON frames count
+    % We want to create arrays t_tgt_in_cam_opt_resampled and R_tgt_in_cam_opt_resampled
+    % that have the same length as N_json (768).
+
+    % (D1) Interpolate positions
+    t_tgt_in_cam_opt_resampled = zeros(N_json,3);
+
+    for dim = 1:3
+        t_tgt_in_cam_opt_resampled(:,dim) = ...
+            interp1(time_opt, t_tgt_in_cam_opt_array(:,dim), time_json, 'linear');
+    end
+
+    % (D2) Interpolate rotation - we can do a simple approach with Euler angles,
+    % but a real quaternion slerp is recommended. Here is a quick approach:
+    % We'll convert each R_tgt_in_cam_opt_cell{i} to Euler, then interpolate
+    % linearly in Euler space for demonstration.
+
+    eul_opt_temp = zeros(N_opt,3);
+    for i = 1:N_opt
+        eul_opt_temp(i,:) = rotm2eul(R_tgt_in_cam_opt_cell{i}, 'XYZ');
+    end
+
+    eul_opt_resampled = zeros(N_json,3);
+
+    for dim = 1:3
+        eul_opt_resampled(:,dim) = ...
+            interp1(time_opt, eul_opt_temp(:,dim), time_json, 'linear');
+    end
+
+    % Convert back to rotation matrices
+    R_tgt_in_cam_opt_resampled_cell = cell(N_json,1);
+    for i = 1:N_json
+        R_tgt_in_cam_opt_resampled_cell{i} = eul2rotm(eul_opt_resampled(i,:), 'XYZ');
+    end
+
+    % Now we have "OptiTrack" data in arrays/cells of length N_json
+
+    %% (E) Overwrite or rename the original for comparison
+    % We'll rename them so the rest of the code (which plots) uses the same N count (N_json).
+    % So let's define N = N_json now, and rename the 'opt' arrays to the resampled version.
+
+    N = N_json;  % Now everything from here on is using the JSON frame count
+
+    t_tgt_in_cam_opt = t_tgt_in_cam_opt_resampled;        % [768 x 3]
+    R_tgt_in_cam_opt = R_tgt_in_cam_opt_resampled_cell;   % 768 cells of 3x3
+
+    % Done: We have effectively forced the "OptiTrack" data to 768 frames
+
+    %% (F) Now we do the original plotting, but with the new N=768 "opt" data
+    figure; hold on; grid on; axis equal;
+    xlabel('X (m)');
+    ylabel('Y (m)');
+    zlabel('Z (m)');
+    title('3D Relative Poses with Cameras and Axes (Resampled)');
+
+    scale = 0.1;
+    for i = 1:N
+        % We skip re-plotting the "Camera Axes" from OptiTrack if it's not relevant
+        % Or we can do it if we have them in the resampled version.
+        % For a minimal example, just show the target positions from both sides:
+
+        % Plot Resampled OptiTrack Target
+        plot3(t_tgt_in_cam_opt(i,1), ...
+              t_tgt_in_cam_opt(i,2), ...
+              t_tgt_in_cam_opt(i,3), ...
+              'o', 'Color', [0, 0.447, 0.741], ...
+              'MarkerFaceColor', [0, 0.447, 0.741]);
+
+        % ... plus any quiver if desired
+        quiver3(t_tgt_in_cam_opt(i,1), t_tgt_in_cam_opt(i,2), t_tgt_in_cam_opt(i,3), ...
+                scale*R_tgt_in_cam_opt{i}(1,1), scale*R_tgt_in_cam_opt{i}(2,1), scale*R_tgt_in_cam_opt{i}(3,1), 'Color', [1,1,0]);
+
+        % Pose Estimation (Algorithm) Target
+        plot3(t_tgt_in_cam_alg(i,1), ...
+              t_tgt_in_cam_alg(i,2), ...
+              t_tgt_in_cam_alg(i,3), ...
+              'x', 'Color', [0.85, 0.325, 0.098], ...
+              'MarkerSize', 8, 'LineWidth', 1.5);
+
+        quiver3(t_tgt_in_cam_alg(i,1), t_tgt_in_cam_alg(i,2), t_tgt_in_cam_alg(i,3), ...
+                scale*R_tgt_in_cam_alg{i}(1,1), scale*R_tgt_in_cam_alg{i}(2,1), scale*R_tgt_in_cam_alg{i}(3,1), 'Color', [1,0,0]);
+
+    end
+
+    legend({'Resampled OptiTrack Target', 'Pose Estimation Target'});
+    hold off;
+
+    %% (G) Compare Pose Estimation and OptiTrack Results (same length now)
+    eul_opt = zeros(N,3);
+    eul_alg = zeros(N,3);
+
+    for i = 1:N
+        eul_opt(i,:) = rotm2eul(R_tgt_in_cam_opt{i}, 'XYZ');
+        eul_alg(i,:) = rotm2eul(R_tgt_in_cam_alg{i}, 'XYZ');
+    end
+
+    figure;
+    subplot(2,1,1); hold on; grid on;
+    plot(1:N, t_tgt_in_cam_opt(:,1), 'b--', 'LineWidth', 1.5);
+    plot(1:N, t_tgt_in_cam_alg(:,1), 'b-', 'LineWidth', 1.5);
+    plot(1:N, t_tgt_in_cam_opt(:,2), 'g--', 'LineWidth', 1.5);
+    plot(1:N, t_tgt_in_cam_alg(:,2), 'g-', 'LineWidth', 1.5);
+    plot(1:N, t_tgt_in_cam_opt(:,3), 'r--', 'LineWidth', 1.5);
+    plot(1:N, t_tgt_in_cam_alg(:,3), 'r-', 'LineWidth', 1.5);
+    xlabel('Frame');
+    ylabel('Relative Position (m)');
+    title('Position Comparison (Resampled OptiTrack vs. Pose Estimation)');
+    legend({'OptiTrack X','Est X','OptiTrack Y','Est Y','OptiTrack Z','Est Z'}, ...
+           'Location','best');
+
+    subplot(2,1,2); hold on; grid on;
+    plot(1:N, rad2deg(eul_opt(:,1)), 'b--', 'LineWidth',1.5);
+    plot(1:N, rad2deg(eul_alg(:,1)), 'b-', 'LineWidth',1.5);
+    plot(1:N, rad2deg(eul_opt(:,2)), 'g--', 'LineWidth',1.5);
+    plot(1:N, rad2deg(eul_alg(:,2)), 'g-', 'LineWidth',1.5);
+    plot(1:N, rad2deg(eul_opt(:,3)), 'm--', 'LineWidth',1.5);
+    plot(1:N, rad2deg(eul_alg(:,3)), 'm-', 'LineWidth',1.5);
+    xlabel('Frame');
+    ylabel('Angle (deg)');
+    title('Orientation Comparison (Resampled OptiTrack vs. Pose Estimation)');
+    legend({'OptiTrack Roll','Est Roll','OptiTrack Pitch','Est Pitch','OptiTrack Yaw','Est Yaw'}, ...
+           'Location','best');
+
+    %% (H) Compute Errors
+    pos_error = t_tgt_in_cam_opt - t_tgt_in_cam_alg;
+    eul_error = eul_opt - eul_alg;
+
+    figure;
+    subplot(3,1,1);
+    plot(1:N, pos_error(:,1), 'r-', 'LineWidth', 1.5);
+    xlabel('Frame'); ylabel('Error X (m)');
+    title('Position Error in X'); grid on;
+
+    subplot(3,1,2);
+    plot(1:N, pos_error(:,2), 'g-', 'LineWidth', 1.5);
+    xlabel('Frame'); ylabel('Error Y (m)');
+    title('Position Error in Y'); grid on;
+
+    subplot(3,1,3);
+    plot(1:N, pos_error(:,3), 'b-', 'LineWidth', 1.5);
+    xlabel('Frame'); ylabel('Error Z (m)');
+    title('Position Error in Z'); grid on;
+
+    figure;
+    subplot(3,1,1);
+    plot(1:N, rad2deg(eul_error(:,1)), 'r-', 'LineWidth',1.5);
+    xlabel('Frame'); ylabel('Error Roll (deg)');
+    title('Orientation Error in Roll'); grid on;
+
+    subplot(3,1,2);
+    plot(1:N, rad2deg(eul_error(:,2)), 'g-', 'LineWidth',1.5);
+    xlabel('Frame'); ylabel('Error Pitch (deg)');
+    title('Orientation Error in Pitch'); grid on;
+
+    subplot(3,1,3);
+    plot(1:N, rad2deg(eul_error(:,3)), 'b-', 'LineWidth',1.5);
+    xlabel('Frame'); ylabel('Error Yaw (deg)');
+    title('Orientation Error in Yaw'); grid on;
+
+end
