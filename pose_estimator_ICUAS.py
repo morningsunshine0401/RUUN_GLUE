@@ -195,6 +195,10 @@ class PoseEstimator:
             anchor_keypoints_3D=anchor_keypoints_3D
         )
 
+        # Suppose the anchor was taken at ~ yaw=0°, pitch=-20°, roll=0°, in radians:
+        self.anchor_viewpoint_eulers = np.array([0.0, -0.35, 0.0], dtype=np.float32)
+        # This is just an example – adjust to your actual anchor viewpoint.
+
         # Initialize Kalman filter
         self.kf_pose = self._init_kalman_filter()
         logger.info("Kalman filter initialized")
@@ -407,7 +411,7 @@ class PoseEstimator:
         pose_data = self._kalman_filter_update(
             R, tvec, reprojection_errors, mean_reprojection_error,
             std_reprojection_error, inliers, mkpts0, mkpts1, mpts3D,
-            mconf, frame_idx, rvec_o, rvec
+            mconf, frame_idx, rvec_o, rvec,coverage_score=coverage_score
         )
         pose_data["region_distribution"] = regions
         pose_data["coverage_score"] = coverage_score
@@ -423,52 +427,72 @@ class PoseEstimator:
     def _kalman_filter_update(
         self, R, tvec, reprojection_errors, mean_reprojection_error,
         std_reprojection_error, inliers, mkpts0, mkpts1, mpts3D,
-        mconf, frame_idx, rvec_o, rvec
+        mconf, frame_idx, rvec_o, rvec,coverage_score
     ):
         num_inliers = len(inliers)
         inlier_ratio = num_inliers / len(mkpts0) if len(mkpts0) > 0 else 0
 
-        reprojection_error_threshold = 5#10#5
-        max_translation_jump = 0.15#300#0.15
-        max_orientation_jump = 15#10#50  # degrees, for example
-        min_inlier = 6#6#7#5
+        reprojection_error_threshold = 5.0
+        max_translation_jump = 0.15
+        max_orientation_jump = 15.0  # degrees
+        min_inlier = 6
 
-        # First: Predict
+        # ---------------------------
+        coverage_threshold = 0.55  # e.g., need at least 0.55 coverage to trust this frame
+
+        
+        coverage_score = coverage_score#getattr(self, "last_coverage_score", 1.0)
+
+        # ---------------------------
+        # EXTRA CHECKS: viewpoint
+        # Suppose we compare eulers_measured to self.anchor_viewpoint_eulers
+        anchor_eulers = getattr(self, "anchor_viewpoint_eulers", np.array([0.0, 0.0, 0.0]))
+        viewpoint_max_diff_deg = 80.0  # Example: if viewpoint differs >80°, skip
+
+        # Convert to degrees:
+        eulers_measured_deg = np.degrees(rotation_matrix_to_euler_angles(R))
+        anchor_eulers_deg = np.degrees(anchor_eulers)
+        viewpoint_diff = np.linalg.norm(eulers_measured_deg - anchor_eulers_deg)  # simple Euclidian in Euler angles
+
+
+        # 1) PREDICT
         translation_estimated, eulers_estimated = self.kf_pose.predict()
-        eulers_measured = rotation_matrix_to_euler_angles(R)
-
-        # Optional debug:
-        translation_change = np.linalg.norm(tvec.flatten() - translation_estimated)
+        eulers_measured = rotation_matrix_to_euler_angles(R)  # (in radians)
         orientation_change = np.linalg.norm(eulers_measured - eulers_estimated) * (180 / np.pi)
-        logger.debug(f"[Frame {frame_idx}] orientation_change = {orientation_change:.3f} deg, translation_change = {translation_change:.3f} m")
+        translation_change = np.linalg.norm(tvec.flatten() - translation_estimated)
 
-        # If we haven't updated the Kalman filter at all yet...
-        if not hasattr(self, 'kf_pose_first_update'):
-            # Introduce this boolean in __init__ if you'd like
-            self.kf_pose_first_update = True
-
-        if self.kf_pose_first_update:
-            # -- First frame (or first valid frame) update: no thresholds, just correct
+        # If first KF update
+        if not hasattr(self, 'kf_pose_first_update') or self.kf_pose_first_update:
             self.kf_pose.correct(tvec, R)
             self.kf_pose_first_update = False
             logger.debug("Kalman Filter first update: skipping threshold checks.")
         else:
-            # -- Normal subsequent frames, apply thresholds
+            # Normal frames: check if we pass all thresholds
+            # 1) Enough inliers + low reprojection error
             if mean_reprojection_error < reprojection_error_threshold and num_inliers > min_inlier:
+                # 2) Check translation/orientation jump
                 if translation_change < max_translation_jump and orientation_change < max_orientation_jump:
-                    self.kf_pose.correct(tvec, R)
-                    print("################################################################")
-                    logger.debug("Kalman Filter corrected (within thresholds).")
+                    # 3) Check coverage
+                    if coverage_score >= coverage_threshold:
+                        # 4) Check viewpoint difference
+                        if viewpoint_diff <= viewpoint_max_diff_deg:
+                            # --> Everything is okay, do correction
+                            self.kf_pose.correct(tvec, R)
+                            logger.debug("Kalman Filter corrected (all thresholds passed).")
+                        else:
+                            logger.debug(f"Skipping KF update: viewpoint diff = {viewpoint_diff:.1f} deg > {viewpoint_max_diff_deg}")
+                    else:
+                        logger.debug(f"Skipping KF update: coverage_score={coverage_score:.2f} < {coverage_threshold}")
                 else:
-                    # Exceeded thresholds, skip correction
+                    # Exceeded motion thresholds
                     if translation_change >= max_translation_jump:
-                        logger.debug(f"Skipping Kalman update: large translation jump = {translation_change:.3f} m.")
+                        logger.debug(f"Skipping KF update: large translation jump={translation_change:.3f}m")
                     if orientation_change >= max_orientation_jump:
-                        logger.debug(f"Skipping Kalman update: large orientation jump = {orientation_change:.3f} deg.")
+                        logger.debug(f"Skipping KF update: large orientation jump={orientation_change:.3f}deg")
             else:
-                logger.debug("Skipping Kalman update: high reprojection error or insufficient inliers.")
+                logger.debug("Skipping KF update: high repro error or insufficient inliers.")
 
-        # Final predicted state after potential update
+        # FINAL PREDICT (gets final state after optional correction)
         translation_estimated, eulers_estimated = self.kf_pose.predict()
         R_estimated = euler_angles_to_rotation_matrix(eulers_estimated)
 
@@ -491,9 +515,11 @@ class PoseEstimator:
             'mconf': mconf.tolist(),
             'kf_translation_vector': translation_estimated.tolist(),
             'kf_rotation_matrix': R_estimated.tolist(),
-            'kf_euler_angles': eulers_estimated.tolist()
+            'kf_euler_angles': eulers_estimated.tolist(),
+            # Optionally store coverage/viewpoint metrics
+            'coverage_score': coverage_score,
+            'viewpoint_diff_deg': viewpoint_diff
         }
-
         return pose_data
 
 
