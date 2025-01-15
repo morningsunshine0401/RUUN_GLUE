@@ -178,3 +178,17 @@ python3 main_formation_aircraft.py --anchor assets/Ruun_images/viewpoint/anchor/
 
 python3 20250108_main_pnp.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --input assets/Ruun_images/video/20250107/20250107_test2.mp4 --resize 1280 720 --save_pose 20250108_test2_pnp.json --output_dir dump_match_pairs/20250108/pnp/
 
+python3 main_formation_aircraft.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --input assets/Ruun_images/video/20250108/20250108_far.mp4 --resize 1280 720 --save_pose 20250108_far.json --output_dir dump_match_pairs/20250108/far/
+
+#20250109
+
+python3 20250108_main_pnp.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --input assets/Ruun_images/video/20250107/20250107_test2.mp4 --resize 640 360 --save_pose 20250108_test2_resol_D.json --output_dir dump_match_pairs/20250109/
+
+#20250115
+
+python3 main_ICUAS.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --input assets/Ruun_images/video/20250107/20250107_test2.mp4 --resize 1280 720 --save_pose 20250115_test2_ICUAS.json --output_dir dump_match_pairs/20250115/
+
+python3 main_ORB_ICUAS.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --input assets/Ruun_images/video/20250107/20250107_test2.mp4 --resize 1280 720 --save_pose 20250115_test2_ORB_ICUAS.json --output_dir dump_match_pairs/20250115/ORB/
+
+python3 main_ORB_ICUAS.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --input assets/Ruun_images/video/20250107/20250107_test2.mp4 --resize 1280 720 --save_pose 20250115_test2_ORB_ICUAS.json --no_display
+

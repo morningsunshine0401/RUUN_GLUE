@@ -447,7 +447,7 @@ class PoseEstimator:
         # EXTRA CHECKS: viewpoint
         # Suppose we compare eulers_measured to self.anchor_viewpoint_eulers
         anchor_eulers = getattr(self, "anchor_viewpoint_eulers", np.array([0.0, 0.0, 0.0]))
-        viewpoint_max_diff_deg = 80.0  # Example: if viewpoint differs >80°, skip
+        viewpoint_max_diff_deg = 380.0  # Example: if viewpoint differs >80°, skip
 
         # Convert to degrees:
         eulers_measured_deg = np.degrees(rotation_matrix_to_euler_angles(R))
