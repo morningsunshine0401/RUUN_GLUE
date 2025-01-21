@@ -570,38 +570,28 @@ class PoseEstimator:
         #     dtype=np.float32
         # )
         
-        ###################################################################################################
-        
-        # Calib_Phone_Opti
-        focal_length_x = 1078.06451
-        focal_length_y = 1081.77221
-        cx = 628.078538
-        cy = 362.156441
-
-        distCoeffs = np.array(
-            [5.63748710e-02, -7.51721332e-01, -6.97952865e-04, -3.84299642e-03,6.18234012e+00],
-            dtype=np.float32
-        )
-
-        ###################################################################################################
-
-        # Calib_webcam ICUAS LAB
-        focal_length_x = 1460.10150  # fx from the calibrated camera matrix
-        focal_length_y = 1456.48915  # fy from the calibrated camera matrix
-        cx = 604.85462               # cx from the calibrated camera matrix
-        cy = 328.64800               # cy from the calibrated camera matrix
+        #################################################################################
+        # # Calib_Phone_Opti
+        # focal_length_x = 1078.06451
+        # focal_length_y = 1081.77221
+        # cx = 628.078538
+        # cy = 362.156441
 
         # distCoeffs = np.array(
-        #     [3.56447550e-01, -1.09206851e+01, 1.40564820e-03, -1.10856449e-02, 1.20471120e+02],
+        #     [5.63748710e-02, -7.51721332e-01, -6.97952865e-04, -3.84299642e-03,6.18234012e+00],
         #     dtype=np.float32
         # )
+        ################################################################################
 
+        #webcam???? NO...
+        focal_length_x = 1526.22  # px
+        focal_length_y = 1531.18  # py
+        cx = 637.98  # Principal point u0
+        cy = 416.04  # Principal point v0
         distCoeffs = None
 
 
-
-
-        ###################################################################################################
+        ##########################################################
 
         # # Calib_Phone_Opti: 640 x 360
         # focal_length_x = 539.032255

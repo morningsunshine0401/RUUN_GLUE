@@ -192,3 +192,11 @@ python3 main_ORB_ICUAS.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/
 
 python3 main_ORB_ICUAS.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --input assets/Ruun_images/video/20250107/20250107_test2.mp4 --resize 1280 720 --save_pose 20250115_test2_ORB_ICUAS.json --no_display
 
+#20250120
+
+python3 main_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --save_pose 20250121_test5.json --image_dir assets/Ruun_images/ICUAS/test5/ --csv_file assets/Ruun_images/ICUAS/test5/image_index.csv 
+
+#20250121
+
+python3 main_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --save_pose 20250121_test5.json --image_dir assets/Ruun_images/ICUAS/test5/ --csv_file assets/Ruun_images/ICUAS/test5/image_index.csv 
+
