@@ -200,3 +200,9 @@ python3 main_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Ancho
 
 python3 main_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --save_pose 20250121_test5.json --image_dir assets/Ruun_images/ICUAS/test5/ --csv_file assets/Ruun_images/ICUAS/test5/image_index.csv 
 
+#20250122
+
+python3 main_20250122_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --save_pose 20250122_test6.json --image_dir assets/Ruun_images/ICUAS/test6/ --csv_file assets/Ruun_images/ICUAS/test6/image_index.csv 
+
+python3 main_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --save_pose 20250122_test5_adaptive.json --image_dir assets/Ruun_images/ICUAS/test5/ --csv_file assets/Ruun_images/ICUAS/test5/image_index.csv --no_display
+

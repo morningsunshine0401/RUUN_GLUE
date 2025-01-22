@@ -433,12 +433,12 @@ class PoseEstimator:
         inlier_ratio = num_inliers / len(mkpts0) if len(mkpts0) > 0 else 0
 
         reprojection_error_threshold = 5.0
-        max_translation_jump = 0.15
-        max_orientation_jump = 15.0  # degrees
+        max_translation_jump = 2#0.15
+        max_orientation_jump = 25#15.0  # degrees
         min_inlier = 6
 
         # ---------------------------
-        coverage_threshold = 0.55  # e.g., need at least 0.55 coverage to trust this frame
+        coverage_threshold = -1#0.55  # e.g., need at least 0.55 coverage to trust this frame
 
         
         coverage_score = coverage_score#getattr(self, "last_coverage_score", 1.0)
@@ -470,12 +470,16 @@ class PoseEstimator:
             # Normal frames: check if we pass all thresholds
             # 1) Enough inliers + low reprojection error
             if mean_reprojection_error < reprojection_error_threshold and num_inliers > min_inlier:
+                print("111111111111111111111111111111111111111111111111111111111111\n")
                 # 2) Check translation/orientation jump
                 if translation_change < max_translation_jump and orientation_change < max_orientation_jump:
+                    print("2222222222222222222222222222222222222222222222222222222222222222\n")
                     # 3) Check coverage
                     if coverage_score >= coverage_threshold:
+                        print("3333333333333333333333333333333333333333333333333333333333333\n")
                         # 4) Check viewpoint difference
                         if viewpoint_diff <= viewpoint_max_diff_deg:
+                            print("4444444444444444444444444444444444444444444444444444444\n")
                             # --> Everything is okay, do correction
                             self.kf_pose.correct(tvec, R)
                             logger.debug("Kalman Filter corrected (all thresholds passed).")

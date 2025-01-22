@@ -5,11 +5,7 @@ torch.set_grad_enabled(False)
 import time
 from pathlib import Path
 import cv2
-
-#from pose_estimator_ICUAS import PoseEstimator
-
 from pose_estimator_ICUAS_20250122 import PoseEstimator
-
 from utils import create_unique_filename
 from models.utils import AverageTimer
 import json
@@ -125,6 +121,155 @@ if __name__ == '__main__':
     overall_start_time = time.time()
     frame_count = 0
 
+    # Define the ranges for the original anchor
+    original_anchor_ranges = [
+        (1, 15),
+        (36, 60),
+        (75, 90),
+        (110, 125),
+        (140, 150),
+        (167, 183),
+        (212, 239)
+    ]
+
+    anchor_keypoints_2D = np.array([
+            [511, 293], #
+            [591, 284], #
+            [610, 269], #
+            [587, 330], #
+            [413, 249], #
+            [602, 348], #
+            [715, 384], #
+            [598, 298], #
+            [656, 171], #
+            [805, 213],#
+            [703, 392],# 
+            [523, 286],#
+            [519, 327],#
+            [387, 289],#
+            [727, 126],# 
+            [425, 243],# 
+            [636, 358],#
+            [745, 202],#
+            [595, 388],#
+            [436, 260],#
+            [539, 313], #
+            [795, 220],# 
+            [351, 291],#
+            [665, 165],# 
+            [611, 353], #
+            [650, 377],#
+            [516, 389],## 
+            [727, 143], #
+            [496, 378], #
+            [575, 312], #
+            [617, 368],#
+            [430, 312], #
+            [480, 281], #
+            [834, 225], #
+            [469, 339], #
+            [705, 223], #
+            [637, 156], 
+            [816, 414], 
+            [357, 195], 
+            [752, 77], 
+            [642, 451]
+        ], dtype=np.float32)
+
+        # # 640 x 360
+        # anchor_keypoints_2D = np.array([
+        #         [255.5, 146.5],
+        #     [295.5, 142.0],
+        #     [305.0, 134.5],
+        #     [293.5, 165.0],
+        #     [206.5, 124.5],
+        #     [301.0, 174.0],
+        #     [357.5, 192.0],
+        #     [299.0, 149.0],
+        #     [328.0,  85.5],
+        #     [402.5, 106.5],
+        #     [351.5, 196.0],
+        #     [261.5, 143.0],
+        #     [259.5, 163.5],
+        #     [193.5, 144.5],
+        #     [363.5,  63.0],
+        #     [212.5, 121.5],
+        #     [318.0, 179.0],
+        #     [372.5, 101.0],
+        #     [297.5, 194.0],
+        #     [218.0, 130.0],
+        #     [269.5, 156.5],
+        #     [397.5, 110.0],
+        #     [175.5, 145.5],
+        #     [332.5,  82.5],
+        #     [305.5, 176.5],
+        #     [325.0, 188.5],
+        #     [258.0, 194.5],
+        #     [363.5,  71.5],
+        #     [248.0, 189.0],
+        #     [287.5, 156.0],
+        #     [308.5, 184.0],
+        #     [215.0, 156.0],
+        #     [240.0, 140.5],
+        #     [417.0, 112.5],
+        #     [234.5, 169.5],
+        #     [352.5, 111.5],
+        #     [318.5,  78.0],
+        #     [408.0, 207.0],
+        #     [178.5,  97.5],
+        #     [376.0,  38.5],
+        #     [321.0, 225.5]]
+
+        #     , dtype=np.float32)
+
+    anchor_keypoints_3D = np.array([
+            [-0.014,  0.000,  0.042],
+            [ 0.025, -0.014, -0.011],
+            [ 0.049, -0.016, -0.011],
+            [-0.014,  0.000, -0.042],
+            [-0.014,  0.000,  0.156],
+            [-0.023,  0.000, -0.065],
+            [ 0.000,  0.000, -0.156],
+            [ 0.025,  0.000, -0.015],
+            [ 0.217,  0.000,  0.070],#
+            [ 0.230,  0.000, -0.070],
+            [-0.014,  0.000, -0.156],
+            [ 0.000,  0.000,  0.042],
+            [-0.057, -0.018, -0.010],
+            [-0.074, -0.000,  0.128],
+            [ 0.206, -0.070, -0.002],
+            [-0.000, -0.000,  0.156],
+            [-0.017, -0.000, -0.092],
+            [ 0.217, -0.000, -0.027],#
+            [-0.052, -0.000, -0.097],
+            [-0.019, -0.000,  0.128],
+            [-0.035, -0.018, -0.010],
+            [ 0.217, -0.000, -0.070],#
+            [-0.080, -0.000,  0.156],
+            [ 0.230, -0.000,  0.070],
+            [-0.023, -0.000, -0.075],
+            [-0.029, -0.000, -0.127],
+            [-0.090, -0.000, -0.042],
+            [ 0.206, -0.055, -0.002],
+            [-0.090, -0.000, -0.015],
+            [ 0.000, -0.000, -0.015],
+            [-0.037, -0.000, -0.097],
+            [-0.074, -0.000,  0.074],
+            [-0.019, -0.000,  0.074],
+            [ 0.230, -0.000, -0.113],#
+            [-0.100, -0.030,  0.000],#
+            [ 0.170, -0.000, -0.015],
+            [ 0.230, -0.000,  0.113],
+            [-0.000, -0.025, -0.240],
+            [-0.000, -0.025,  0.240],
+            [ 0.243, -0.104,  0.000],
+            [-0.080, -0.000, -0.156]
+        ], dtype=np.float32)
+
+    # Keep track of the current anchor
+    current_anchor_path = opt.anchor  # Start with the initial anchor
+    pose_estimator.reinitialize_anchor(current_anchor_path,anchor_keypoints_2D,anchor_keypoints_3D)  # Initialize with the original anchor
+
     for entry in entries:
         frame_count += 1
 
@@ -146,12 +291,18 @@ if __name__ == '__main__':
         start_time = time.time()
         logger.debug(f"Processing frame {frame_idx} from {image_path}, timestamp={frame_t:.3f}")
 
-        # ---------------------------------------------------------
-        # EXAMPLE: Switch anchor after frame 520 (Adjust as needed)
-        # ---------------------------------------------------------
-        if frame_idx == 140:
+        # Check if the current frame is within any of the original anchor ranges
+        use_original_anchor = any(start <= frame_idx <= end for start, end in original_anchor_ranges)
+
+        # Switch to the appropriate anchor if needed
+        if use_original_anchor and current_anchor_path != opt.anchor:
+            logger.info(f"Switching to the original anchor for frame {frame_idx}...")
+            current_anchor_path = opt.anchor
+            pose_estimator.reinitialize_anchor(current_anchor_path,anchor_keypoints_2D,anchor_keypoints_3D)
+        elif not use_original_anchor and current_anchor_path == opt.anchor:
             logger.info("Switching to a new anchor after frame 520...")
             new_anchor_path = "Anchor_B.png"
+            current_anchor_path = new_anchor_path
 
             # Example new 2D/3D correspondences for the new anchor
             # You must define these for your anchor
@@ -229,11 +380,11 @@ if __name__ == '__main__':
         # ---------------------------------------------------------
 
         # Process frame (pose estimation)
+        # Process frame (pose estimation)
         pose_data, visualization = pose_estimator.process_frame(frame, frame_idx)
 
         # If we got pose data, store it in our final array
         if pose_data:
-            # Also store the image timestamp in the pose_data
             pose_data['timestamp']  = frame_t
             pose_data['image_file'] = img_name
             all_poses.append(pose_data)
