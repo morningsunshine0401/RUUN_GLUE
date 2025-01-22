@@ -96,10 +96,10 @@ class PoseEstimator:
 
         # Adaptive gating / partial blending config
         self.skip_count = 0
-        self.max_skip_before_reset = 3#5
-        self.high_coverage_override = 0.55#0.8  # coverage override example
+        self.max_skip_before_reset = 4#3#5
+        self.high_coverage_override = 0.63#0.8  # coverage override example
         self.use_partial_blending = True
-        self.blend_factor = 0.1#0.3
+        self.blend_factor = 0.3
 
         # To track first update
         self.kf_pose_first_update = True
@@ -524,11 +524,37 @@ class PoseEstimator:
         #                        -3.84299642e-03, 6.18234012e+00], dtype=np.float32)
 
         # Example #2
-        focal_length_x = 1460.10150
-        focal_length_y = 1456.48915
-        cx = 604.85462
-        cy = 328.64800
-        distCoeffs = None  # or your real distortion array
+        #focal_length_x = 1460.10150
+        #focal_length_y = 1456.48915
+        focal_length_x = 1430.10150
+        focal_length_y = 1430.48915
+        # cx = 604.85462
+        # cy = 328.64800
+        cx = 640
+        cy = 360
+        distCoeffs = None#np.array([0.3393,2.0351,0.0295,-0.0029,-10.9093], dtype=np.float32)
+
+         # Example #3 Opti web cali
+        # focal_length_x = 1874.766
+        # focal_length_y = 1878.368
+        # cx = 640
+        # cy = 360
+        # focal_length_x = 1492.51791
+        # focal_length_y = 1496.10186
+        # cx = 615.01330
+        # cy = 430.52894
+
+        # distCoeffs = np.array([
+        #     0.32152755,
+        #     -1.29280843,
+        #     0.03931456,
+        #     -0.00651277,
+        #     6.27888484
+        # ], dtype=np.float32)
+
+
+        #distCoeffs = np.array([0.3393,2.0351,0.0295,-0.0029,-10.9093], dtype=np.float32)
+        #distCoeffs = None
 
         K = np.array([
             [focal_length_x, 0, cx],
