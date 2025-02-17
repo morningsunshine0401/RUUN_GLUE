@@ -55,9 +55,9 @@ class PoseEstimator:
         # We will store the anchor’s 2D/3D keypoints here.
         # For your anchor image, you can define them directly or load from a file.
         anchor_keypoints_2D = np.array([
-            [511, 293], #
+            [511, 293], #0
             [591, 284], #
-            [610, 269], #
+            #[610, 269], #
             [587, 330], #
             [413, 249], #
             [602, 348], #
@@ -65,32 +65,32 @@ class PoseEstimator:
             [598, 298], #
             [656, 171], #
             [805, 213],#
-            [703, 392],# 
+            [703, 392],#10 
             [523, 286],#
-            [519, 327],#
-            [387, 289],#
-            [727, 126],# 
-            [425, 243],# 
+            [519, 327],#12
+            [387, 289],#13
+            [727, 126],# 14
+            [425, 243],# 15
             [636, 358],#
             [745, 202],#
             [595, 388],#
             [436, 260],#
-            [539, 313], #
+            [539, 313], # 20
             [795, 220],# 
             [351, 291],#
             [665, 165],# 
             [611, 353], #
-            [650, 377],#
+            [650, 377],# 25
             [516, 389],## 
             [727, 143], #
             [496, 378], #
             [575, 312], #
-            [617, 368],#
+            [617, 368],# 30
             [430, 312], #
             [480, 281], #
             [834, 225], #
             [469, 339], #
-            [705, 223], #
+            [705, 223], # 35
             [637, 156], 
             [816, 414], 
             [357, 195], 
@@ -98,56 +98,56 @@ class PoseEstimator:
             [642, 451]
         ], dtype=np.float32)
 
-        # # 640 x 360
-        # anchor_keypoints_2D = np.array([
-        #         [255.5, 146.5],
-        #     [295.5, 142.0],
-        #     [305.0, 134.5],
-        #     [293.5, 165.0],
-        #     [206.5, 124.5],
-        #     [301.0, 174.0],
-        #     [357.5, 192.0],
-        #     [299.0, 149.0],
-        #     [328.0,  85.5],
-        #     [402.5, 106.5],
-        #     [351.5, 196.0],
-        #     [261.5, 143.0],
-        #     [259.5, 163.5],
-        #     [193.5, 144.5],
-        #     [363.5,  63.0],
-        #     [212.5, 121.5],
-        #     [318.0, 179.0],
-        #     [372.5, 101.0],
-        #     [297.5, 194.0],
-        #     [218.0, 130.0],
-        #     [269.5, 156.5],
-        #     [397.5, 110.0],
-        #     [175.5, 145.5],
-        #     [332.5,  82.5],
-        #     [305.5, 176.5],
-        #     [325.0, 188.5],
-        #     [258.0, 194.5],
-        #     [363.5,  71.5],
-        #     [248.0, 189.0],
-        #     [287.5, 156.0],
-        #     [308.5, 184.0],
-        #     [215.0, 156.0],
-        #     [240.0, 140.5],
-        #     [417.0, 112.5],
-        #     [234.5, 169.5],
-        #     [352.5, 111.5],
-        #     [318.5,  78.0],
-        #     [408.0, 207.0],
-        #     [178.5,  97.5],
-        #     [376.0,  38.5],
-        #     [321.0, 225.5]]
+        # # # 640 x 360
+        # # anchor_keypoints_2D = np.array([
+        # #         [255.5, 146.5],
+        # #     [295.5, 142.0],
+        # #     [305.0, 134.5],
+        # #     [293.5, 165.0],
+        # #     [206.5, 124.5],
+        # #     [301.0, 174.0],
+        # #     [357.5, 192.0],
+        # #     [299.0, 149.0],
+        # #     [328.0,  85.5],
+        # #     [402.5, 106.5],
+        # #     [351.5, 196.0],
+        # #     [261.5, 143.0],
+        # #     [259.5, 163.5],
+        # #     [193.5, 144.5],
+        # #     [363.5,  63.0],
+        # #     [212.5, 121.5],
+        # #     [318.0, 179.0],
+        # #     [372.5, 101.0],
+        # #     [297.5, 194.0],
+        # #     [218.0, 130.0],
+        # #     [269.5, 156.5],
+        # #     [397.5, 110.0],
+        # #     [175.5, 145.5],
+        # #     [332.5,  82.5],
+        # #     [305.5, 176.5],
+        # #     [325.0, 188.5],
+        # #     [258.0, 194.5],
+        # #     [363.5,  71.5],
+        # #     [248.0, 189.0],
+        # #     [287.5, 156.0],
+        # #     [308.5, 184.0],
+        # #     [215.0, 156.0],
+        # #     [240.0, 140.5],
+        # #     [417.0, 112.5],
+        # #     [234.5, 169.5],
+        # #     [352.5, 111.5],
+        # #     [318.5,  78.0],
+        # #     [408.0, 207.0],
+        # #     [178.5,  97.5],
+        # #     [376.0,  38.5],
+        # #     [321.0, 225.5]]
 
-        #     , dtype=np.float32)
+        # #     , dtype=np.float32)
 
         anchor_keypoints_3D = np.array([
             [-0.014,  0.000,  0.042],
             [ 0.025, -0.014, -0.011],
-            [ 0.049, -0.016, -0.011],
+            #[ 0.049, -0.016, -0.011],
             [-0.014,  0.000, -0.042],
             [-0.014,  0.000,  0.156],
             [-0.023,  0.000, -0.065],
@@ -188,6 +188,80 @@ class PoseEstimator:
             [-0.080, -0.000, -0.156]
         ], dtype=np.float32)
 
+
+        #######################################
+        # #  Anchor_B
+        #  #Example new 2D/3D correspondences for the new anchor
+        #  #   You must define these for your anchor
+        # anchor_keypoints_2D = np.array([
+        #         [650, 312],
+        #         [630, 306],
+        #         [907, 443],
+        #         [814, 291],
+        #         [599, 349],
+        #         [501, 386],
+        #         [965, 359],
+        #         [649, 355],
+        #         [635, 346],
+        #         [930, 335],
+        #         [843, 467],
+        #         [702, 339],
+        #         [718, 321],
+        #         [930, 322],
+        #         [727, 346],
+        #         [539, 364],
+        #         [786, 297],
+        #         [1022, 406],
+        #         [1004, 399],
+        #         [539, 344],
+        #         [536, 309],
+        #         [864, 478],
+        #         [745, 310],
+        #         [1049, 393],
+        #         [895, 258],
+        #         [674, 347],
+        #         [741, 281],
+        #         [699, 294],
+        #         [817, 494],
+        #         [992, 281]
+        #     ], dtype=np.float32)
+
+        # anchor_keypoints_3D= np.array([
+        #         [-0.035, -0.018, -0.010],
+        #         [-0.057, -0.018, -0.010],
+        #         [ 0.217, -0.000, -0.027],
+        #         [-0.014, -0.000,  0.156],
+        #         [-0.023, -0.000, -0.065],
+        #         [-0.014, -0.000, -0.156],
+        #         [ 0.234, -0.050, -0.002],
+        #         [ 0.000, -0.000, -0.042],
+        #         [-0.014, -0.000, -0.042],
+        #         [ 0.206, -0.055, -0.002],
+        #         [ 0.217, -0.000, -0.070],
+        #         [ 0.025, -0.014, -0.011],
+        #         [-0.014, -0.000,  0.042],
+        #         [ 0.206, -0.070, -0.002],
+        #         [ 0.049, -0.016, -0.011],
+        #         [-0.029, -0.000, -0.127],
+        #         [-0.019, -0.000,  0.128],
+        #         [ 0.230, -0.000,  0.070],
+        #         [ 0.217, -0.000,  0.070],
+        #         [-0.052, -0.000, -0.097],
+        #         [-0.175, -0.000, -0.015],
+        #         [ 0.230, -0.000, -0.070],
+        #         [-0.019, -0.000,  0.074],
+        #         [ 0.230, -0.000,  0.113],
+        #         [-0.000, -0.025,  0.240],
+        #         [-0.000, -0.000, -0.015],
+        #         [-0.074, -0.000,  0.128],
+        #         [-0.074, -0.000,  0.074],
+        #         [ 0.230, -0.000, -0.113],
+        #         [ 0.243, -0.104,  0.000]
+        #     ], dtype=np.float32)
+
+
+        #####################################3
+
         # Set anchor features (run SuperPoint on anchor, match to known 2D->3D)
         self._set_anchor_features(
             anchor_bgr_image=self.anchor_image,
@@ -201,6 +275,7 @@ class PoseEstimator:
 
         # Initialize Kalman filter
         self.kf_pose = self._init_kalman_filter()
+        self.kf_pose_first_update = True 
         logger.info("Kalman filter initialized")
 
 
@@ -392,10 +467,35 @@ class PoseEstimator:
         # Calculate coverage score
         total_points = sum(regions.values())
         if total_points > 0:
-            proportions = {region: count / total_points for region, count in regions.items()}
-            entropy = -sum(p * np.log(p) for p in proportions.values() if p > 0)
-            max_entropy = np.log(len(regions))  # ln(4) for 4 regions
-            coverage_score = entropy / max_entropy if max_entropy > 0 else 0
+            # proportions = {region: count / total_points for region, count in regions.items()}
+            # entropy = -sum(p * np.log(p) for p in proportions.values() if p > 0)
+            # max_entropy = np.log(len(regions))  # ln(4) for 4 regions
+            # coverage_score = entropy / max_entropy if max_entropy > 0 else 0
+            
+            # Ensure valid confidence values
+            valid_conf = mconf[inliers.flatten()]
+            if len(valid_conf) == 0 or np.isnan(valid_conf).any():
+                coverage_score = 0
+            else:
+                # Calculate entropy term
+                entropy_sum = 0
+                for count in regions.values():
+                    if count > 0:
+                        proportion = count / total_points
+                        entropy_sum += proportion * np.log(proportion)
+                
+                # Normalize by log(4) as specified in the paper
+                normalized_entropy = -entropy_sum / np.log(4)
+                
+                # Calculate mean confidence
+                mean_confidence = 1#np.mean(valid_conf)
+                
+                # Final coverage score
+                coverage_score = normalized_entropy * mean_confidence
+                
+                # Ensure score is in valid range [0,1]
+                coverage_score = np.clip(coverage_score, 0, 1)
+                print('cccccccccccccccccccccccccccccccccccoverage score:',coverage_score)
         else:
             coverage_score = 0
 
@@ -432,16 +532,19 @@ class PoseEstimator:
         num_inliers = len(inliers)
         inlier_ratio = num_inliers / len(mkpts0) if len(mkpts0) > 0 else 0
 
-        reprojection_error_threshold = 5.0
-        max_translation_jump = 2#0.15
-        max_orientation_jump = 25#15.0  # degrees
-        min_inlier = 6
+        reprojection_error_threshold = 4.0
+        max_translation_jump = 2
+        max_orientation_jump = 25#50#25  # degrees
+        min_inlier = 7
 
         # ---------------------------
-        coverage_threshold = -1#0.55  # e.g., need at least 0.55 coverage to trust this frame
+        coverage_threshold = -1#0.48#-1#0.4#0.45#-1#0.6#0.6  # e.g., need at least 0.55 coverage to trust this frame
 
         
-        coverage_score = coverage_score#getattr(self, "last_coverage_score", 1.0)
+        #coverage_score = getattr(self, "last_coverage_score", 1.0)
+
+        if coverage_score is None:
+            print("Coverage score does not exist, using default value.")
 
         # ---------------------------
         # EXTRA CHECKS: viewpoint
@@ -471,11 +574,15 @@ class PoseEstimator:
             # 1) Enough inliers + low reprojection error
             if mean_reprojection_error < reprojection_error_threshold and num_inliers > min_inlier:
                 print("111111111111111111111111111111111111111111111111111111111111\n")
+                print('translation_change:',translation_change)
+                print('orientation_change',orientation_change)
                 # 2) Check translation/orientation jump
-                if translation_change < max_translation_jump and orientation_change < max_orientation_jump:
+                if translation_change < max_translation_jump and orientation_change < max_orientation_jump:    
                     print("2222222222222222222222222222222222222222222222222222222222222222\n")
                     # 3) Check coverage
                     if coverage_score >= coverage_threshold:
+                        print('Cs:',coverage_score)
+                        print('CS thresh:',coverage_threshold)
                         print("3333333333333333333333333333333333333333333333333333333333333\n")
                         # 4) Check viewpoint difference
                         if viewpoint_diff <= viewpoint_max_diff_deg:
@@ -576,33 +683,64 @@ class PoseEstimator:
         
         ###################################################################################################
         
-        # Calib_Phone_Opti
-        focal_length_x = 1078.06451
-        focal_length_y = 1081.77221
-        cx = 628.078538
-        cy = 362.156441
+        # # Calib_Phone_Opti
+        # focal_length_x = 1078.06451
+        # focal_length_y = 1081.77221
+        # cx = 628.078538
+        # cy = 362.156441
 
-        distCoeffs = np.array(
-            [5.63748710e-02, -7.51721332e-01, -6.97952865e-04, -3.84299642e-03,6.18234012e+00],
-            dtype=np.float32
-        )
+        # distCoeffs = np.array(
+        #     [5.63748710e-02, -7.51721332e-01, -6.97952865e-04, -3.84299642e-03,6.18234012e+00],
+        #     dtype=np.float32
+        # )
 
-        ###################################################################################################
+        # ###################################################################################################
 
-        # Calib_webcam ICUAS LAB
-        focal_length_x = 1460.10150  # fx from the calibrated camera matrix
-        focal_length_y = 1456.48915  # fy from the calibrated camera matrix
-        cx = 604.85462               # cx from the calibrated camera matrix
-        cy = 328.64800               # cy from the calibrated camera matrix
+        # # Calib_webcam ICUAS LAB 20250124
+        # focal_length_x = 1460.10150  # fx from the calibrated camera matrix
+        # focal_length_y = 1456.48915  # fy from the calibrated camera matrix
+        # cx = 604.85462               # cx from the calibrated camera matrix
+        # cy = 328.64800               # cy from the calibrated camera matrix
 
         # distCoeffs = np.array(
         #     [3.56447550e-01, -1.09206851e+01, 1.40564820e-03, -1.10856449e-02, 1.20471120e+02],
         #     dtype=np.float32
         # )
 
+        # distCoeffs = None
+
+        ################################################################################
+
+        #20250124 try
+        focal_length_x = 1430.10150
+        focal_length_y = 1430.48915
+        cx = 604.85462
+        cy = 328.64800
+
+        cx = 640.85462
+        cy = 480.64800
+
+        distCoeffs = np.array([0.3393,2.0351,0.0295,-0.0029,-10.9093], dtype=np.float32)
         distCoeffs = None
 
 
+
+
+        ###################################################################################################
+
+################################################################################
+
+        # #20250203 cali from OPTI
+
+        # focal_length_x = 1573.04284
+        # focal_length_y = 1607.89458
+        # cx = 627.8453
+        # cy = 535.874
+
+        
+
+        # distCoeffs = np.array([0.60877,-4.438306,0.08129305,0.0015129,26.516], dtype=np.float32)
+        # #distCoeffs = None
 
 
         ###################################################################################################
