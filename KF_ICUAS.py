@@ -110,7 +110,7 @@ class KalmanFilterPose:
         """
         return self.kf.statePost.copy()
 
-    def correct_partial(self, tvec, R, alpha=0.3):
+    def correct_partial(self, tvec, R, alpha):
         """
         A simplistic approach to 'partially blend' the measured pose
         (x, y, z, roll, pitch, yaw) into the current 18D state.

@@ -169,10 +169,16 @@ class PoseEstimator:
         self.max_skip_before_reset = 4#3#5
         self.high_coverage_override = 0.63#0.8  # coverage override example
         self.use_partial_blending = True
-        self.blend_factor = 0.3
+        #self.blend_factor = 0.3
 
         # To track first update
         self.kf_pose_first_update = True
+
+
+    
+
+
+    
 
     def reinitialize_anchor(self, new_anchor_path, new_2d_points, new_3d_points):
         """
@@ -192,6 +198,12 @@ class PoseEstimator:
         )
 
         logger.info("Anchor re-initialization complete.")
+
+
+
+    def coverage_to_alpha(self, coverage_score, alpha_min=0.1, alpha_max=0.8):
+        alpha_dynamic = alpha_min + (alpha_max - alpha_min) * coverage_score
+        return alpha_dynamic
 
     def _set_anchor_features(self, anchor_bgr_image, anchor_keypoints_2D, anchor_keypoints_3D):
         """
@@ -450,14 +462,23 @@ class PoseEstimator:
 
         # ~95% chi-square threshold for 6 DOF is ~12.59
         chi2_threshold_95_6dof = 12.59
-        passed_mahalanobis = (mahalanobis_sq < chi2_threshold_95_6dof)
+        passed_mahalanobis = (0 < mahalanobis_sq < chi2_threshold_95_6dof)
 
         # ---------- 3-sigma approach (simple fallback) ----------
         # We'll approximate position/orientation stdev from diagonal
+        # Compute the 3-sigma adaptive gating thresholds
         std_pos = np.sqrt(np.diag(P_pose)[0:3])
         std_rot = np.sqrt(np.diag(P_pose)[3:6])
         max_translation_jump_adapt = 3.0 * np.linalg.norm(std_pos)
         max_orientation_jump_adapt_deg = 3.0 * np.linalg.norm(std_rot) * (180.0 / np.pi)
+
+        # Log the gating thresholds
+        logger.info(
+            f"Frame {frame_idx}: Gating Thresholds -> "
+            f"max_translation_jump_adapt={max_translation_jump_adapt:.3f}, "
+            f"max_orientation_jump_adapt_deg={max_orientation_jump_adapt_deg:.2f}°"
+        )
+
 
         # coverage override if coverage is extremely high
         high_coverage_override = (coverage_score >= self.high_coverage_override)
@@ -483,33 +504,70 @@ class PoseEstimator:
             # ---------- Decide if we accept or skip ----------
             if enough_inliers and low_rep_error and viewpoint_ok:
                 # Accept if coverage override OR within gating
-                if high_coverage_override or passed_mahalanobis or passed_3sigma_gating:
+                
+                #if high_coverage_override or passed_mahalanobis or passed_3sigma_gating:
+                
+                if high_coverage_override and passed_mahalanobis:
                     # Full correction
                     self.kf_pose.correct(tvec, R)
                     self.skip_count = 0
                     logger.debug("Kalman Filter corrected (passed gating).")
+
+                    # Log why the correction was accepted
+                    acceptance_reason = []
+                    if high_coverage_override:
+                        acceptance_reason.append("High Coverage Override")
+                    if passed_mahalanobis:
+                        acceptance_reason.append("Passed Mahalanobis Gating")
+                    if passed_3sigma_gating:
+                        acceptance_reason.append("Passed 3-Sigma Gating")
+
+                    logger.info(
+                        f"Frame {frame_idx}: Kalman Filter correction accepted due to {', '.join(acceptance_reason)}. "
+                        f"Details: inliers={num_inliers}, inlier_ratio={inlier_ratio:.3f}, "
+                        f"mean_reprojection_error={mean_reprojection_error:.3f}, viewpoint_diff={viewpoint_diff_deg:.2f}°, "
+                        f"mahalanobis_sq={mahalanobis_sq:.3f}, coverage_score={coverage_score:.3f}, "
+                        f"translation_change={translation_change:.3f}, orientation_change_deg={orientation_change_deg:.2f}°"
+                    )
+
                 else:
+                #elif high_coverage_override or passed_mahalanobis:
                     # Outside gating => partial blend or skip
-                    logger.debug("Measurement out of gating => partial blend or skip.")
+                    logger.debug(f"Frame {frame_idx}: Measurement out of gating => partial blend or skip.")
+
                     self.skip_count += 1
                     if self.use_partial_blending:
-                        self.kf_pose.correct_partial(tvec, R, alpha=self.blend_factor)
-                        logger.debug(f"Partial blend used, alpha={self.blend_factor}")
-                    else:
-                        logger.debug("Skipping update (hard skip).")
+                        coverage_alpha = self.coverage_to_alpha(coverage_score)
+                        self.kf_pose.correct_partial(tvec, R, alpha=coverage_alpha)
 
+                        logger.info(
+                            f"Frame {frame_idx}: Partial blend applied with alpha={coverage_alpha:.3f}. "
+                            f"Details: inliers={num_inliers}, inlier_ratio={inlier_ratio:.3f}, "
+                            f"mean_reprojection_error={mean_reprojection_error:.3f}, viewpoint_diff={viewpoint_diff_deg:.2f}°, "
+                            f"mahalanobis_sq={mahalanobis_sq:.3f}, coverage_score={coverage_score:.3f}, "
+                            f"translation_change={translation_change:.3f}, orientation_change_deg={orientation_change_deg:.2f}°"
+                        )
+                    else:
+                        logger.debug(f"Frame {frame_idx}: Skipping update (hard skip).")
+
+                    # If the skip count exceeds the max, force a correction
                     if self.skip_count > self.max_skip_before_reset:
-                        logger.warning("Exceeded max skip => forcing correction.")
+                        logger.warning(f"Frame {frame_idx}: Exceeded max skip count ({self.max_skip_before_reset}) => Forcing correction.")
                         self.kf_pose.correct(tvec, R)
                         self.skip_count = 0
+
             else:
                 # Not enough inliers or too large repro error => skip or partial
                 logger.debug("Skipping (insufficient inliers or high repro error).")
                 self.skip_count += 1
 
                 if self.use_partial_blending:
-                    self.kf_pose.correct_partial(tvec, R, alpha=self.blend_factor)
-                    logger.debug(f"Partial blend used despite low inliers, alpha={self.blend_factor}")
+                    coverage_alpha = self.coverage_to_alpha(coverage_score)
+                    self.kf_pose.correct_partial(tvec, R, alpha=coverage_alpha)
+                    logger.debug(f"Partial blend used despite low inliers, alpha={self.coverage_to_alpha}")
+
+                    #self.kf_pose.correct_partial(tvec, R, alpha=self.blend_factor)
+                    #logger.debug(f"Partial blend used despite low inliers, alpha={self.blend_factor}")
 
                 if self.skip_count > self.max_skip_before_reset:
                     logger.warning("Exceeded max skip => forcing correction.")
@@ -544,6 +602,7 @@ class PoseEstimator:
             'viewpoint_diff_deg': viewpoint_diff_deg,
             'skip_count': self.skip_count,
             'mahalanobis_dist': float(mahalanobis_dist),
+            'mahalanobis_sq': float(mahalanobis_sq),
         }
         return pose_data
 
@@ -600,10 +659,10 @@ class PoseEstimator:
         #focal_length_y = 1456.48915
         focal_length_x = 1430.10150
         focal_length_y = 1430.48915
-        #cx = 604.85462
-        #cy = 328.64800
-        cx = 640.85462
-        cy = 480.64800
+        cx = 604.85462
+        cy = 328.64800
+        #cx = 640.85462
+        #cy = 480.64800
         #distCoeffs = np.array([0.3393,2.0351,0.0295,-0.0029,-10.9093], dtype=np.float32)
         distCoeffs = None
 

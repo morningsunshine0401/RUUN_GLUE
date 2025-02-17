@@ -6,9 +6,20 @@ import time
 from pathlib import Path
 import cv2
 
+#ORB
+#from pose_estimator_ORB_ICUAS import PoseEstimator
+
+# Default
 #from pose_estimator_ICUAS import PoseEstimator
 
-from pose_estimator_ICUAS_20250122 import PoseEstimator
+# 20250210 KF testing version 
+#from pose_estimator_20250210_KF_test import PoseEstimator
+
+## Adaptive code
+#from pose_estimator_ICUAS_20250122 import PoseEstimator
+
+### Adaptive 2
+from pose_estimator_adaptive_20250210 import PoseEstimator
 
 from utils import create_unique_filename
 from models.utils import AverageTimer
@@ -149,9 +160,40 @@ if __name__ == '__main__':
         # ---------------------------------------------------------
         # EXAMPLE: Switch anchor after frame 520 (Adjust as needed)
         # ---------------------------------------------------------
-        if frame_idx == 140:
+        if frame_idx == 133:#120:#55:#144:#60:#144:#135:#144:#152:#3000:#133:#112:
             logger.info("Switching to a new anchor after frame 520...")
             new_anchor_path = "Anchor_B.png"
+            #new_anchor_path = "assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png"
+
+            # # Example anchor keypoints (2D -> 3D). Adapt these to your scenario.
+            # new_2d_points = np.array([
+            #     [511, 293], [591, 284], [610, 269], [587, 330], [413, 249],
+            #     [602, 348], [715, 384], [598, 298], [656, 171], [805, 213],
+            #     [703, 392], [523, 286], [519, 327], [387, 289], [727, 126],
+            #     [425, 243], [636, 358], [745, 202], [595, 388], [436, 260],
+            #     [539, 313], [795, 220], [351, 291], [665, 165], [611, 353],
+            #     [650, 377], [516, 389], [727, 143], [496, 378], [575, 312],
+            #     [617, 368], [430, 312], [480, 281], [834, 225], [469, 339],
+            #     [705, 223], [637, 156], [816, 414], [357, 195], [752, 77],
+            #     [642, 451]
+            # ], dtype=np.float32)
+
+            # new_3d_points = np.array([
+            #     [-0.014, 0.000,  0.042], [ 0.025, -0.014, -0.011], [ 0.049, -0.016, -0.011],
+            #     [-0.014, 0.000, -0.042], [-0.014,  0.000,  0.156], [-0.023,  0.000, -0.065],
+            #     [ 0.000,  0.000, -0.156], [ 0.025,  0.000, -0.015], [ 0.217,  0.000,  0.070],
+            #     [ 0.230,  0.000, -0.070], [-0.014,  0.000, -0.156], [ 0.000,  0.000,  0.042],
+            #     [-0.057, -0.018, -0.010], [-0.074, -0.000,  0.128], [ 0.206, -0.070, -0.002],
+            #     [-0.000, -0.000,  0.156], [-0.017, -0.000, -0.092], [ 0.217, -0.000, -0.027],
+            #     [-0.052, -0.000, -0.097], [-0.019, -0.000,  0.128], [-0.035, -0.018, -0.010],
+            #     [ 0.217, -0.000, -0.070], [-0.080, -0.000,  0.156], [ 0.230, -0.000,  0.070],
+            #     [-0.023, -0.000, -0.075], [-0.029, -0.000, -0.127], [-0.090, -0.000, -0.042],
+            #     [ 0.206, -0.055, -0.002], [-0.090, -0.000, -0.015], [ 0.000, -0.000, -0.015],
+            #     [-0.037, -0.000, -0.097], [-0.074, -0.000,  0.074], [-0.019, -0.000,  0.074],
+            #     [ 0.230, -0.000, -0.113], [-0.100, -0.030,  0.000], [ 0.170, -0.000, -0.015],
+            #     [ 0.230, -0.000,  0.113], [-0.000, -0.025, -0.240], [-0.000, -0.025,  0.240],
+            #     [ 0.243, -0.104,  0.000], [-0.080, -0.000, -0.156]
+            # ], dtype=np.float32)
 
             # Example new 2D/3D correspondences for the new anchor
             # You must define these for your anchor

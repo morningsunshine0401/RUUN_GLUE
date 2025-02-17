@@ -206,3 +206,61 @@ python3 main_20250122_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241
 
 python3 main_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --save_pose 20250122_test5_adaptive.json --image_dir assets/Ruun_images/ICUAS/test5/ --csv_file assets/Ruun_images/ICUAS/test5/image_index.csv --no_display
 
+
+python3 main_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --save_pose 20250122_opti_test1.json --image_dir assets/Ruun_images/ICUAS/20250122/extracted_images_20250122_test1/ --csv_file assets/Ruun_images/ICUAS/20250122/extracted_images_20250122_test1/image_index.csv --no_display
+
+
+#20250123
+
+# 133 frame
+python3 main_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --save_pose 20250123_ICUAS_1.json --image_dir assets/Ruun_images/ICUAS/20250121/extracted_images_test5/ --csv_file assets/Ruun_images/ICUAS/20250121/extracted_images_test5/image_index.csv 
+
+
+python3 main_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --save_pose 20250123_ICUAS_2_dark.json --image_dir assets/Ruun_images/ICUAS/20250122/extracted_images_test8/ --csv_file assets/Ruun_images/ICUAS/20250122/extracted_images_20250122_test8/image_index.csv --output_dir dump_match_pairs/20250123/dark/
+
+#20250124
+
+# 152 or 135 frame
+python3 main_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --save_pose 20250124_ICUAS1.json --image_dir assets/Ruun_images/ICUAS/20250124/extracted_images_20250124_ICUAS1/ --csv_file assets/Ruun_images/ICUAS/20250124/extracted_images_20250124_ICUAS1/image_index.csv --output_dir dump_match_pairs/20250124/
+
+# 169 or 144 frame
+python3 main_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --save_pose 20250124_ICUAS1_2.json --image_dir assets/Ruun_images/ICUAS/20250124/c_ICUAS1_2/ --csv_file assets/Ruun_images/ICUAS/20250124/extracted_images_20250124_ICUAS1_2/image_index.csv --output_dir dump_match_pairs/20250124/ICUAS2/ --no_display
+
+python3 main_sync.py --anchor Anchor_B.png --resize 1280 720 --save_pose boundary.json --image_dir assets/Ruun_images/ICUAS/20250124/Boundary/ --csv_file assets/Ruun_images/ICUAS/20250124/Boundary/image_index.csv --output_dir dump_match_pairs/20250124/boundary/
+
+python3 main_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --save_pose boundary_front.json --image_dir assets/Ruun_images/ICUAS/20250124/Boundary/ --csv_file assets/Ruun_images/ICUAS/20250124/Boundary/image_index.csv --output_dir dump_match_pairs/20250124/boundary_front/
+
+python3 main_ORB_ICUAS.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --save_pose ORB_dark.json --input assets/Ruun_images/ICUAS/20250122/extracted_images_20250122_test8/ --output_dir dump_match_pairs/20250124/ORB_dark/
+
+python3 main_sync.py  --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --save_pose ORB_sync_dark.json --image_dir assets/Ruun_images/ICUAS/20250122/extracted_images_20250122_test8/ --output_dir dump_match_pairs/20250124/ORB_dark/ --csv_file assets/Ruun_images/ICUAS/20250122/extracted_images_20250122_test8/image_index.csv
+
+python3 main_ICUAS.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --input assets/Ruun_images/video/20250107/20250107_test2.mp4 --resize 1280 720 --save_pose coverage_0.25.json 
+
+#20250203
+
+python3 main_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --save_pose 20250123_ICUAS_1.json --image_dir assets/Ruun_images/ICUAS/20250203/extracted_images_20250203_test1/ --csv_file assets/Ruun_images/ICUAS/2025203/extracted_images_20250203_test1/image_index.csv 
+
+#20250204
+
+python3 main_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --image_dir assets/Ruun_images/ICUAS/20250203/extracted_images_20250203_test1/ --csv_file assets/Ruun_images/ICUAS/20250203/extracted_images_20250203_test1/image_index.csv --save_pose 20250204_ICUAS_remove_test.json --output_dir dump_match_pairs/20250204/
+
+#20250210
+
+python3 main_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --image_dir assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test4/ --csv_file assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test4/image_index.csv --save_pose 20250210_test2_KF_anlaysis_10hz.json
+
+
+python3 main_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --image_dir assets/Ruun_images/ICUAS/20250210/extracted_images_test5/ --csv_file assets/Ruun_images/ICUAS/20250210/extracted_images_test5/image_index.csv --save_pose 20250210_test5_KF_anlaysis_10hz.json
+
+
+python3 main_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --image_dir assets/Ruun_images/ICUAS/20250210/extracted_images_test5/ --csv_file assets/Ruun_images/ICUAS/20250210/extracted_images_test5/image_index.csv --save_pose 20250210_test5_KF_anlaysis_30hz.json
+
+
+python3 main_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --image_dir assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test4/ --csv_file assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test4/image_index.csv --save_pose 20250210_test4_adaptive_harsh.json
+
+python3 main_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --image_dir assets/Ruun_images/ICUAS/20250210/extracted_images_test5/ --csv_file assets/Ruun_images/ICUAS/20250210/extracted_images_test5/image_index.csv --save_pose 20250210_test5_adaptive2.json 
+
+python3 main_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --image_dir assets/Ruun_images/ICUAS/20250210/extracted_images_test5/ --csv_file assets/Ruun_images/ICUAS/20250210/extracted_images_test5/image_index.csv --save_pose 20250212_test5_adaptive2.json 
+
+python3 main_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --image_dir assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test4/ --csv_file assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test4/image_index.csv --save_pose 20250212_test4_adaptive2.json 
+
+
