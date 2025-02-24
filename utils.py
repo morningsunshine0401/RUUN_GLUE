@@ -66,3 +66,67 @@ def preprocess_image_for_lightglue(img):
     gray = gray[None, None]
     return gray
 
+# ---------------------------------------------------------------------
+#         QUATERNION UTILITY FUNCTIONS
+# ---------------------------------------------------------------------
+
+def rotation_matrix_to_quaternion(R):
+    """
+    Convert a 3x3 rotation matrix to a quaternion [x, y, z, w].
+    """
+    q = np.zeros(4, dtype=np.float64)
+    trace = R[0, 0] + R[1, 1] + R[2, 2]
+    if trace > 0.0:
+        s = 0.5 / np.sqrt(trace + 1.0)
+        q[3] = 0.25 / s
+        q[0] = (R[2, 1] - R[1, 2]) * s
+        q[1] = (R[0, 2] - R[2, 0]) * s
+        q[2] = (R[1, 0] - R[0, 1]) * s
+    else:
+        # Otherwise, find the largest diagonal element and proceed
+        if (R[0, 0] > R[1, 1]) and (R[0, 0] > R[2, 2]):
+            s = 2.0 * np.sqrt(1.0 + R[0, 0] - R[1, 1] - R[2, 2])
+            q[3] = (R[2, 1] - R[1, 2]) / s
+            q[0] = 0.25 * s
+            q[1] = (R[0, 1] + R[1, 0]) / s
+            q[2] = (R[0, 2] + R[2, 0]) / s
+        elif R[1, 1] > R[2, 2]:
+            s = 2.0 * np.sqrt(1.0 + R[1, 1] - R[0, 0] - R[2, 2])
+            q[3] = (R[0, 2] - R[2, 0]) / s
+            q[0] = (R[0, 1] + R[1, 0]) / s
+            q[1] = 0.25 * s
+            q[2] = (R[1, 2] + R[2, 1]) / s
+        else:
+            s = 2.0 * np.sqrt(1.0 + R[2, 2] - R[0, 0] - R[1, 1])
+            q[3] = (R[1, 0] - R[0, 1]) / s
+            q[0] = (R[0, 2] + R[2, 0]) / s
+            q[1] = (R[1, 2] + R[2, 1]) / s
+            q[2] = 0.25 * s
+    return q
+
+def quaternion_to_rotation_matrix(q):
+    """
+    Convert a quaternion [x, y, z, w] to a 3x3 rotation matrix.
+    """
+    x, y, z, w = q
+    xx, yy, zz = x*x, y*y, z*z
+    xy, xz, yz = x*y, x*z, y*z
+    wx, wy, wz = w*x, w*y, w*z
+
+    R = np.array([
+        [1.0 - 2.0*(yy + zz),     2.0*(xy - wz),         2.0*(xz + wy)],
+        [2.0*(xy + wz),           1.0 - 2.0*(xx + zz),   2.0*(yz - wx)],
+        [2.0*(xz - wy),           2.0*(yz + wx),         1.0 - 2.0*(xx + yy)]
+    ], dtype=np.float64)
+    return R
+
+def normalize_quaternion(q):
+    """
+    Ensure quaternion has unit length.
+    """
+    norm_q = np.linalg.norm(q)
+    if norm_q < 1e-15:
+        # Fallback to identity if somehow zero length
+        return np.array([0, 0, 0, 1], dtype=q.dtype)
+    return q / norm_q
+

@@ -345,6 +345,64 @@ class PoseEstimator:
             return cv2.resize(image, new_size)
         return image
 
+    # def process_frame(self, frame, frame_idx):
+    #     logger.info(f"Processing frame {frame_idx}")
+    #     start_time = time.time()
+
+    #     frame = self._resize_image(frame, self.opt.resize)
+    #     resize_time = time.time()
+
+    #     anchor_proc_time = time.time()
+    #     anchor_proc = self.anchor_proc  # Precomputed anchor
+
+    #     frame_proc = SuperPointPreprocessor.preprocess(frame)
+    #     frame_proc = frame_proc[None].astype(np.float32)
+    #     frame_proc_time = time.time()
+
+    #     batch = np.concatenate([anchor_proc, frame_proc], axis=0).astype(np.float32)
+    #     batch = torch.tensor(batch, device=self.device).cpu().numpy()
+    #     batch_time = time.time()
+
+    #     keypoints, matches, mscores = self.session.run(None, {"images": batch})
+    #     keypoint_time = time.time()
+
+    #     logger.info(
+    #         f"Frame {frame_idx} times: Resize: {resize_time - start_time:.3f}s, "
+    #         f"Anchor_proc: {anchor_proc_time - resize_time:.3f}s, "
+    #         f"Frame_proc: {frame_proc_time - anchor_proc_time:.3f}s, "
+    #         f"Batch: {batch_time - frame_proc_time:.3f}s, "
+    #         f"Keypoint Extraction: {keypoint_time - batch_time:.3f}s"
+    #     )
+
+    #     valid_mask = (matches[:, 0] == 0)
+    #     valid_matches = matches[valid_mask]
+
+    #     mkpts0 = keypoints[0][valid_matches[:, 1]]
+    #     mkpts1 = keypoints[1][valid_matches[:, 2]]
+    #     mconf = mscores[valid_mask]
+    #     anchor_indices = valid_matches[:, 1]
+
+    #     logger.debug(f"Found {len(mkpts0)} raw matches in frame {frame_idx}")
+
+    #     # Filter to known anchor indices
+    #     known_mask = np.isin(anchor_indices, self.matched_anchor_indices)
+    #     mkpts0 = mkpts0[known_mask]
+    #     mkpts1 = mkpts1[known_mask]
+    #     mconf = mconf[known_mask]
+
+    #     idx_map = {idx: i for i, idx in enumerate(self.matched_anchor_indices)}
+    #     mpts3D = np.array([self.matched_3D_keypoints[idx_map[aidx]] 
+    #                        for aidx in anchor_indices[known_mask]])
+
+    #     if len(mkpts0) < 4:
+    #         logger.warning(f"Not enough matches for pose (frame {frame_idx})")
+    #         return None, frame
+
+    #     pose_data, visualization = self.estimate_pose(
+    #         mkpts0, mkpts1, mpts3D, mconf, frame, frame_idx, keypoints[1]
+    #     )
+    #     return pose_data, visualization
+
     def process_frame(self, frame, frame_idx):
         logger.info(f"Processing frame {frame_idx}")
         start_time = time.time()
@@ -367,11 +425,11 @@ class PoseEstimator:
         keypoint_time = time.time()
 
         logger.info(
-            f"Frame {frame_idx} times: Resize: {resize_time - start_time:.3f}s, "
-            f"Anchor_proc: {anchor_proc_time - resize_time:.3f}s, "
-            f"Frame_proc: {frame_proc_time - anchor_proc_time:.3f}s, "
-            f"Batch: {batch_time - frame_proc_time:.3f}s, "
-            f"Keypoint Extraction: {keypoint_time - batch_time:.3f}s"
+            f"Frame {frame_idx} times: Resize={resize_time - start_time:.3f}s, "
+            f"Anchor_proc={anchor_proc_time - resize_time:.3f}s, "
+            f"Frame_proc={frame_proc_time - anchor_proc_time:.3f}s, "
+            f"Batch={batch_time - frame_proc_time:.3f}s, "
+            f"Keypoint Extraction={keypoint_time - batch_time:.3f}s"
         )
 
         valid_mask = (matches[:, 0] == 0)
@@ -391,16 +449,41 @@ class PoseEstimator:
         mconf = mconf[known_mask]
 
         idx_map = {idx: i for i, idx in enumerate(self.matched_anchor_indices)}
-        mpts3D = np.array([self.matched_3D_keypoints[idx_map[aidx]] 
-                           for aidx in anchor_indices[known_mask]])
+        mpts3D = np.array([self.matched_3D_keypoints[idx_map[aidx]]
+                        for aidx in anchor_indices[known_mask]])
 
+        # If there are not enough matches, we want to still return a Kalman prediction.
         if len(mkpts0) < 4:
-            logger.warning(f"Not enough matches for pose (frame {frame_idx})")
-            return None, frame
+            logger.warning(f"Not enough matches for pose (frame {frame_idx}); using Kalman prediction.")
+            translation_estimated, eulers_estimated = self.kf_pose.predict(frame=frame_idx)
+            R_estimated = euler_angles_to_rotation_matrix(eulers_estimated)
+            pose_data = {
+                'frame': frame_idx,
+                'kf_translation_vector': translation_estimated.tolist(),
+                'kf_euler_angles': eulers_estimated.tolist(),
+                'kf_rotation_matrix': R_estimated.tolist(),
+                'pose_estimation_failed': True
+            }
+            return pose_data, frame
 
+        # Try to estimate pose normally.
         pose_data, visualization = self.estimate_pose(
             mkpts0, mkpts1, mpts3D, mconf, frame, frame_idx, keypoints[1]
         )
+        
+        # If pose estimation failed (i.e. pose_data is None), use the Kalman filter prediction.
+        if pose_data is None:
+            logger.warning(f"Pose estimation failed for frame {frame_idx}; using Kalman prediction.")
+            translation_estimated, eulers_estimated = self.kf_pose.predict( frame=frame_idx)
+            R_estimated = euler_angles_to_rotation_matrix(eulers_estimated)
+            pose_data = {
+                'frame': frame_idx,
+                'kf_translation_vector': translation_estimated.tolist(),
+                'kf_euler_angles': eulers_estimated.tolist(),
+                'kf_rotation_matrix': R_estimated.tolist(),
+                'pose_estimation_failed': True
+            }
+        
         return pose_data, visualization
 
     def _init_kalman_filter(self):
@@ -422,20 +505,21 @@ class PoseEstimator:
             imagePoints=imagePoints,
             cameraMatrix=K,
             distCoeffs=distCoeffs,
-            reprojectionError=8,
-            confidence=0.99,
-            iterationsCount=2000,
-            flags=cv2.SOLVEPNP_P3P
+            reprojectionError=2,#4,#8,
+            confidence=0.999,#0.99,
+            iterationsCount=2000,#2000,
+            flags=cv2.SOLVEPNP_EPNP
         )
 
-        if not success or inliers is None or len(inliers) < 7:
+        if not success or inliers is None or len(inliers) < 6:#7:
             logger.warning("PnP pose estimation failed or not enough inliers.")
+            print("PnP pose estimation failed or not enough inliers IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII\n.")
             return None, frame
 
         # Refine with VVS
         objectPoints_inliers = objectPoints[inliers.flatten()]
         imagePoints_inliers = imagePoints[inliers.flatten()]
-        print("$$$$$$$$$$$tvec_o:",tvec_o)
+        #print("$$$$$$$$$$$tvec_o:",tvec_o)
 
         rvec, tvec = cv2.solvePnPRefineVVS(
             objectPoints=objectPoints_inliers,
@@ -446,8 +530,28 @@ class PoseEstimator:
             tvec=tvec_o
         )
 
+        # rvec, tvec = cv2.solvePnPRefineLM(
+        #     objectPoints=objectPoints_inliers,
+        #     imagePoints=imagePoints_inliers,
+        #     cameraMatrix=K,
+        #     distCoeffs=distCoeffs,
+        #     rvec=rvec_o,
+        #     tvec=tvec_o
+        # )
+
         # R, t => object_in_cam
         R, _ = cv2.Rodrigues(rvec)
+
+
+####################################################################################3
+        # R_obj2cam = R
+        # tvec_obj2cam = tvec
+
+        # # Invert:
+        # R = R_obj2cam.T   # or R_obj2cam.transpose()
+        # tvec = -R @ tvec_obj2cam
+
+#############################################################################
 
         # Initialize region counters
         regions = {"front-right": 0, "front-left": 0, "back-right": 0, "back-left": 0}
@@ -532,19 +636,19 @@ class PoseEstimator:
         num_inliers = len(inliers)
         inlier_ratio = num_inliers / len(mkpts0) if len(mkpts0) > 0 else 0
 
-        reprojection_error_threshold = 4.0
-        max_translation_jump = 2
-        max_orientation_jump = 25#50#25  # degrees
-        min_inlier = 7
+        reprojection_error_threshold = 500000000#4.0
+        max_translation_jump = 30000000000000000#2
+        max_orientation_jump = 60000000000000000000#20#25#50#25  # degrees
+        min_inlier = 4#7
 
         # ---------------------------
-        coverage_threshold = -1#0.48#-1#0.4#0.45#-1#0.6#0.6  # e.g., need at least 0.55 coverage to trust this frame
+        coverage_threshold = -1#0.25#0.48#-1#0.4#0.45#-1#0.6#0.6  # e.g., need at least 0.55 coverage to trust this frame
 
         
         #coverage_score = getattr(self, "last_coverage_score", 1.0)
 
         if coverage_score is None:
-            print("Coverage score does not exist, using default value.")
+            print("Coverage score does not exist, using default value.CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCc")
 
         # ---------------------------
         # EXTRA CHECKS: viewpoint
@@ -559,14 +663,14 @@ class PoseEstimator:
 
 
         # 1) PREDICT
-        translation_estimated, eulers_estimated = self.kf_pose.predict()
+        translation_estimated, eulers_estimated = self.kf_pose.predict(frame=frame_idx)
         eulers_measured = rotation_matrix_to_euler_angles(R)  # (in radians)
         orientation_change = np.linalg.norm(eulers_measured - eulers_estimated) * (180 / np.pi)
         translation_change = np.linalg.norm(tvec.flatten() - translation_estimated)
 
         # If first KF update
         if not hasattr(self, 'kf_pose_first_update') or self.kf_pose_first_update:
-            self.kf_pose.correct(tvec, R)
+            self.kf_pose.correct(tvec, R , frame=frame_idx)
             self.kf_pose_first_update = False
             logger.debug("Kalman Filter first update: skipping threshold checks.")
         else:
@@ -582,13 +686,13 @@ class PoseEstimator:
                     # 3) Check coverage
                     if coverage_score >= coverage_threshold:
                         print('Cs:',coverage_score)
-                        print('CS thresh:',coverage_threshold)
+                        #print('CS thresh:',coverage_threshold)
                         print("3333333333333333333333333333333333333333333333333333333333333\n")
                         # 4) Check viewpoint difference
                         if viewpoint_diff <= viewpoint_max_diff_deg:
                             print("4444444444444444444444444444444444444444444444444444444\n")
                             # --> Everything is okay, do correction
-                            self.kf_pose.correct(tvec, R)
+                            self.kf_pose.correct(tvec, R , frame=frame_idx)
                             logger.debug("Kalman Filter corrected (all thresholds passed).")
                         else:
                             logger.debug(f"Skipping KF update: viewpoint diff = {viewpoint_diff:.1f} deg > {viewpoint_max_diff_deg}")
@@ -598,13 +702,16 @@ class PoseEstimator:
                     # Exceeded motion thresholds
                     if translation_change >= max_translation_jump:
                         logger.debug(f"Skipping KF update: large translation jump={translation_change:.3f}m")
+                        print("Skipping KF update: large translation jump JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJTTTTTTTTTTTTTTTTTTTTTTTTTTT \n ")
                     if orientation_change >= max_orientation_jump:
                         logger.debug(f"Skipping KF update: large orientation jump={orientation_change:.3f}deg")
+                        print("Skipping KF update: large orientation jump JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJOOOOOOOOOOOOOOOOOOOOOOO \n ")
             else:
                 logger.debug("Skipping KF update: high repro error or insufficient inliers.")
+                print("Skipping KF update: high repro error or insufficient inliers.")
 
         # FINAL PREDICT (gets final state after optional correction)
-        translation_estimated, eulers_estimated = self.kf_pose.predict()
+        translation_estimated, eulers_estimated = self.kf_pose.predict(frame=frame_idx)
         R_estimated = euler_angles_to_rotation_matrix(eulers_estimated)
 
         pose_data = {
@@ -714,14 +821,14 @@ class PoseEstimator:
         #20250124 try
         focal_length_x = 1430.10150
         focal_length_y = 1430.48915
-        cx = 604.85462
-        cy = 328.64800
+        #cx = 604.85462
+        #cy = 328.64800
 
         cx = 640.85462
         cy = 480.64800
 
         distCoeffs = np.array([0.3393,2.0351,0.0295,-0.0029,-10.9093], dtype=np.float32)
-        distCoeffs = None
+        #distCoeffs = None
 
 
 

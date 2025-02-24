@@ -19,7 +19,14 @@ import cv2
 #from pose_estimator_ICUAS_20250122 import PoseEstimator
 
 ### Adaptive 2
-from pose_estimator_adaptive_20250210 import PoseEstimator
+#from pose_estimator_adaptive_20250210 import PoseEstimator
+
+### Adaptive 3
+#from pose_estimator_adaptive_20250218 import PoseEstimator
+
+
+### Quaternion 1
+from pose_estimator_Q import PoseEstimator
 
 from utils import create_unique_filename
 from models.utils import AverageTimer
@@ -31,7 +38,7 @@ import csv
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,  # Use DEBUG for detailed logs
+    level=logging.DEBUG,  # Use DEBUG for detailed logs
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
         logging.FileHandler("main_LG.log"),
@@ -160,7 +167,7 @@ if __name__ == '__main__':
         # ---------------------------------------------------------
         # EXAMPLE: Switch anchor after frame 520 (Adjust as needed)
         # ---------------------------------------------------------
-        if frame_idx == 133:#120:#55:#144:#60:#144:#135:#144:#152:#3000:#133:#112:
+        if frame_idx == 133:#100:##133:#120:#55:#144:#60:#144:#135:#144:#152:#3000:#133:#112:
             logger.info("Switching to a new anchor after frame 520...")
             new_anchor_path = "Anchor_B.png"
             #new_anchor_path = "assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png"
@@ -274,12 +281,12 @@ if __name__ == '__main__':
         pose_data, visualization = pose_estimator.process_frame(frame, frame_idx)
 
         # If we got pose data, store it in our final array
-        if pose_data:
+        #if pose_data:
             # Also store the image timestamp in the pose_data
-            pose_data['timestamp']  = frame_t
-            pose_data['image_file'] = img_name
-            all_poses.append(pose_data)
-            logger.debug(f'Pose data (frame={frame_idx}, time={frame_t:.3f}): {pose_data}')
+        pose_data['timestamp']  = frame_t
+        pose_data['image_file'] = img_name
+        all_poses.append(pose_data)
+        logger.debug(f'Pose data (frame={frame_idx}, time={frame_t:.3f}): {pose_data}')
 
         # Show the visualization
         if not opt.no_display and visualization is not None:
@@ -310,6 +317,8 @@ if __name__ == '__main__':
         logger.info("No frames were processed or invalid total time.")
 
     cv2.destroyAllWindows()
+
+    #pose_estimator.kf_pose.save_debug_info("kalman_debug_adaptive.json")
 
     # Save pose estimation results
     with open(opt.save_pose, 'w') as f:
