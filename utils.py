@@ -130,3 +130,28 @@ def normalize_quaternion(q):
         return np.array([0, 0, 0, 1], dtype=q.dtype)
     return q / norm_q
 
+def compare_with_ground_truth(self, estimated_R, estimated_t, gt_pose):
+        """
+        Compare the estimated pose with ground truth
+        
+        Args:
+            estimated_R: Estimated rotation matrix (3x3)
+            estimated_t: Estimated translation vector (3,)
+            gt_pose: Ground truth pose matrix (4x4)
+            
+        Returns:
+            rotation_error (radians), translation_error (same units as translation)
+        """
+        # Extract ground truth rotation and translation
+        gt_R = gt_pose[:3, :3]
+        gt_t = gt_pose[:3, 3]
+        
+        # Compute rotation error
+        R_diff = estimated_R @ gt_R.T
+        rotation_error = self.rotation_matrix_to_axis_angle(R_diff)
+        
+        # Compute translation error
+        translation_error = np.linalg.norm(estimated_t - gt_t)
+        
+        return rotation_error, translation_error
+

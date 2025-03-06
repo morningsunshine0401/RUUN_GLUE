@@ -21,11 +21,10 @@ def extract_object_poses(npz_file, png_file):
 
 # Main script to process all pairs of PNG and NPZ files
 output_data = {"frames": []}
-for i in range(1, 181):  # Assuming you have 40 pairs
+for i in range(1, 181):  # Assuming you have 180 pairs
     npz_file = f"{str(i).zfill(4)}.npz"  # e.g., '0001.npz'
-    png_file = f"{str(i).zfill(8)}.png"  # e.g., '00010001.png'
-    #png_file = f"{str(i).zfill(4)}.png"  # e.g., '0001.png'
-
+    png_file = f"{str(i).zfill(8)}.png"  # e.g., '00000001.png'
+    #png_file = f"0001{str(i).zfill(4)}.png"
 
     if os.path.exists(npz_file):
         frame_data = extract_object_poses(npz_file, png_file)

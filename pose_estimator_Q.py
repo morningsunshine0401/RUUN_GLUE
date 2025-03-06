@@ -11,6 +11,7 @@ from utils import (
     quaternion_to_rotation_matrix,
     normalize_quaternion
 )
+
 from KF_Q import KalmanFilterPose
 import matplotlib.cm as cm
 from models.utils import make_matching_plot_fast
@@ -45,17 +46,57 @@ class PoseEstimator:
         self.anchor_image = self._resize_image(self.anchor_image, opt.resize)
         logger.info(f"Loaded and resized anchor image from {opt.anchor}")
 
-        # Initialize ONNX session for LightGlue
-        # (Try CUDA first, then CPU)
-        providers = [("CPUExecutionProvider", {})]
-        providers.insert(0, ("CUDAExecutionProvider", {}))
+
+
+        providers = [
+            # (
+            #     "TensorrtExecutionProvider",
+            #     {
+            #         "trt_fp16_enable": True,                    # Enable FP16 mode
+            #         "trt_engine_cache_enable": True,            # Enable engine caching
+            #         "trt_engine_cache_path": "weights/.trtcache_engines",
+            #         "trt_timing_cache_enable": True,            # Enable timing cache
+            #         "trt_timing_cache_path": "weights/.trtcache_timings",
+            #     }
+            # ),
+            ("CUDAExecutionProvider", {}),
+            ("CPUExecutionProvider", {}),
+        ]
+        #self.session = ort.InferenceSession("weights/ruun_2.onnx", providers=providers)
         self.session = ort.InferenceSession(
             #"weights/superpoint_lightglue_pipeline.onnx",
-            #"weights/superpoint_lightglue_pipeline_1280x720.onnx",
-            "weights/superpoint_lightglue_pipeline_1280x720_multihead.onnx",
+            "weights/superpoint_lightglue_pipeline_1280x720.onnx",
+            #"weights/superpoint_lightglue_pipeline_1280x720_multihead.onnx",
             providers=providers
         )
-        logger.info("ONNX session initialized with CUDAExecutionProvider")
+        logger.info("ONNX session initialized with TensorrtExecutionProvider")
+
+
+
+
+
+
+        # # Initialize ONNX session for LightGlue
+        # # (Try CUDA first, then CPU)
+        # providers = [("CPUExecutionProvider", {})]
+        # providers.insert(0, ("CUDAExecutionProvider", {}))
+        # self.session = ort.InferenceSession(
+        #     #"weights/superpoint_lightglue_pipeline.onnx",
+        #     #"weights/superpoint_lightglue_pipeline_1280x720.onnx",
+        #     #"weights/superpoint_lightglue_pipeline_1280x720_multihead.onnx",
+        #     #"weights/modified_model.onnx",
+        #     "weights/ruun_2.onnx",
+        #     providers=providers
+        # )
+        # logger.info("ONNX session initialized with CUDAExecutionProvider")
+
+
+
+
+
+
+
+
 
         # We will store the anchor’s 2D/3D keypoints here.
         # For your anchor image, you can define them directly or load from a file.
@@ -521,6 +562,9 @@ class PoseEstimator:
             iterationsCount=2000,#2000,
             flags=cv2.SOLVEPNP_EPNP
         )
+
+        # rvec =rvec_o
+        # tvec= tvec_o
 
         if not success or inliers is None or len(inliers) < 6:#7:
             logger.warning("PnP pose estimation failed or not enough inliers.")

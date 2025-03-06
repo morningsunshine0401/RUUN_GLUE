@@ -3,15 +3,15 @@
 
 clear all; close all; clc;
 
-% (0) Toggle this to switch between raw data or KF/refined data
-
+%% (0) Toggle this to switch between raw data or KF/refined data
 useRawData = false;  % If true, use 'object_*' fields; if false, use 'kf_*' fields.
+%useRawData = true; 
 
 %% (1) Preparations
 
 % Edit these paths to match your data:
 bagFile  = '20250128_test4.db3';
-jsonPath = '20250219_20250128_test4_Q_EKF.json';
+jsonPath = '20250304_20250128_test4_pixel_28.json';
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -78,7 +78,7 @@ for i = 1:N_opt
     end
 end
 
-%% (4) Convert quaternions->rotation matrices
+%% (4) Convert quaternions -> rotation matrices
 R_cam_in_world = zeros(3,3,N_opt);
 R_tgt_in_world = zeros(3,3,N_opt);
 
@@ -91,6 +91,17 @@ end
 jsonText = fileread(jsonPath);
 algData  = jsondecode(jsonText);
 N_json   = numel(algData);
+
+%% (x) Frame selection for plotting
+% Specify the indices of frames you want to plot.
+% For example, to plot frames 1 to 40:
+% Specify the desired number of frames to plot
+desiredFrameCount = 400;
+% Automatically select frames from 1 up to the lesser of desiredFrameCount or the available JSON frames
+selectedFrames = 1:min(desiredFrameCount, N_json);
+if max(selectedFrames) > N_json
+    error('Selected frames exceed the available JSON frames.');
+end
 
 % We'll store the rotation and translation from the JSON
 R_tgt_in_cam_alg = cell(N_json,1);
@@ -113,7 +124,6 @@ else
 end
 
 for i = 1:N_json
-    %thisEntry = algData(i);
     thisEntry = algData{i};
 
     % Check if required fields exist
@@ -192,16 +202,15 @@ end
 [~, bagBase, ~] = fileparts(bagFile);
 [~, jsonBase, ~] = fileparts(jsonPath);
 
-%% (9) Plot X/Y/Z comparison
+%% (9) Plot X/Y/Z comparison for selected frames
 figure('Name','Position Comparison','NumberTitle','off');
 hold on; grid on;
-N = N_json;
-plot(1:N, matched_t_opt(:,1),'b--','LineWidth',1.7);
-plot(1:N, t_tgt_in_cam_alg(:,1),'b-','LineWidth',1.7);
-plot(1:N, matched_t_opt(:,2),'g--','LineWidth',1.7);
-plot(1:N, t_tgt_in_cam_alg(:,2),'g-','LineWidth',1.7);
-plot(1:N, matched_t_opt(:,3),'r--','LineWidth',1.7);
-plot(1:N, t_tgt_in_cam_alg(:,3),'r-','LineWidth',1.7);
+plot(selectedFrames, matched_t_opt(selectedFrames,1),'b--','LineWidth',1.7);
+plot(selectedFrames, t_tgt_in_cam_alg(selectedFrames,1),'b-','LineWidth',1.7);
+plot(selectedFrames, matched_t_opt(selectedFrames,2),'g--','LineWidth',1.7);
+plot(selectedFrames, t_tgt_in_cam_alg(selectedFrames,2),'g-','LineWidth',1.7);
+plot(selectedFrames, matched_t_opt(selectedFrames,3),'r--','LineWidth',1.7);
+plot(selectedFrames, t_tgt_in_cam_alg(selectedFrames,3),'r-','LineWidth',1.7);
 set(gca, 'FontSize', 14);
 xlabel('Frame','FontSize',16); ylabel('Relative Position (m)','FontSize',16);
 legend({'GT X','Est X','GT Y','Est Y','GT Z','Est Z'},'Location','best');
@@ -210,22 +219,27 @@ hold off;
 print(gcf, fullfile(saveFolder, ...
     [bagBase '_' jsonBase '_' dataTypeTag '_PositionComparison.png']), '-dpng','-r300');
 
-%% (10) Orientation comparison
-eul_opt = zeros(N,3);
-eul_alg = zeros(N,3);
-for i = 1:N
-    eul_opt(i,:) = rotm2eul(matched_R_opt{i}, 'XYZ');
-    eul_alg(i,:) = rotm2eul(R_tgt_in_cam_alg{i}, 'XYZ');
+%% (10) Orientation comparison for selected frames
+% Compute Euler angles for all frames first
+eul_all = zeros(N_json,3);
+eul_alg_all = zeros(N_json,3);
+for i = 1:N_json
+    eul_all(i,:) = rotm2eul(matched_R_opt{i}, 'XYZ');
+    eul_alg_all(i,:) = rotm2eul(R_tgt_in_cam_alg{i}, 'XYZ');
 end
+
+% Restrict to selected frames
+eul_opt = eul_all(selectedFrames, :);
+eul_alg = eul_alg_all(selectedFrames, :);
 
 figure('Name','Orientation Comparison','NumberTitle','off');
 hold on; grid on;
-plot(1:N,rad2deg(eul_opt(:,1)),'b--','LineWidth',1.7);
-plot(1:N,rad2deg(eul_alg(:,1)),'b-','LineWidth',1.7);
-plot(1:N,rad2deg(eul_opt(:,2)),'g--','LineWidth',1.7);
-plot(1:N,rad2deg(eul_alg(:,2)),'g-','LineWidth',1.7);
-plot(1:N,rad2deg(eul_opt(:,3)),'m--','LineWidth',1.7);
-plot(1:N,rad2deg(eul_alg(:,3)),'m-','LineWidth',1.7);
+plot(selectedFrames, rad2deg(eul_opt(:,1)),'b--','LineWidth',1.7);
+plot(selectedFrames, rad2deg(eul_alg(:,1)),'b-','LineWidth',1.7);
+plot(selectedFrames, rad2deg(eul_opt(:,2)),'g--','LineWidth',1.7);
+plot(selectedFrames, rad2deg(eul_alg(:,2)),'g-','LineWidth',1.7);
+plot(selectedFrames, rad2deg(eul_opt(:,3)),'m--','LineWidth',1.7);
+plot(selectedFrames, rad2deg(eul_alg(:,3)),'m-','LineWidth',1.7);
 set(gca, 'FontSize', 14);
 xlabel('Frame','FontSize',16); ylabel('Angle (deg)','FontSize',16);
 legend({'GT Roll','Est Roll','GT Pitch','Est Pitch','GT Yaw','Est Yaw'},'Location','best');
@@ -234,22 +248,26 @@ hold off;
 print(gcf, fullfile(saveFolder, ...
     [bagBase '_' jsonBase '_' dataTypeTag '_OrientationComparison.png']), '-dpng','-r300');
 
-%% (11) Error computation
+%% (11) Error computation for selected frames
 pos_error = matched_t_opt - t_tgt_in_cam_alg;
-eul_error = eul_opt - eul_alg;
+eul_error = eul_all - eul_alg_all;
 deg_error = rad2deg(eul_error);
+
+% Restrict errors to selected frames
+pos_error_plot = pos_error(selectedFrames,:);
+deg_error_plot = deg_error(selectedFrames,:);
 
 figure('Name','Position Error','NumberTitle','off');
 subplot(3,1,1); hold on; grid on;
-plot(1:N, pos_error(:,1),'r-','LineWidth',1.5);
+plot(selectedFrames, pos_error_plot(:,1),'r-','LineWidth',1.5);
 xlabel('Frame'); ylabel('Err X (m)');
 title('Position Error in X');
 subplot(3,1,2); hold on; grid on;
-plot(1:N, pos_error(:,2),'g-','LineWidth',1.5);
+plot(selectedFrames, pos_error_plot(:,2),'g-','LineWidth',1.5);
 xlabel('Frame'); ylabel('Err Y (m)');
 title('Position Error in Y');
 subplot(3,1,3); hold on; grid on;
-plot(1:N, pos_error(:,3),'b-','LineWidth',1.5);
+plot(selectedFrames, pos_error_plot(:,3),'b-','LineWidth',1.5);
 xlabel('Frame'); ylabel('Err Z (m)');
 title('Position Error in Z');
 print(gcf, fullfile(saveFolder, ...
@@ -257,21 +275,21 @@ print(gcf, fullfile(saveFolder, ...
 
 figure('Name','Orientation Error','NumberTitle','off');
 subplot(3,1,1); hold on; grid on;
-plot(1:N, deg_error(:,1),'r-','LineWidth',1.5);
+plot(selectedFrames, deg_error_plot(:,1),'r-','LineWidth',1.5);
 xlabel('Frame'); ylabel('Roll Err (deg)');
 title('Orientation Error in Roll');
 subplot(3,1,2); hold on; grid on;
-plot(1:N, deg_error(:,2),'g-','LineWidth',1.5);
+plot(selectedFrames, deg_error_plot(:,2),'g-','LineWidth',1.5);
 xlabel('Frame'); ylabel('Pitch Err (deg)');
 title('Orientation Error in Pitch');
 subplot(3,1,3); hold on; grid on;
-plot(1:N, deg_error(:,3),'b-','LineWidth',1.5);
+plot(selectedFrames, deg_error_plot(:,3),'b-','LineWidth',1.5);
 xlabel('Frame'); ylabel('Yaw Err (deg)');
 title('Orientation Error in Yaw');
 print(gcf, fullfile(saveFolder, ...
     [bagBase '_' jsonBase '_' dataTypeTag '_OrientationError.png']), '-dpng','-r300');
 
-%% (12) (Optional) Distance comparison if desired
+%% (12) (Optional) Distance comparison if desired for selected frames
 %{
 gt_distances  = vecnorm(matched_t_opt, 2, 2);
 est_distances = vecnorm(t_tgt_in_cam_alg, 2, 2);
@@ -279,9 +297,9 @@ distance_error = abs(gt_distances - est_distances);
 
 figure('Name', 'Distance Comparison', 'NumberTitle', 'off');
 hold on; grid on;
-plot(1:N_json, gt_distances, 'b--', 'LineWidth', 1.5);
-plot(1:N_json, est_distances, 'r-', 'LineWidth', 1.5);
-plot(1:N_json, distance_error, 'k-.', 'LineWidth', 1.5);
+plot(selectedFrames, gt_distances(selectedFrames), 'b--', 'LineWidth', 1.5);
+plot(selectedFrames, est_distances(selectedFrames), 'r-', 'LineWidth', 1.5);
+plot(selectedFrames, distance_error(selectedFrames), 'k-.', 'LineWidth', 1.5);
 xlabel('Frame');
 ylabel('Distance (m)');
 title('Distance Comparison (GT vs. Algorithm)');

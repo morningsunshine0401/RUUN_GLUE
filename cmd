@@ -263,4 +263,54 @@ python3 main_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Ancho
 
 python3 main_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --image_dir assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test4/ --csv_file assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test4/image_index.csv --save_pose 20250212_test4_adaptive2.json 
 
+# 20250217 Kalman filter analysis with steady
 
+
+python3 main_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --save_pose 20250217_20250203_test2_steady.json --image_dir assets/Ruun_images/ICUAS/20250203/extracted_images_20250203_test2/ --csv_file assets/Ruun_images/ICUAS/2025203/extracted_images_20250203_test2/image_index.csv --output_dir dump_match_pairs/20250217/
+
+python3 main_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --image_dir assets/Ruun_images/ICUAS/20250203/extracted_images_20250203_test2/ --csv_file assets/Ruun_images/ICUAS/20250203/extracted_images_20250203_test2/image_index.csv --save_pose 20250217_20250203_test2_steady_measurementNoiseCov_increase_processNoise_decrease.json --no_display
+
+python3 main_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --image_dir assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test4/ --csv_file assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test4/image_index.csv --no_display --save_pose 20250217_20250128_test4_kalmanfilter_tuning.json 
+
+
+# 20250218 4 cases for choosing the KF update logic
+
+python3 main_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --image_dir assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test4/ --csv_file assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test4/image_index.csv --save_pose 20250218_20250128_test4_4cases.json --output_dir dump_match_pairs/20250218/
+
+
+python3 main_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --image_dir assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test4/ --csv_file assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test4/image_index.csv --no_display --save_pose 20250218_20250128_test4_4cases.json 
+
+python3 main_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --image_dir assets/Ruun_images/ICUAS/20250203/extracted_images_20250203_test2/ --csv_file assets/Ruun_images/ICUAS/20250203/extracted_images_20250203_test2/image_index.csv --save_pose 20250218_20250203_test2_steady_zero.json --no_display
+
+
+# 20250219 matching quality and RANSAC tuning
+
+python3 main_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --image_dir assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test4/ --csv_file assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test4/image_index.csv --save_pose 20250219_20250128_test4_matching.json --output_dir dump_match_pairs/20250219/
+
+python3 main_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --image_dir assets/Ruun_images/ICUAS/20250203/extracted_images_20250203_test2/ --csv_file assets/Ruun_images/ICUAS/20250203/extracted_images_20250203_test2/image_index.csv --save_pose 20250219_20250203_test2_steady.json --no_display
+
+
+# 20250224 Quaternion test 1
+
+python3 main_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --image_dir assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test4/ --csv_file assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test4/image_index.csv --save_pose 20250219_20250128_test4_Q.json
+
+
+# 20250304 
+
+python3 main_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --image_dir assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test4/ --csv_file assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test4/image_index.csv --save_pose 20250304_20250128_test4_Q.json
+
+python3 main_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --image_dir assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test4/ --csv_file assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test4/image_index.csv --save_pose 20250304_20250128_test4_pixel.json
+
+
+# 20250305 Tested with Blender to checck for calibration effectiveness
+
+python3 RuunPose-3D-viewpoint-blender.py --input assets/Ruun_images/viewpoint/test/rotated/ --ground_truth assets/Ruun_images/viewpoint/test/rotated/viewpoint_GT_rotate.json --resize 1280 960 --superglue outdoor --show_keypoints --viewpoint_model_path viewpoint_model_more_data.pth --output_dir dump_match_pairs/match_output/viewpoint/result/rotate/ --show_keypoints
+
+python3 main_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 960 --image_dir --input assets/Ruun_images/viewpoint/test/rotated/ --csv_file assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test4/image_index.csv --save_pose 20250304_20250128_test4_pixel_blender.json
+
+python3 main_sync_blender.py --anchor assets/Ruun_images/viewpoint/anchor/70.png --resize 1280 960 --image_dir assets/Ruun_images/viewpoint/Blender/20250305/ --save_pose 20250305_pixel_blender.json --ground_truth assets/Ruun_images/viewpoint/Blender/20250305/viewpoint_GT_rotate.json 
+
+
+# 20250306
+
+python3 main_track.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --image_dir assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test4/ --csv_file assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test4/image_index.csv --save_pose 20250304_20250128_test4_pixel.json

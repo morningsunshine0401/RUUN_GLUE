@@ -448,7 +448,7 @@ if __name__ == '__main__':
     # Load ground truth poses
     gt_poses = load_ground_truth_poses(opt.ground_truth)
 
-    # Read a sequence of images from the input directory
+    # Read a sequence of images from the input directory 
     input_images = sorted(list(Path(opt.input).glob('*.png')))
     assert len(input_images) > 0, f'No images found in the directory {opt.input}'
 
