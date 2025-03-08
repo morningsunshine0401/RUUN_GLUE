@@ -13,7 +13,13 @@ import csv
 
 # Import the improved tracking-based pose estimator
 # (Assuming you save the improved implementation in this file)
-from pose_estimator_track import PoseEstimatorWithTracking
+
+
+#from pose_estimator_track import PoseEstimatorWithTracking
+
+from pose_estimator_track_SP import PoseEstimatorWithTracking
+
+
 from utils import create_unique_filename
 from models.utils import AverageTimer
 
@@ -80,10 +86,10 @@ if __name__ == '__main__':
         '--save_pose', type=str, default='pose_estimation_improved_tracking.json',
         help='Path to save JSON pose estimation results')
     parser.add_argument(
-        '--min_tracked_points', type=int, default=5,
+        '--min_tracked_points', type=int, default=4,#5,
         help='Minimum number of tracked points before reinitializing')
     parser.add_argument(
-        '--max_tracking_error', type=float, default=5.0,
+        '--max_tracking_error', type=float, default=8,#5.0,
         help='Maximum allowed optical flow error')
     parser.add_argument(
         '--anchor_switch_frames', type=str, default="133",

@@ -12,6 +12,7 @@ from kalman_filter import KalmanFilterPose
 import matplotlib.cm as cm
 from models.utils import make_matching_plot_fast
 
+
 class PoseEstimator:
     def __init__(self, opt, device):
         self.opt = opt

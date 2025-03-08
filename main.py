@@ -13,6 +13,8 @@ from models.utils import AverageTimer
 import json
 import os
 
+import time
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='SuperGlue Pose Estimation',
@@ -119,6 +121,9 @@ if __name__ == '__main__':
     timer = AverageTimer()
     frame_idx = 0
 
+    # Start the timer
+    overall_start_time = time.time()
+
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret or frame is None:
@@ -126,7 +131,7 @@ if __name__ == '__main__':
             break
         frame_idx += 1
         print('Frame shape:', frame.shape)
-        timer.update('data')
+        timer.update('data')  # Keep using timer for step-level timing
 
         pose_data, visualization = pose_estimator.process_frame(frame, frame_idx)
 
@@ -143,12 +148,24 @@ if __name__ == '__main__':
             out_file = str(Path(opt.output_dir, f'frame_{frame_idx:06d}.png'))
             cv2.imwrite(out_file, visualization)
 
-        timer.update('viz')
-        timer.print()
+        timer.update('viz')  # Step-level timing
+        timer.print()  # Optional: Print step-level timing
+
+    # End the timer
+    overall_end_time = time.time()
 
     cap.release()
     cv2.destroyAllWindows()
 
+    # Calculate and print average FPS
+    total_time = overall_end_time - overall_start_time
+    if frame_idx > 0 and total_time > 0:
+        fps = frame_idx / total_time
+        print(f'Processed {frame_idx} frames in {total_time:.2f} seconds (Average FPS: {fps:.2f})')
+    else:
+        print('No frames were processed or invalid total time.')
+
+    # Save pose estimation results
     with open(opt.save_pose, 'w') as f:
         json.dump(all_poses, f, indent=4)
     print(f'Pose estimation saved to {opt.save_pose}')

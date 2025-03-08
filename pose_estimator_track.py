@@ -52,8 +52,8 @@ class PoseEstimatorWithTracking:
         self.next_track_id = 0  # Counter for assigning track IDs
         
         # Tracking parameters
-        self.min_tracked_points = opt.min_tracked_points if hasattr(opt, 'min_tracked_points') else 7
-        self.max_tracking_error = opt.max_tracking_error if hasattr(opt, 'max_tracking_error') else 5.0
+        self.min_tracked_points = opt.min_tracked_points if hasattr(opt, 'min_tracked_points') else 4#7
+        self.max_tracking_error = opt.max_tracking_error if hasattr(opt, 'max_tracking_error') else 8#5.0
         self.min_track_len = 2  # Minimum track length to consider for pose estimation
         
         # LK Parameters for optical flow
@@ -257,7 +257,12 @@ class PoseEstimatorWithTracking:
             self.prev_frame = frame_gray.copy()
             
             return pose_data, visualization
-        
+        #################################################################################################
+        else:
+            if frame_idx % 15 == 0:
+                logger.info(f"Reinforcing tracking for frame {frame_idx}")
+                self._reinforce_tracking(frame, frame_idx)
+        ############################################################################################################
         # If we're here, we're in tracking mode - try to track features
         pose_data, visualization = self._track_features(frame, frame_gray, frame_idx)
         
@@ -340,56 +345,144 @@ class PoseEstimatorWithTracking:
         
         return pose_data, visualization
 
-    def _track_features(self, frame, frame_gray, frame_idx):
-        """
-        Track features from previous frame to current frame using optical flow
-        and maintain track history
-        """
-        logger.info(f"Tracking features for frame {frame_idx}")
+    ## This one uused optical flow for tracking
+    # def _track_features(self, frame, frame_gray, frame_idx):
+    #     """
+    #     Track features from previous frame to current frame using optical flow
+    #     and maintain track history
+    #     """
+    #     logger.info(f"Tracking features for frame {frame_idx}")
         
-        if self.prev_frame is None or self.active_keypoints is None or len(self.active_keypoints) == 0:
-            logger.warning("Cannot track: No previous frame or active keypoints")
+    #     if self.prev_frame is None or self.active_keypoints is None or len(self.active_keypoints) == 0:
+    #         logger.warning("Cannot track: No previous frame or active keypoints")
+    #         return None, frame
+        
+    #     # Convert active keypoints to proper format for tracking
+    #     prev_pts = self.active_keypoints.reshape(-1, 1, 2).astype(np.float32)
+        
+    #     # Calculate optical flow
+    #     curr_pts, status, err = cv2.calcOpticalFlowPyrLK(
+    #         self.prev_frame, frame_gray, prev_pts, None, **self.lk_params
+    #     )
+        
+    #     # Filter out points that couldn't be tracked
+    #     status = status.flatten().astype(bool)
+    #     err = err.flatten()
+        
+    #     # Additional filtering: remove points with high error
+    #     valid_mask = status & (err < self.max_tracking_error)
+        
+    #     # Update track histories
+    #     tracked_keypoints = []
+    #     tracked_3D_points = []
+    #     updated_tracks = []
+    #     updated_track_ages = []
+    #     updated_track_ids = []
+        
+    #     for i, valid in enumerate(valid_mask):
+    #         if valid:
+    #             # Add current point to the track
+    #             curr_pt = curr_pts[i, 0]
+    #             tracked_keypoints.append(curr_pt)
+    #             tracked_3D_points.append(self.active_3D_points[i])
+                
+    #             # Update track history
+    #             if len(self.tracks[i]) >= self.max_track_length:
+    #                 # Remove oldest point to maintain max length
+    #                 track_history = self.tracks[i][1:] + [curr_pt]
+    #             else:
+    #                 track_history = self.tracks[i] + [curr_pt]
+                
+    #             updated_tracks.append(track_history)
+    #             updated_track_ages.append(self.track_ages[i] + 1)
+    #             updated_track_ids.append(self.track_ids[i])
+        
+    #     # Update tracking state
+    #     if len(tracked_keypoints) < self.min_tracked_points:
+    #         logger.warning(f"Too few tracked points ({len(tracked_keypoints)}), need re-initialization")
+    #         self.tracking_initialized = False
+    #         return None, frame
+        
+    #     # Update tracking state variables
+    #     self.active_keypoints = np.array(tracked_keypoints)
+    #     self.active_3D_points = np.array(tracked_3D_points)
+    #     self.tracks = updated_tracks
+    #     self.track_ages = updated_track_ages
+    #     self.track_ids = updated_track_ids
+        
+    #     logger.info(f"Successfully tracked {len(tracked_keypoints)}/{len(self.tracks)} points")
+        
+    #     # For visualization and PnP, create necessary arrays
+    #     dummy_mkpts0 = np.zeros_like(self.active_keypoints)  # We don't have actual anchor correspondences here
+    #     dummy_mconf = np.ones(len(self.active_keypoints))  # Set all confidences to 1.0
+        
+    #     # Estimate pose using the tracked keypoints
+    #     pose_data, visualization = self.estimate_pose_from_tracked(
+    #         self.active_keypoints, self.active_3D_points, dummy_mconf, frame, frame_idx, 
+    #         np.array(self.track_ages)
+    #     )
+        
+    #     return pose_data, visualization
+
+    def _track_features(self, frame, frame_gray,frame_idx):
+        """
+        Track features using descriptor matching instead of optical flow
+        """
+        logger.info(f"Tracking features using descriptors for frame {frame_idx}")
+        
+        if self.active_keypoints is None or len(self.active_keypoints) == 0:
+            logger.warning("Cannot track: No active keypoints")
             return None, frame
         
-        # Convert active keypoints to proper format for tracking
-        prev_pts = self.active_keypoints.reshape(-1, 1, 2).astype(np.float32)
+        # Extract SuperPoint features for current frame
+        frame_proc = SuperPointPreprocessor.preprocess(frame)
+        frame_proc = frame_proc[None].astype(np.float32)
         
-        # Calculate optical flow
-        curr_pts, status, err = cv2.calcOpticalFlowPyrLK(
-            self.prev_frame, frame_gray, prev_pts, None, **self.lk_params
-        )
+        # Run SuperPoint on the current frame
+        batch = np.concatenate([frame_proc, frame_proc], axis=0)
+        keypoints, _, mscores = self.session.run(None, {"images": batch})
         
-        # Filter out points that couldn't be tracked
-        status = status.flatten().astype(bool)
-        err = err.flatten()
+        frame_keypoints = keypoints[0]  # N x 2
         
-        # Additional filtering: remove points with high error
-        valid_mask = status & (err < self.max_tracking_error)
+        # Create batches for descriptor matching
+        frame_proc_1 = frame_proc.copy()
+        batch = np.concatenate([frame_proc, frame_proc_1], axis=0)
+        keypoints, matches, mscores = self.session.run(None, {"images": batch})
         
-        # Update track histories
+        # Match descriptors between previous points and current frame
         tracked_keypoints = []
         tracked_3D_points = []
         updated_tracks = []
         updated_track_ages = []
         updated_track_ids = []
         
-        for i, valid in enumerate(valid_mask):
-            if valid:
-                # Add current point to the track
-                curr_pt = curr_pts[i, 0]
-                tracked_keypoints.append(curr_pt)
-                tracked_3D_points.append(self.active_3D_points[i])
+        # Use KDTree for efficient nearest neighbor search
+        if len(frame_keypoints) > 0:
+            curr_tree = cKDTree(frame_keypoints)
+            
+            # For each active keypoint, find the closest matching keypoint in current frame
+            for i, (prev_pt, prev_3d) in enumerate(zip(self.active_keypoints, self.active_3D_points)):
+                # Find nearest keypoint in current frame
+                distances, indices = curr_tree.query(prev_pt, k=1)
                 
-                # Update track history
-                if len(self.tracks[i]) >= self.max_track_length:
-                    # Remove oldest point to maintain max length
-                    track_history = self.tracks[i][1:] + [curr_pt]
-                else:
-                    track_history = self.tracks[i] + [curr_pt]
-                
-                updated_tracks.append(track_history)
-                updated_track_ages.append(self.track_ages[i] + 1)
-                updated_track_ids.append(self.track_ids[i])
+                # If close enough, consider it a match
+                if distances < 15.0:  # Distance threshold in pixels
+                    closest_idx = indices
+                    curr_pt = frame_keypoints[closest_idx]
+                    
+                    tracked_keypoints.append(curr_pt)
+                    tracked_3D_points.append(prev_3d)
+                    
+                    # Update track history
+                    if len(self.tracks[i]) >= self.max_track_length:
+                        # Remove oldest point to maintain max length
+                        track_history = self.tracks[i][1:] + [curr_pt]
+                    else:
+                        track_history = self.tracks[i] + [curr_pt]
+                    
+                    updated_tracks.append(track_history)
+                    updated_track_ages.append(self.track_ages[i] + 1)
+                    updated_track_ids.append(self.track_ids[i])
         
         # Update tracking state
         if len(tracked_keypoints) < self.min_tracked_points:
@@ -404,15 +497,15 @@ class PoseEstimatorWithTracking:
         self.track_ages = updated_track_ages
         self.track_ids = updated_track_ids
         
-        logger.info(f"Successfully tracked {len(tracked_keypoints)}/{len(self.tracks)} points")
+        logger.info(f"Successfully tracked {len(tracked_keypoints)} points using descriptors")
         
-        # For visualization and PnP, create necessary arrays
-        dummy_mkpts0 = np.zeros_like(self.active_keypoints)  # We don't have actual anchor correspondences here
-        dummy_mconf = np.ones(len(self.active_keypoints))  # Set all confidences to 1.0
+        # For PnP, create necessary arrays
+        dummy_mkpts0 = np.zeros_like(self.active_keypoints)
+        dummy_mconf = np.ones(len(self.active_keypoints))
         
         # Estimate pose using the tracked keypoints
         pose_data, visualization = self.estimate_pose_from_tracked(
-            self.active_keypoints, self.active_3D_points, dummy_mconf, frame, frame_idx, 
+            self.active_keypoints, self.active_3D_points, dummy_mconf, frame, frame_idx,
             np.array(self.track_ages)
         )
         
@@ -641,11 +734,11 @@ class PoseEstimatorWithTracking:
         max_translation_jump = 2.0
         max_orientation_jump = 20.0  # degrees
         min_inlier = 4
-        coverage_threshold = -1
+        coverage_threshold = -1#0.4#-1
 
         if coverage_score is None:
             logger.info("Coverage score not found, using default...")
-            coverage_score = 0.5
+            coverage_score = 0.5#0#0.5
 
         # 1) Convert measured rotation R -> quaternion
         q_measured = rotation_matrix_to_quaternion(R)
@@ -909,9 +1002,107 @@ class PoseEstimatorWithTracking:
                 0.7, (255, 255, 0), 2, cv2.LINE_AA)
 
         return out
+    
 
+    def _reinforce_tracking(self, frame, frame_idx):
+        """
+        Periodically reinforce tracking with full feature matching 
+        without resetting current tracks
+        """
+        # Process with SuperPoint + LightGlue (similar to _initialize_tracking)
+        anchor_proc = self.anchor_proc
+        frame_proc = SuperPointPreprocessor.preprocess(frame)
+        frame_proc = frame_proc[None].astype(np.float32)
+        
+        batch = np.concatenate([anchor_proc, frame_proc], axis=0).astype(np.float32)
+        keypoints, matches, mscores = self.session.run(None, {"images": batch})
+        
+        # Process matches similar to _initialize_tracking
+        valid_mask = (matches[:, 0] == 0)
+        valid_matches = matches[valid_mask]
+        
+        mkpts0 = keypoints[0][valid_matches[:, 1]]
+        mkpts1 = keypoints[1][valid_matches[:, 2]]
+        mconf = mscores[valid_mask]
+        anchor_indices = valid_matches[:, 1]
+        
+        # Filter to known anchor indices
+        known_mask = np.isin(anchor_indices, self.matched_anchor_indices)
+        mkpts0 = mkpts0[known_mask]
+        mkpts1 = mkpts1[known_mask]
+        mconf = mconf[known_mask]
+        
+        # Map to 3D points
+        idx_map = {idx: i for i, idx in enumerate(self.matched_anchor_indices)}
+        mpts3D = np.array([self.matched_3D_keypoints[idx_map[aidx]] 
+                        for aidx in anchor_indices[known_mask]])
+        
+        # Merge with existing tracks
+        # Use a KD tree to find correspondences
+        if len(self.active_keypoints) > 0 and len(mkpts1) > 0:
+            tree = cKDTree(self.active_keypoints)
+            distances, indices = tree.query(mkpts1, k=1)
+            
+            # For points that match existing tracks, update the tracks
+            for i, (dist, idx) in enumerate(zip(distances, indices)):
+                if dist < 10.0:  # Close enough to be the same point
+                    # Update the track
+                    self.active_keypoints[idx] = mkpts1[i]
+                    # Don't change the 3D point - keep consistency
+            
+            # For new points that don't match existing tracks, add them
+            new_mask = distances > 10.0
+            if np.any(new_mask):
+                new_mkpts1 = mkpts1[new_mask]
+                new_mpts3D = mpts3D[new_mask]
+                
+                # Add new points to tracking
+                self.active_keypoints = np.vstack((self.active_keypoints, new_mkpts1))
+                self.active_3D_points = np.vstack((self.active_3D_points, new_mpts3D))
+                
+                # Add new tracks
+                for pt in new_mkpts1:
+                    self.tracks.append([pt])
+                    self.track_ages.append(1)
+                    self.track_ids.append(self.next_track_id)
+                    self.next_track_id += 1
+        
+        return True
 
-#######################################################3
+##############################################################################################################################################################
+
+# [Input Video/Image Sequence] → [main_track.py]
+#   │
+#   ↓
+# [PoseEstimatorWithTracking]
+#   │
+#   ├─→ [Initialization Mode] ───┐
+#   │   │                        │
+#   │   ↓                        │
+#   │   [SuperPoint + LightGlue] │
+#   │   │                        │
+#   │   ↓                        │
+#   │   [2D-3D Correspondences]  │
+#   │                            │
+#   ├─→ [Tracking Mode] ─────────┤
+#   │   │                        │
+#   │   ↓                        │
+#   │   [Optical Flow Tracking]  │
+#   │                            │
+#   ├─→ [Pose Estimation] ───────┤
+#   │   │                        │
+#   │   ↓                        │
+#   │   [SolvePnP + Refinement]  │
+#   │                            │
+#   ├─→ [Kalman Filter] ─────────┘
+#   │   │
+#   │   ↓
+#   │   [Smooth Pose]
+#   │
+#   ↓
+# [Visualization & Data Output]
+
+###############################################################################################################################################################
 
 # import cv2
 # import torch
