@@ -177,7 +177,7 @@ if __name__ == '__main__':
     overall_start_time = time.time()
     
     # Handle anchor reinitialization
-    anchor_switch_frame = 133#444  # Frame at which to switch anchor
+    anchor_switch_frame = 444#133#444  # Frame at which to switch anchor
     new_anchor_initialized = False
     
     # Main processing loop

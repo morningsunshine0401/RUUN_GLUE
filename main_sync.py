@@ -27,11 +27,12 @@ import cv2
 
 
 ### Quaternion 1
-from pose_estimator_Q import PoseEstimator
+#from pose_estimator_Q import PoseEstimator
 
 
 ### Quaternion 2 with pixels as measurements
 #from pose_estimator_Pixel import PoseEstimator
+
 
 ### Quaternion 2 with pixels as measurements
 #from pose_estimator_Pixel_blender import PoseEstimator
@@ -39,6 +40,11 @@ from pose_estimator_Q import PoseEstimator
 
 ### Tracking 20250306
 #from pose_estimator_track import PoseEstimator
+
+
+
+### Quaternion + two models 20250308
+from pose_estimator_Q_separate import PoseEstimator
 
 
 
@@ -182,7 +188,7 @@ if __name__ == '__main__':
         # ---------------------------------------------------------
         # EXAMPLE: Switch anchor after frame 520 (Adjust as needed)
         # ---------------------------------------------------------
-        if frame_idx == 444:#133:#100:##133:#120:#55:#144:#60:#144:#135:#144:#152:#3000:#133:#112:
+        if frame_idx == 133:#444:#133:#100:##133:#120:#55:#144:#60:#144:#135:#144:#152:#3000:#133:#112:
             logger.info("Switching to a new anchor after frame 520...")
             new_anchor_path = "Anchor_B.png"
             #new_anchor_path = "assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png"

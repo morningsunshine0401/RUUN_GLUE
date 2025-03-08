@@ -207,9 +207,9 @@ class PoseEstimator:
         objectPoints = mpts3D.reshape(-1, 1, 3)
         imagePoints = mkpts1.reshape(-1, 1, 2)
 
-        print("objectPoints:\n",objectPoints)
-        print("imagePoints dtype:\n", imagePoints.dtype)
-        print("imagegPoints:\n",imagePoints)
+        #print("objectPoints:\n",objectPoints)
+        #print("imagePoints dtype:\n", imagePoints.dtype)
+        #print("imagegPoints:\n",imagePoints)
        
 
 
@@ -219,8 +219,8 @@ class PoseEstimator:
             imagePoints=imagePoints,
             cameraMatrix=K,
             distCoeffs=distCoeffs,
-            reprojectionError=5,
-            confidence=0.9,
+            reprojectionError=8,
+            confidence=0.99,
             iterationsCount=1500,
             flags=cv2.SOLVEPNP_P3P
         )
