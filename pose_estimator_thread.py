@@ -51,7 +51,7 @@ class PoseEstimator:
         logger.info(f"Loaded and resized anchor image from {opt.anchor}")
 
         # Initialize SuperPoint and LightGlue models
-        self.extractor = SuperPoint(max_num_keypoints=2048).eval().to(device)
+        self.extractor = SuperPoint(max_num_keypoints=512).eval().to(device)
         self.matcher = LightGlue(features="superpoint").eval().to(device)
         logger.info("Initialized SuperPoint and LightGlue models")
 
@@ -179,20 +179,33 @@ class PoseEstimator:
             new_anchor_image = self._resize_image(new_anchor_image, self.opt.resize)
             logger.info(f"Resized anchor image to {new_anchor_image.shape}")
 
-            # 3. Update anchor image
-            with self.session_lock:
+            # 3. Update anchor image (with lock)
+            lock_acquired = self.session_lock.acquire(timeout=5.0)
+            if not lock_acquired:
+                logger.error("Could not acquire session lock to update anchor image (timeout)")
+                raise TimeoutError("Lock acquisition timed out during anchor update")
+                
+            try:
                 self.anchor_image = new_anchor_image
                 logger.info("Anchor image updated")
+            finally:
+                self.session_lock.release()
 
-                # 4. Recompute anchor features with the new image and 2D/3D
-                logger.info(f"Setting anchor features with {len(new_2d_points)} 2D points and {len(new_3d_points)} 3D points")
-                self._set_anchor_features(
-                    anchor_bgr_image=new_anchor_image,
-                    anchor_keypoints_2D=new_2d_points,
-                    anchor_keypoints_3D=new_3d_points
-                )
+            # 4. Recompute anchor features with the new image and 2D/3D
+            logger.info(f"Setting anchor features with {len(new_2d_points)} 2D points and {len(new_3d_points)} 3D points")
+            success = self._set_anchor_features(
+                anchor_bgr_image=new_anchor_image,
+                anchor_keypoints_2D=new_2d_points,
+                anchor_keypoints_3D=new_3d_points
+            )
+            
+            if not success:
+                logger.error("Failed to set anchor features")
+                raise RuntimeError("Failed to set anchor features")
 
             logger.info("Anchor re-initialization complete.")
+            return True
+            
         except Exception as e:
             logger.error(f"Error during anchor reinitialization: {e}")
             import traceback
@@ -215,11 +228,17 @@ class PoseEstimator:
         Then match those keypoints to known 2D->3D correspondences via KDTree.
         """
         try:
-            with self.session_lock:
-                # Record the start time
-                start_time = time.time()
-                logger.info("Starting anchor feature extraction...")
-                
+            # Record the start time
+            start_time = time.time()
+            logger.info("Starting anchor feature extraction...")
+            
+            # Try to acquire the lock with a timeout
+            lock_acquired = self.session_lock.acquire(timeout=10.0)  # 10 second timeout
+            if not lock_acquired:
+                logger.error("Could not acquire session lock for anchor feature extraction (timeout)")
+                return False
+            
+            try:
                 # Precompute anchor's SuperPoint descriptors with gradients disabled
                 logger.info("Processing anchor image...")
                 with torch.no_grad():
@@ -233,7 +252,7 @@ class PoseEstimator:
                 
                 if len(self.anchor_keypoints_sp) == 0:
                     logger.error("No keypoints detected in anchor image!")
-                    return
+                    return False
                 
                 # Print shape and sample of keypoints for debugging
                 logger.info(f"Anchor keypoints shape: {self.anchor_keypoints_sp.shape}")
@@ -252,23 +271,37 @@ class PoseEstimator:
                 # Check if we have any valid matches
                 if not np.any(valid_matches):
                     logger.error("No valid matches found between anchor keypoints and 2D points!")
-                    return
+                    return False
                 
                 self.matched_anchor_indices = indices[valid_matches]
                 self.matched_3D_keypoints = anchor_keypoints_3D[valid_matches]
                 
                 logger.info(f"Matched {len(self.matched_anchor_indices)} keypoints to 3D points")
                 logger.info(f"Anchor feature extraction completed in {time.time() - start_time:.3f}s")
+                
+                return True
+                
+            finally:
+                # Always release the lock in the finally block to ensure it gets released
+                # even if an exception occurs
+                self.session_lock.release()
+                logger.debug("Released session lock after anchor feature extraction")
+                
         except Exception as e:
             logger.error(f"Error during anchor feature extraction: {e}")
             import traceback
             logger.error(traceback.format_exc())
-            raise
-        except Exception as e:
-            logger.error(f"Error during anchor feature extraction: {e}")
-            import traceback
-            logger.error(traceback.format_exc())
-            raise
+            
+            # Make sure lock is released if we acquired it and an exception occurred
+            # outside the 'with' block
+            try:
+                if hasattr(self.session_lock, '_is_owned') and self.session_lock._is_owned():
+                    self.session_lock.release()
+                    logger.debug("Released session lock after exception")
+            except Exception as release_error:
+                logger.error(f"Error releasing lock: {release_error}")
+            
+            return False
 
     def _resize_image(self, image, resize):
         logger.debug("Resizing image")

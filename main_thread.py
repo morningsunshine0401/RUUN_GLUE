@@ -177,7 +177,7 @@ if __name__ == '__main__':
     overall_start_time = time.time()
     
     # Handle anchor reinitialization
-    anchor_switch_frame = 444#133#444  # Frame at which to switch anchor
+    anchor_switch_frame = 133#444  # Frame at which to switch anchor
     new_anchor_initialized = False
     
     # Main processing loop
@@ -279,32 +279,42 @@ if __name__ == '__main__':
                     [ 0.243, -0.104,  0.000]
                 ], dtype=np.float32)
 
-                pose_estimator.reinitialize_anchor(
-                    new_anchor_path,
-                    new_2d_points,
-                    new_3d_points
-                )
+                success = pose_estimator.reinitialize_anchor(
+                            new_anchor_path,
+                            new_2d_points,
+                            new_3d_points
+                        )
                 
-                # Wait for confirmation that reinitialization is complete
-                try:
-                    logger.info("Waiting for anchor reinitialization to complete...")
-                    reinit_result = pose_estimator.result_queue.get(timeout=30.0)  # Increased timeout to 30 seconds
-                    
-                    if reinit_result[0] == 'reinit_complete':
-                        logger.info("Anchor reinitialization completed successfully")
-                        new_anchor_initialized = True
-                    else:
-                        logger.error("Anchor reinitialization did not complete correctly")
-                        logger.error(f"Reinit result: {reinit_result}")
-                except queue.Empty:
-                    logger.error("Timeout waiting for anchor reinitialization")
-                    
-                # Mark this task as done since we've handled the special case
-                frame_queue.task_done()
+                if success:
+                    logger.info("Anchor reinitialization completed successfully")
+                    new_anchor_initialized = True
+                else:
+                    logger.error("Anchor reinitialization failed - continuing with old anchor")
                 
                 # Skip to the next frame after reinitializing
                 logger.info("Skipping to next frame after anchor reinitialization")
                 continue
+                            
+                # # Wait for confirmation that reinitialization is complete
+                # try:
+                #     logger.info("Waiting for anchor reinitialization to complete...")
+                #     reinit_result = pose_estimator.result_queue.get(timeout=30.0)  # Increased timeout to 30 seconds
+                    
+                #     if reinit_result[0] == 'reinit_complete':
+                #         logger.info("Anchor reinitialization completed successfully")
+                #         new_anchor_initialized = True
+                #     else:
+                #         logger.error("Anchor reinitialization did not complete correctly")
+                #         logger.error(f"Reinit result: {reinit_result}")
+                # except queue.Empty:
+                #     logger.error("Timeout waiting for anchor reinitialization")
+                    
+                # # Mark this task as done since we've handled the special case
+                # frame_queue.task_done()
+                
+                # # Skip to the next frame after reinitializing
+                # logger.info("Skipping to next frame after anchor reinitialization")
+                # continue
             
             # Process frame
             pose_estimator.process_frame(frame, frame_idx, frame_t, img_name)

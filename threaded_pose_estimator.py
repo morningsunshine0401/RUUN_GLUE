@@ -65,51 +65,55 @@ class ThreadedPoseEstimator:
                     try:
                         logger.info("Worker thread: Processing anchor reinitialization")
                         
+                        # Get the completion event from the command
+                        completion_event = item.get('completion_event')
+                        
                         # Check if anchor file exists
                         new_anchor_path = item['new_anchor_path']
                         if not os.path.exists(new_anchor_path):
                             logger.error(f"Anchor image not found in worker: {new_anchor_path}")
+                            if completion_event:
+                                completion_event.set()  # Signal completion (failure)
                             self.result_queue.put(('reinit_failed', None, -3, 0, ""))
                             self.frame_queue.task_done()
                             continue
                         
-                        # Set a timeout for the reinitialization
-                        reinitialization_start = time.time()
-                        reinitialization_timeout = 8.0  # seconds
+                        reinitialization_completed = False
                         
-                        # Perform the reinitialization in a separate thread to detect timeouts
-                        def reinitialization_task():
-                            try:
-                                self.pose_estimator.reinitialize_anchor(
-                                    new_anchor_path,
-                                    item['new_2d_points'],
-                                    item['new_3d_points']
-                                )
-                                return True
-                            except Exception as e:
-                                logger.error(f"Error during anchor reinitialization: {e}")
-                                import traceback
-                                logger.error(traceback.format_exc())
-                                return False
+                        try:
+                            # Perform the reinitialization with a timeout via the lock mechanism
+                            # The lock timeouts in the pose_estimator_thread.py will handle this
+                            success = self.pose_estimator.reinitialize_anchor(
+                                new_anchor_path,
+                                item['new_2d_points'],
+                                item['new_3d_points']
+                            )
+                            
+                            if success:
+                                logger.info("Worker thread: Anchor reinitialization complete")
+                                reinitialization_completed = True
+                                self.result_queue.put(('reinit_complete', None, -2, 0, ""))
+                            else:
+                                logger.error("Worker thread: Anchor reinitialization failed")
+                                self.result_queue.put(('reinit_failed', None, -3, 0, ""))
                         
-                        reinitialization_thread = threading.Thread(target=reinitialization_task)
-                        reinitialization_thread.daemon = True
-                        reinitialization_thread.start()
-                        
-                        # Wait for the reinitialization to complete with timeout
-                        reinitialization_thread.join(timeout=reinitialization_timeout)
-                        
-                        if reinitialization_thread.is_alive():
-                            logger.error(f"Anchor reinitialization timed out after {reinitialization_timeout} seconds")
+                        except Exception as e:
+                            logger.error(f"Error during anchor reinitialization: {e}")
+                            import traceback
+                            logger.error(traceback.format_exc())
+                            # Signal error during reinitialization
                             self.result_queue.put(('reinit_failed', None, -3, 0, ""))
-                        else:
-                            logger.info("Worker thread: Anchor reinitialization complete")
-                            self.result_queue.put(('reinit_complete', None, -2, 0, ""))
+                        
+                        finally:
+                            # Always signal completion regardless of success/failure
+                            if completion_event:
+                                completion_event.set()
                         
                         self.frame_queue.task_done()
                         continue
+                        
                     except Exception as e:
-                        logger.error(f"Error during anchor reinitialization: {e}")
+                        logger.error(f"Error in reinitialization handler: {e}")
                         import traceback
                         logger.error(traceback.format_exc())
                         
@@ -146,36 +150,40 @@ class ThreadedPoseEstimator:
                 # Put None in result queue to indicate error
                 self.result_queue.put((None, None, -1, 0, ""))
                 
-                # Mark task as done
-                self.frame_queue.task_done()
+                # Mark task as done if we were processing a frame
+                try:
+                    self.frame_queue.task_done()
+                except ValueError:  # If queue was empty
+                    pass
     
     def process_frame(self, frame, frame_idx, frame_t, img_name):
         """Add frame to processing queue"""
         self.frame_queue.put((frame, frame_idx, frame_t, img_name))
     
     def reinitialize_anchor(self, new_anchor_path, new_2d_points, new_3d_points):
-        """Queue anchor reinitialization to be handled by worker thread"""
+        """Queue anchor reinitialization to be handled by worker thread and wait for completion"""
         logger.info(f"Queueing anchor reinitialization for {new_anchor_path}")
         
         # Check if the file exists and is readable
         if not os.path.exists(new_anchor_path):
             logger.error(f"Anchor image does not exist: {new_anchor_path}")
-            self.result_queue.put(('reinit_failed', None, -3, 0, ""))
-            return
+            return False
         
         # Try to read the image to verify it's a valid image file
         test_img = cv2.imread(new_anchor_path)
         if test_img is None:
             logger.error(f"Failed to read anchor image: {new_anchor_path}")
-            self.result_queue.put(('reinit_failed', None, -3, 0, ""))
-            return
-            
+            return False
+                
         logger.info(f"Verified anchor image exists and is readable: {new_anchor_path}")
         
-        # Clear any pending items in frame queue 
+        # Create a condition variable to signal completion
+        completion_event = threading.Event()
+        
+        # Clear both queues safely
         with self.frame_queue.mutex:
             self.frame_queue.queue.clear()
-            
+                
         # Clear result queue
         while not self.result_queue.empty():
             try:
@@ -189,13 +197,34 @@ class ThreadedPoseEstimator:
             'command': 'reinit_anchor',
             'new_anchor_path': new_anchor_path,
             'new_2d_points': new_2d_points,
-            'new_3d_points': new_3d_points
+            'new_3d_points': new_3d_points,
+            'completion_event': completion_event  # Pass the event to the worker
         }
         
         # Put the reinit command in the queue with high priority
         self.frame_queue.put(reinit_data)
         
         logger.info("Waiting for anchor reinitialization to complete...")
+        
+        # Wait for the worker to signal completion with timeout
+        success = completion_event.wait(timeout=30.0)  # 30 second timeout
+        
+        if success:
+            logger.info("Anchor reinitialization completed successfully")
+            return True
+        else:
+            logger.error("Anchor reinitialization timed out")
+            
+            # Try to cancel the operation by releasing locks
+            if hasattr(self.pose_estimator, 'session_lock') and hasattr(self.pose_estimator.session_lock, '_owner'):
+                try:
+                    if self.pose_estimator.session_lock._owner:
+                        self.pose_estimator.session_lock.release()
+                        logger.info("Released session lock after timeout")
+                except:
+                    pass
+                    
+            return False
 
     def get_result(self, timeout=5.0):
         """Get a result from the result queue with timeout"""
@@ -221,14 +250,30 @@ class ThreadedPoseEstimator:
         logger.info("Cleaning up ThreadedPoseEstimator")
         self.running = False
         
-        # Put None in queue to signal worker to stop
-        self.frame_queue.put(None)
+        # Force-release any locks
+        if hasattr(self.pose_estimator, 'session_lock') and hasattr(self.pose_estimator.session_lock, '_owner') and self.pose_estimator.session_lock._owner:
+            try:
+                self.pose_estimator.session_lock.release()
+                logger.info("Released session lock during cleanup")
+            except:
+                pass
         
-        # Wait for worker to finish
-        if self.worker_thread:
-            self.worker_thread.join(timeout=5.0)
-            if self.worker_thread.is_alive():
-                logger.warning("Worker thread did not exit cleanly")
+        # Clear all queues to unblock any waiting threads
+        with self.frame_queue.mutex:
+            self.frame_queue.queue.clear()
+        self.frame_queue.put(None)  # Signal worker to exit
+        
+        with self.result_queue.mutex:
+            self.result_queue.queue.clear()
+        
+        # Give worker a chance to exit gracefully
+        if self.worker_thread and self.worker_thread.is_alive():
+            try:
+                self.worker_thread.join(timeout=2.0)
+            except:
+                pass
+        
+        logger.info("Cleanup complete")
 
 ########################################################
 # import threading
