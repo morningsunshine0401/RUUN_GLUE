@@ -7,29 +7,26 @@ import atexit
 import os
 import numpy as np
 import torch
-# Disable gradient computation globally
-torch.set_grad_enabled(False)
-torch.autograd.set_grad_enabled(False)
 
 # Configure logging
 logging.basicConfig(
     level=logging.DEBUG,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler("threaded_pose_estimator.log"),
+        logging.FileHandler("threaded_enhanced_pose_estimator.log"),
         logging.StreamHandler()
     ]
 )
 logger = logging.getLogger(__name__)
 
-class ThreadedPoseEstimator:
-    """Wrapper around PoseEstimator to add threading functionality"""
+class ThreadedEnhancedPoseEstimator:
+    """Wrapper around EnhancedPoseEstimator to add threading functionality"""
     def __init__(self, opt, device):
-        # Import the PoseEstimator class here to avoid circular imports
-        from pose_estimator_thread import PoseEstimator
-        
+        # Import the EnhancedPoseEstimator class
+        from enhanced_pose_estimator import EnhancedPoseEstimator
+
         # Initialize the pose estimator
-        self.pose_estimator = PoseEstimator(opt, device)
+        self.pose_estimator = EnhancedPoseEstimator(opt, device)
         
         # Add threading components
         self.frame_queue = queue.Queue(maxsize=10)
@@ -48,7 +45,7 @@ class ThreadedPoseEstimator:
         self.worker_thread = threading.Thread(target=self._process_frames_worker)
         self.worker_thread.daemon = True
         self.worker_thread.start()
-        logger.info("Started pose estimation worker thread")
+        logger.info("Started enhanced pose estimation worker thread")
     
     def _process_frames_worker(self):
         """Worker function that processes frames from the queue"""
@@ -82,7 +79,6 @@ class ThreadedPoseEstimator:
                         
                         try:
                             # Perform the reinitialization with a timeout via the lock mechanism
-                            # The lock timeouts in the pose_estimator_thread.py will handle this
                             success = self.pose_estimator.reinitialize_anchor(
                                 new_anchor_path,
                                 item['new_2d_points'],
@@ -122,10 +118,10 @@ class ThreadedPoseEstimator:
                         self.frame_queue.task_done()
                         continue
                 
-                # Unpack frame data
+                # Process a regular frame
                 frame, frame_idx, frame_t, img_name = item
                 
-                # Process the frame using the pose estimator
+                # Process the frame using the enhanced pose estimator
                 pose_data, visualization = self.pose_estimator.process_frame(frame, frame_idx)
                 
                 # Add timestamp and filename to pose data
@@ -247,7 +243,7 @@ class ThreadedPoseEstimator:
     
     def cleanup(self):
         """Clean up resources and stop worker thread"""
-        logger.info("Cleaning up ThreadedPoseEstimator")
+        logger.info("Cleaning up ThreadedEnhancedPoseEstimator")
         self.running = False
         
         # Force-release any locks
@@ -274,4 +270,3 @@ class ThreadedPoseEstimator:
                 pass
         
         logger.info("Cleanup complete")
-

@@ -11,11 +11,8 @@ import queue
 import threading
 import atexit
 
-# Import our new ThreadedPoseEstimator that uses separate models
-from threaded_pose_estimator import ThreadedPoseEstimator
-
-
-
+# Import our new ThreadedEnhancedPoseEstimator
+from threaded_enhanced_pose_estimator import ThreadedEnhancedPoseEstimator
 
 from utils import create_unique_filename
 from models.utils import AverageTimer
@@ -27,10 +24,10 @@ import csv
 
 # Configure logging
 logging.basicConfig(
-    level=logging.DEBUG,  # Use DEBUG for detailed logs
+    level=logging.DEBUG,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler("main_separate.log"),
+        logging.FileHandler("main_enhanced.log"),
         logging.StreamHandler()
     ]
 )
@@ -46,8 +43,8 @@ def read_image_index_csv(csv_path):
         reader = csv.DictReader(f)
         for row in reader:
             frame_idx = int(row['Index'])
-            tstamp    = float(row['Timestamp'])
-            fname     = row['Filename']
+            tstamp = float(row['Timestamp'])
+            fname = row['Filename']
             entries.append({
                 'index': frame_idx,
                 'timestamp': tstamp,
@@ -91,7 +88,7 @@ def frame_producer(image_dir, entries, frame_queue, max_queue_size=10):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
-        description='LightGlue Pose Estimation with Separate Models (Image Folder with Reinit)',
+        description='Enhanced Pose Estimation with Tracking (Image Folder with Reinit)',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument(
         '--image_dir', type=str, required=True,
@@ -118,18 +115,30 @@ if __name__ == '__main__':
         '--force_cpu', action='store_true',
         help='Force PyTorch to run on CPU even if CUDA is available.')
     parser.add_argument(
-        '--save_pose', type=str, default='pose_estimation_separate.json',
+        '--save_pose', type=str, default='pose_estimation_enhanced.json',
         help='Path to save JSON pose estimation results')
     parser.add_argument(
         '--num_threads', type=int, default=2,
         help='Number of worker threads for processing')
+    parser.add_argument(
+        '--max_length', type=int, default=5,
+        help='Maximum length of point tracks to maintain')
+    parser.add_argument(
+        '--nn_thresh', type=float, default=0.5,#0.7,
+        help='Nearest neighbor threshold for matching')
+    parser.add_argument(
+        '--tracking_quality_threshold', type=float, default=0.4,#0.6,
+        help='Coverage score threshold to enable tracking mode')
+    parser.add_argument(
+        '--min_track_points', type=int, default=5,
+        help='Minimum number of tracked points to stay in tracking mode')
 
     opt = parser.parse_args()
     logger.info(f"Parsed options: {opt}")
 
     # Handle save_pose argument
     if os.path.isdir(opt.save_pose):
-        base_filename = 'pose_estimation.json'
+        base_filename = 'pose_estimation_enhanced.json'
         opt.save_pose = create_unique_filename(opt.save_pose, base_filename)
     else:
         save_dir = os.path.dirname(opt.save_pose)
@@ -157,11 +166,11 @@ if __name__ == '__main__':
     if opt.no_display:
         logger.info('Skipping visualization, no GUI window will be shown.')
     else:
-        cv2.namedWindow('Pose Estimation', cv2.WINDOW_NORMAL)
-        cv2.resizeWindow('Pose Estimation', 640 * 2, 480)
+        cv2.namedWindow('Enhanced Pose Estimation', cv2.WINDOW_NORMAL)
+        cv2.resizeWindow('Enhanced Pose Estimation', 800, 600)
 
-    # Create threaded pose estimator
-    pose_estimator = ThreadedPoseEstimator(opt, device)
+    # Create threaded enhanced pose estimator
+    pose_estimator = ThreadedEnhancedPoseEstimator(opt, device)
     
     # Create queues for producer-consumer pattern
     frame_queue = queue.Queue(maxsize=10)
@@ -179,8 +188,8 @@ if __name__ == '__main__':
     frame_count = 0
     overall_start_time = time.time()
     
-    # Handle anchor reinitialization
-    anchor_switch_frame = 133#444  # Frame at which to switch anchor
+    # Handle anchor reinitialization if needed
+    anchor_switch_frame = 133  # Frame at which to switch anchor
     new_anchor_initialized = False
     
     # Main processing loop
@@ -297,27 +306,6 @@ if __name__ == '__main__':
                 # Skip to the next frame after reinitializing
                 logger.info("Skipping to next frame after anchor reinitialization")
                 continue
-                            
-                # # Wait for confirmation that reinitialization is complete
-                # try:
-                #     logger.info("Waiting for anchor reinitialization to complete...")
-                #     reinit_result = pose_estimator.result_queue.get(timeout=30.0)  # Increased timeout to 30 seconds
-                    
-                #     if reinit_result[0] == 'reinit_complete':
-                #         logger.info("Anchor reinitialization completed successfully")
-                #         new_anchor_initialized = True
-                #     else:
-                #         logger.error("Anchor reinitialization did not complete correctly")
-                #         logger.error(f"Reinit result: {reinit_result}")
-                # except queue.Empty:
-                #     logger.error("Timeout waiting for anchor reinitialization")
-                    
-                # # Mark this task as done since we've handled the special case
-                # frame_queue.task_done()
-                
-                # # Skip to the next frame after reinitializing
-                # logger.info("Skipping to next frame after anchor reinitialization")
-                # continue
             
             # Process frame
             pose_estimator.process_frame(frame, frame_idx, frame_t, img_name)
@@ -328,11 +316,14 @@ if __name__ == '__main__':
             
             if pose_data is not None:
                 all_poses.append(pose_data)
-                logger.debug(f'Pose data (frame={result_idx}, time={result_t:.3f}): {pose_data}')
+                tracking_mode = pose_data.get('tracking_mode', False)
+                logger.info(f'Frame {result_idx}: Mode={"Tracking" if tracking_mode else "Matching"}, '
+                           f'Inliers={pose_data.get("num_inliers", 0)}, '
+                           f'Coverage={pose_data.get("coverage_score", 0):.2f}')
                 
                 # Show the visualization
                 if not opt.no_display and visualization is not None:
-                    cv2.imshow('Pose Estimation', visualization)
+                    cv2.imshow('Enhanced Pose Estimation', visualization)
 
                 # Optionally save the visualization
                 if opt.output_dir and visualization is not None:
@@ -381,4 +372,3 @@ if __name__ == '__main__':
     with open(opt.save_pose, 'w') as f:
         json.dump(all_poses, f, indent=4)
     logger.info(f'Pose estimation results saved to {opt.save_pose}')
-

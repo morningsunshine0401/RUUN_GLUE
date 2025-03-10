@@ -15,13 +15,14 @@ import csv
 # (Assuming you save the improved implementation in this file)
 
 
-#from pose_estimator_track import PoseEstimatorWithTracking
+from pose_estimator_track import PoseEstimatorWithTracking
 
-from pose_estimator_track_SP import PoseEstimatorWithTracking
+#from pose_estimator_track_SP import PoseEstimatorWithTracking
 
 
 from utils import create_unique_filename
 from models.utils import AverageTimer
+
 
 # Configure logging
 logging.basicConfig(
