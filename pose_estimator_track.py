@@ -43,6 +43,8 @@ class PoseEstimatorWithTracking:
         self.active_keypoints = None
         self.active_3D_points = None
         self.tracking_initialized = False
+
+        self.dis_flow = cv2.DISOpticalFlow_create(cv2.DISOPTICAL_FLOW_PRESET_MEDIUM)
         
         # SuperPoint tracking inspired members
         self.max_track_length = 5  # Maximum track history to keep
@@ -199,28 +201,100 @@ class PoseEstimatorWithTracking:
             return cv2.resize(image, new_size)
         return image
 
+    # def process_frame(self, frame, frame_idx):
+    #     """
+    #     Process a new frame for pose estimation.
+    #     Either initialize by matching to anchor, track previous features,
+    #     or fall back to Kalman prediction when both fail.
+    #     """
+    #     logger.info(f"Processing frame {frame_idx}")
+    #     start_time = time.time()
+
+    #     # Resize frame to target size
+    #     frame = self._resize_image(frame, self.opt.resize)
+        
+    #     # Convert to grayscale for tracking
+    #     frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        
+    #     # Get a Kalman prediction regardless of what happens next (for fallback)
+    #     x_pred, P_pred = self.kf_pose.predict()
+    #     kf_translation = x_pred[0:3]
+    #     kf_quaternion = x_pred[6:10]
+    #     kf_rotation = quaternion_to_rotation_matrix(kf_quaternion)
+        
+    #     # Store the Kalman prediction as a fallback
+    #     fallback_pose_data = {
+    #         'frame': frame_idx,
+    #         'kf_translation_vector': kf_translation.tolist(),
+    #         'kf_quaternion': kf_quaternion.tolist(),
+    #         'kf_rotation_matrix': kf_rotation.tolist(),
+    #         'pose_estimation_failed': True,
+    #         'estimation_method': 'kalman_prediction_only'
+    #     }
+        
+    #     # Create a simple visualization for fallback case
+    #     fallback_vis = frame.copy()
+    #     position_text = (f"Leader in Cam (KF prediction): "
+    #                     f"x={kf_translation[0]:.3f}, y={kf_translation[1]:.3f}, z={kf_translation[2]:.3f}")
+    #     cv2.putText(fallback_vis, position_text, (30, 30), cv2.FONT_HERSHEY_SIMPLEX,
+    #                 0.7, (0, 0, 255), 2, cv2.LINE_AA)
+    #     cv2.putText(fallback_vis, "KALMAN PREDICTION ONLY", (30, 60), cv2.FONT_HERSHEY_SIMPLEX,
+    #                0.7, (0, 0, 255), 2, cv2.LINE_AA)
+        
+    #     # Check if we need to initialize or re-initialize the tracking
+    #     if not self.tracking_initialized or self.active_keypoints is None or len(self.active_keypoints) < self.min_tracked_points:
+    #         # Initialize/re-initialize using SuperPoint + LightGlue
+    #         logger.info(f"Initializing/re-initializing tracking for frame {frame_idx}")
+    #         pose_data, visualization = self._initialize_tracking(frame, frame_idx)
+            
+    #         # If initialization failed, use Kalman prediction
+    #         if pose_data is None:
+    #             logger.warning(f"Initialization failed for frame {frame_idx}, using Kalman prediction")
+    #             pose_data = fallback_pose_data
+    #             visualization = fallback_vis
+    #         else:
+    #             pose_data['estimation_method'] = 'initialization'
+                
+    #         # Store the current frame for future tracking
+    #         self.prev_frame = frame_gray.copy()
+            
+    #         return pose_data, visualization
+    #     #################################################################################################
+    #     else:
+    #         if frame_idx % 10 == 0:
+    #             logger.info(f"Reinforcing tracking for frame {frame_idx}")
+    #             self._reinforce_tracking(frame, frame_idx)
+    #     ############################################################################################################
+    #     # If we're here, we're in tracking mode - try to track features
+    #     pose_data, visualization = self._track_features(frame, frame_gray, frame_idx)
+        
+    #     # If tracking failed, use Kalman prediction
+    #     if pose_data is None:
+    #         logger.warning(f"Tracking failed for frame {frame_idx}, using Kalman prediction")
+    #         pose_data = fallback_pose_data
+    #         visualization = fallback_vis
+    #     else:
+    #         pose_data['estimation_method'] = 'tracking'
+        
+    #     # Store the current frame for future tracking
+    #     self.prev_frame = frame_gray.copy()
+        
+    #     return pose_data, visualization
+
+    #### With thresholds
     def process_frame(self, frame, frame_idx):
-        """
-        Process a new frame for pose estimation.
-        Either initialize by matching to anchor, track previous features,
-        or fall back to Kalman prediction when both fail.
-        """
         logger.info(f"Processing frame {frame_idx}")
         start_time = time.time()
 
-        # Resize frame to target size
+        # Resize frame and convert to grayscale for tracking.
         frame = self._resize_image(frame, self.opt.resize)
-        
-        # Convert to grayscale for tracking
         frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        
-        # Get a Kalman prediction regardless of what happens next (for fallback)
+
+        # Get a Kalman prediction for fallback.
         x_pred, P_pred = self.kf_pose.predict()
         kf_translation = x_pred[0:3]
         kf_quaternion = x_pred[6:10]
         kf_rotation = quaternion_to_rotation_matrix(kf_quaternion)
-        
-        # Store the Kalman prediction as a fallback
         fallback_pose_data = {
             'frame': frame_idx,
             'kf_translation_vector': kf_translation.tolist(),
@@ -229,55 +303,52 @@ class PoseEstimatorWithTracking:
             'pose_estimation_failed': True,
             'estimation_method': 'kalman_prediction_only'
         }
-        
-        # Create a simple visualization for fallback case
         fallback_vis = frame.copy()
-        position_text = (f"Leader in Cam (KF prediction): "
-                        f"x={kf_translation[0]:.3f}, y={kf_translation[1]:.3f}, z={kf_translation[2]:.3f}")
-        cv2.putText(fallback_vis, position_text, (30, 30), cv2.FONT_HERSHEY_SIMPLEX,
-                    0.7, (0, 0, 255), 2, cv2.LINE_AA)
+        cv2.putText(fallback_vis, f"KF: x={kf_translation[0]:.3f}, y={kf_translation[1]:.3f}, z={kf_translation[2]:.3f}",
+                    (30, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2, cv2.LINE_AA)
         cv2.putText(fallback_vis, "KALMAN PREDICTION ONLY", (30, 60), cv2.FONT_HERSHEY_SIMPLEX,
-                   0.7, (0, 0, 255), 2, cv2.LINE_AA)
-        
-        # Check if we need to initialize or re-initialize the tracking
-        if not self.tracking_initialized or self.active_keypoints is None or len(self.active_keypoints) < self.min_tracked_points:
-            # Initialize/re-initialize using SuperPoint + LightGlue
+                    0.7, (0, 0, 255), 2, cv2.LINE_AA)
+
+        # Check if we need to initialize/reinitialize tracking:
+        if not self.tracking_initialized or self.active_keypoints is None or len(self.active_keypoints) < 5:
             logger.info(f"Initializing/re-initializing tracking for frame {frame_idx}")
             pose_data, visualization = self._initialize_tracking(frame, frame_idx)
-            
-            # If initialization failed, use Kalman prediction
             if pose_data is None:
                 logger.warning(f"Initialization failed for frame {frame_idx}, using Kalman prediction")
-                pose_data = fallback_pose_data
-                visualization = fallback_vis
+                pose_data, visualization = fallback_pose_data, fallback_vis
             else:
                 pose_data['estimation_method'] = 'initialization'
-                
-            # Store the current frame for future tracking
             self.prev_frame = frame_gray.copy()
-            
             return pose_data, visualization
-        #################################################################################################
-        else:
-            if frame_idx % 15 == 0:
-                logger.info(f"Reinforcing tracking for frame {frame_idx}")
-                self._reinforce_tracking(frame, frame_idx)
-        ############################################################################################################
-        # If we're here, we're in tracking mode - try to track features
+
+        # Otherwise, attempt to track features using DIS optical flow.
         pose_data, visualization = self._track_features(frame, frame_gray, frame_idx)
-        
-        # If tracking failed, use Kalman prediction
+
+        # First, check if _track_features failed.
         if pose_data is None:
-            logger.warning(f"Tracking failed for frame {frame_idx}, using Kalman prediction")
-            pose_data = fallback_pose_data
-            visualization = fallback_vis
-        else:
-            pose_data['estimation_method'] = 'tracking'
-        
-        # Store the current frame for future tracking
+            logger.warning(f"Tracking failed for frame {frame_idx}, reinitializing tracking")
+            pose_data, visualization = self._initialize_tracking(frame, frame_idx)
+            if pose_data is None:
+                logger.warning(f"Reinitialization failed for frame {frame_idx}, using Kalman prediction")
+                pose_data, visualization = fallback_pose_data, fallback_vis
+            else:
+                pose_data['estimation_method'] = 'initialization'
+        # If tracking produced data, check quality.
+        elif (pose_data.get("coverage_score", 0) < 0.4 or 
+            pose_data.get("num_tracked_points", 0) < 5):
+            logger.warning(f"Tracking quality insufficient at frame {frame_idx} (coverage: {pose_data.get('coverage_score', 0):.2f}, "
+                        f"features: {pose_data.get('num_tracked_points', 0)}). Reinitializing tracking.")
+            pose_data, visualization = self._initialize_tracking(frame, frame_idx)
+            if pose_data is None:
+                logger.warning(f"Reinitialization failed for frame {frame_idx}, using Kalman prediction")
+                pose_data, visualization = fallback_pose_data, fallback_vis
+            else:
+                pose_data['estimation_method'] = 'initialization'
+
         self.prev_frame = frame_gray.copy()
-        
         return pose_data, visualization
+
+
 
     def _initialize_tracking(self, frame, frame_idx):
         """
@@ -424,91 +495,168 @@ class PoseEstimatorWithTracking:
         
     #     return pose_data, visualization
 
+#######################################################################
+
+    # ## This one used SuperPoint
+
+    # def _track_features(self, frame, frame_gray,frame_idx):
+    #     """
+    #     Track features using descriptor matching instead of optical flow
+    #     """
+    #     logger.info(f"Tracking features using descriptors for frame {frame_idx}")
+        
+    #     if self.active_keypoints is None or len(self.active_keypoints) == 0:
+    #         logger.warning("Cannot track: No active keypoints")
+    #         return None, frame
+        
+    #     # Extract SuperPoint features for current frame
+    #     frame_proc = SuperPointPreprocessor.preprocess(frame)
+    #     frame_proc = frame_proc[None].astype(np.float32)
+        
+    #     # Run SuperPoint on the current frame
+    #     batch = np.concatenate([frame_proc, frame_proc], axis=0)
+    #     keypoints, _, mscores = self.session.run(None, {"images": batch})
+        
+    #     frame_keypoints = keypoints[0]  # N x 2
+        
+    #     # Create batches for descriptor matching
+    #     frame_proc_1 = frame_proc.copy()
+    #     batch = np.concatenate([frame_proc, frame_proc_1], axis=0)
+    #     keypoints, matches, mscores = self.session.run(None, {"images": batch})
+        
+    #     # Match descriptors between previous points and current frame
+    #     tracked_keypoints = []
+    #     tracked_3D_points = []
+    #     updated_tracks = []
+    #     updated_track_ages = []
+    #     updated_track_ids = []
+        
+    #     # Use KDTree for efficient nearest neighbor search
+    #     if len(frame_keypoints) > 0:
+    #         curr_tree = cKDTree(frame_keypoints)
+            
+    #         # For each active keypoint, find the closest matching keypoint in current frame
+    #         for i, (prev_pt, prev_3d) in enumerate(zip(self.active_keypoints, self.active_3D_points)):
+    #             # Find nearest keypoint in current frame
+    #             distances, indices = curr_tree.query(prev_pt, k=1)
+                
+    #             # If close enough, consider it a match
+    #             if distances < 5.0:#15.0:  # Distance threshold in pixels
+    #                 closest_idx = indices
+    #                 curr_pt = frame_keypoints[closest_idx]
+                    
+    #                 tracked_keypoints.append(curr_pt)
+    #                 tracked_3D_points.append(prev_3d)
+                    
+    #                 # Update track history
+    #                 if len(self.tracks[i]) >= self.max_track_length:
+    #                     # Remove oldest point to maintain max length
+    #                     track_history = self.tracks[i][1:] + [curr_pt]
+    #                 else:
+    #                     track_history = self.tracks[i] + [curr_pt]
+                    
+    #                 updated_tracks.append(track_history)
+    #                 updated_track_ages.append(self.track_ages[i] + 1)
+    #                 updated_track_ids.append(self.track_ids[i])
+        
+    #     # Update tracking state
+    #     if len(tracked_keypoints) < self.min_tracked_points:
+    #         logger.warning(f"Too few tracked points ({len(tracked_keypoints)}), need re-initialization")
+    #         self.tracking_initialized = False
+    #         return None, frame
+        
+    #     # Update tracking state variables
+    #     self.active_keypoints = np.array(tracked_keypoints)
+    #     self.active_3D_points = np.array(tracked_3D_points)
+    #     self.tracks = updated_tracks
+    #     self.track_ages = updated_track_ages
+    #     self.track_ids = updated_track_ids
+        
+    #     logger.info(f"Successfully tracked {len(tracked_keypoints)} points using descriptors")
+        
+    #     # For PnP, create necessary arrays
+    #     dummy_mkpts0 = np.zeros_like(self.active_keypoints)
+    #     dummy_mconf = np.ones(len(self.active_keypoints))
+        
+    #     # Estimate pose using the tracked keypoints
+    #     pose_data, visualization = self.estimate_pose_from_tracked(
+    #         self.active_keypoints, self.active_3D_points, dummy_mconf, frame, frame_idx,
+    #         np.array(self.track_ages)
+    #     )
+        
+    #     return pose_data, visualization
+
+
+#################################################################
+
+    ## This one uses openCV DIS optical flow
+
     def _track_features(self, frame, frame_gray,frame_idx):
         """
         Track features using descriptor matching instead of optical flow
         """
         logger.info(f"Tracking features using descriptors for frame {frame_idx}")
-        
-        if self.active_keypoints is None or len(self.active_keypoints) == 0:
-            logger.warning("Cannot track: No active keypoints")
+        if self.prev_frame is None or self.active_keypoints is None or len(self.active_keypoints) == 0:
+            logger.warning("Cannot track: No previous frame or active keypoints")
             return None, frame
-        
-        # Extract SuperPoint features for current frame
-        frame_proc = SuperPointPreprocessor.preprocess(frame)
-        frame_proc = frame_proc[None].astype(np.float32)
-        
-        # Run SuperPoint on the current frame
-        batch = np.concatenate([frame_proc, frame_proc], axis=0)
-        keypoints, _, mscores = self.session.run(None, {"images": batch})
-        
-        frame_keypoints = keypoints[0]  # N x 2
-        
-        # Create batches for descriptor matching
-        frame_proc_1 = frame_proc.copy()
-        batch = np.concatenate([frame_proc, frame_proc_1], axis=0)
-        keypoints, matches, mscores = self.session.run(None, {"images": batch})
-        
-        # Match descriptors between previous points and current frame
+
+        # Calculate dense optical flow using DIS between the previous frame and current frame
+        flow = self.dis_flow.calc(self.prev_frame, frame_gray, None)
+
         tracked_keypoints = []
         tracked_3D_points = []
         updated_tracks = []
         updated_track_ages = []
         updated_track_ids = []
-        
-        # Use KDTree for efficient nearest neighbor search
-        if len(frame_keypoints) > 0:
-            curr_tree = cKDTree(frame_keypoints)
+
+        h, w = flow.shape[:2]
+        for i, pt in enumerate(self.active_keypoints):
+            x, y = pt
+            # Ensure the keypoint is within image bounds
+            ix, iy = int(round(x)), int(round(y))
+            if ix < 0 or ix >= w or iy < 0 or iy >= h:
+                continue
+            # Get the displacement from the dense flow
+            displacement = flow[iy, ix]
+            new_pt = np.array([pt[0] + displacement[0], pt[1] + displacement[1]])
+            # Optional: Filter out large displacements if they exceed the threshold
+            if np.linalg.norm(displacement) > self.max_tracking_error:
+                continue
+
+            tracked_keypoints.append(new_pt)
+            tracked_3D_points.append(self.active_3D_points[i])
             
-            # For each active keypoint, find the closest matching keypoint in current frame
-            for i, (prev_pt, prev_3d) in enumerate(zip(self.active_keypoints, self.active_3D_points)):
-                # Find nearest keypoint in current frame
-                distances, indices = curr_tree.query(prev_pt, k=1)
-                
-                # If close enough, consider it a match
-                if distances < 15.0:  # Distance threshold in pixels
-                    closest_idx = indices
-                    curr_pt = frame_keypoints[closest_idx]
-                    
-                    tracked_keypoints.append(curr_pt)
-                    tracked_3D_points.append(prev_3d)
-                    
-                    # Update track history
-                    if len(self.tracks[i]) >= self.max_track_length:
-                        # Remove oldest point to maintain max length
-                        track_history = self.tracks[i][1:] + [curr_pt]
-                    else:
-                        track_history = self.tracks[i] + [curr_pt]
-                    
-                    updated_tracks.append(track_history)
-                    updated_track_ages.append(self.track_ages[i] + 1)
-                    updated_track_ids.append(self.track_ids[i])
-        
-        # Update tracking state
+            # Update track history
+            if len(self.tracks[i]) >= self.max_track_length:
+                track_history = self.tracks[i][1:] + [new_pt]
+            else:
+                track_history = self.tracks[i] + [new_pt]
+            updated_tracks.append(track_history)
+            updated_track_ages.append(self.track_ages[i] + 1)
+            updated_track_ids.append(self.track_ids[i])
+
         if len(tracked_keypoints) < self.min_tracked_points:
             logger.warning(f"Too few tracked points ({len(tracked_keypoints)}), need re-initialization")
             self.tracking_initialized = False
             return None, frame
-        
-        # Update tracking state variables
+
+        # Update tracking state with the new positions
         self.active_keypoints = np.array(tracked_keypoints)
         self.active_3D_points = np.array(tracked_3D_points)
         self.tracks = updated_tracks
         self.track_ages = updated_track_ages
         self.track_ids = updated_track_ids
-        
-        logger.info(f"Successfully tracked {len(tracked_keypoints)} points using descriptors")
-        
-        # For PnP, create necessary arrays
+
+        logger.info(f"Successfully tracked {len(tracked_keypoints)} points using DIS optical flow")
+
+        # Use the tracked keypoints for pose estimation
         dummy_mkpts0 = np.zeros_like(self.active_keypoints)
         dummy_mconf = np.ones(len(self.active_keypoints))
-        
-        # Estimate pose using the tracked keypoints
         pose_data, visualization = self.estimate_pose_from_tracked(
             self.active_keypoints, self.active_3D_points, dummy_mconf, frame, frame_idx,
             np.array(self.track_ages)
         )
-        
+
         return pose_data, visualization
 
     def estimate_pose_from_tracked(self, tracked_pts, pts3D, mconf, frame, frame_idx, point_ages):
