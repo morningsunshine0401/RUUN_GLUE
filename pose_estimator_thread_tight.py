@@ -671,128 +671,203 @@ class PoseEstimator:
         #     # Return pure PnP result without updating Kalman filter
         #     return pnp_pose_data, visualization
         
-        # CASE 3: Tracking failed - fall back to PnP
+        
+        ####################################################################3#########################################3
+
+        # This is the loose+tight hybrid
+        # # CASE 3: Tracking failed - fall back to PnP
+        # logger.info(f"Frame {frame_idx}: FALLBACK MODE - Using PnP")
+
+        # # Perform pure PnP estimation
+        # pnp_pose_data, visualization, mkpts0, mkpts1, mpts3D = self.perform_pnp_estimation(
+        #     frame, frame_idx, frame_feats, frame_keypoints
+        # )
+
+        # # If KF is already initialized
+        # if self.kf_initialized:
+        #     # Get the prediction from the filter
+        #     x_pred, P_pred = self.mekf.predict()
+            
+        #     # If PnP succeeded
+        #     if pnp_pose_data is not None and not pnp_pose_data.get('pose_estimation_failed', False):
+        #         # Extract PnP pose
+        #         tvec = np.array(pnp_pose_data['object_translation_in_cam'])
+        #         R = np.array(pnp_pose_data['object_rotation_in_cam'])
+        #         q = rotation_matrix_to_quaternion(R)
+                
+        #         # Calculate differences between prediction and PnP result
+        #         position_diff = np.linalg.norm(tvec - x_pred[0:3])
+                
+        #         # For orientation, calculate angle between quaternions
+        #         def quaternion_angle_degrees(q1, q2):
+        #             q1 = normalize_quaternion(q1)
+        #             q2 = normalize_quaternion(q2)
+        #             dot = np.clip(np.dot(q1, q2), -1.0, 1.0)
+        #             angle = 2.0 * np.degrees(np.arccos(dot))
+        #             if angle > 180.0:
+        #                 angle = 360.0 - angle
+        #             return angle
+                
+        #         orientation_diff = quaternion_angle_degrees(q, x_pred[6:10])
+                
+        #         # Check PnP quality criteria
+        #         reprojection_error = pnp_pose_data['mean_reprojection_error']
+        #         num_inliers = pnp_pose_data['num_inliers']
+                
+        #         # Define thresholds for measurement acceptance
+        #         max_position_jump = 3#0.3  # meters
+        #         max_orientation_jump = 400#20.0  # degrees
+        #         max_reprojection_error = 10#5.0  # pixels
+        #         min_inliers = 5  # points
+                
+        #         # Validation gate: Check if PnP result is valid for updating the filter
+        #         if (position_diff <= max_position_jump and 
+        #             orientation_diff <= max_orientation_jump and
+        #             reprojection_error <= max_reprojection_error and
+        #             num_inliers >= min_inliers):
+                    
+        #             logger.info(f"Frame {frame_idx}: PnP passed validation, using loosely-coupled update")
+                    
+        #             # Create measurement vector [x, y, z, qx, qy, qz, qw]
+        #             z_pose = np.concatenate([tvec.flatten(), q])
+                    
+        #             # Use loosely-coupled update with direct pose measurement
+        #             x_upd, P_upd = self.mekf.update_loosely_coupled(z_pose)
+                    
+        #             # Update tracking points for next frame
+        #             inliers = np.array(pnp_pose_data['inliers'])
+        #             self.tracking_3D_points = np.array(mpts3D)[inliers]
+        #             self.tracking_2D_points = np.array(mkpts1)[inliers]
+                    
+        #             # Extract updated state
+        #             position_upd = x_upd[0:3]
+        #             quaternion_upd = x_upd[6:10]
+        #             R_upd = quaternion_to_rotation_matrix(quaternion_upd)
+                    
+        #             # Create pose data
+        #             pose_data = pnp_pose_data.copy()
+        #             pose_data['kf_translation_vector'] = position_upd.tolist()
+        #             pose_data['kf_quaternion'] = quaternion_upd.tolist()
+        #             pose_data['kf_rotation_matrix'] = R_upd.tolist()
+        #             pose_data['tracking_method'] = 'loosely_coupled'
+        #             pose_data['position_diff'] = position_diff
+        #             pose_data['orientation_diff'] = orientation_diff
+                    
+        #             return pose_data, visualization
+                    
+        #         else:
+        #             # PnP failed validation - use prediction only
+        #             logger.warning(f"Frame {frame_idx}: PnP failed validation " +
+        #                         f"(pos_diff={position_diff:.2f}m, orient_diff={orientation_diff:.2f}°, " +
+        #                         f"reproj_err={reprojection_error:.2f}, inliers={num_inliers}), " +
+        #                         f"using KF prediction")
+                    
+        #             # Extract prediction state
+        #             position_pred = x_pred[0:3]
+        #             quaternion_pred = x_pred[6:10]
+        #             R_pred = quaternion_to_rotation_matrix(quaternion_pred)
+                    
+        #             # Create pose data from prediction
+        #             pose_data = {
+        #                 'frame': frame_idx,
+        #                 'kf_translation_vector': position_pred.tolist(),
+        #                 'kf_quaternion': quaternion_pred.tolist(),
+        #                 'kf_rotation_matrix': R_pred.tolist(),
+        #                 'pose_estimation_failed': False,
+        #                 'tracking_method': 'prediction',
+        #                 'rejected_pnp': True,
+        #                 'rejection_reason': f"pos_diff={position_diff:.2f}, orient_diff={orientation_diff:.2f}, " +
+        #                                 f"reproj_err={reprojection_error:.2f}, inliers={num_inliers}"
+        #             }
+                    
+        #             # Create simple visualization
+        #             visualization = frame.copy()
+        #             cv2.putText(visualization, "PnP Rejected - Using Prediction", 
+        #                     (30, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                    
+        #             return pose_data, visualization
+            
+        #     else:
+        #         # PnP completely failed - use pure prediction
+        #         logger.warning(f"Frame {frame_idx}: Complete PnP failure, using KF prediction")
+                
+        #         # Extract prediction state
+        #         position_pred = x_pred[0:3]
+        #         quaternion_pred = x_pred[6:10]
+        #         R_pred = quaternion_to_rotation_matrix(quaternion_pred)
+                
+        #         # Create pose data from prediction
+        #         pose_data = {
+        #             'frame': frame_idx,
+        #             'kf_translation_vector': position_pred.tolist(),
+        #             'kf_quaternion': quaternion_pred.tolist(),
+        #             'kf_rotation_matrix': R_pred.tolist(),
+        #             'pose_estimation_failed': True,
+        #             'tracking_method': 'prediction'
+        #         }
+                
+        #         # Create simple visualization
+        #         visualization = frame.copy()
+        #         cv2.putText(visualization, "PnP Failed - Using Prediction", 
+        #                 (30, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                
+        #         return pose_data, visualization
+
+        # else:
+        #     # KF not yet initialized - first initialization only
+        #     if pnp_pose_data is not None and not pnp_pose_data.get('pose_estimation_failed', False):
+        #         # Only initialize KF on first good PnP
+        #         if pnp_pose_data['mean_reprojection_error'] < 5.0:
+        #             tvec = np.array(pnp_pose_data['object_translation_in_cam'])
+        #             R = np.array(pnp_pose_data['object_rotation_in_cam'])
+        #             q = rotation_matrix_to_quaternion(R)
+                    
+        #             # Initialize MEKF
+        #             self.mekf = MultExtendedKalmanFilter(dt=1.0/30.0)
+                    
+        #             # Set initial state
+        #             x_init = np.zeros(self.mekf.n_states)
+        #             x_init[0:3] = tvec.flatten()  # Position
+        #             x_init[6:10] = q              # Quaternion
+        #             self.mekf.x = x_init
+                    
+        #             # Initialize tracking points
+        #             inliers = np.array(pnp_pose_data['inliers'])
+        #             self.tracking_3D_points = np.array(mpts3D)[inliers]
+        #             self.tracking_2D_points = np.array(mkpts1)[inliers]
+                    
+        #             self.kf_initialized = True
+        #             logger.info(f"Frame {frame_idx}: First MEKF initialization")
+                
+        #         # Return pure PnP result for first frame
+        #         return pnp_pose_data, visualization
+        #     else:
+        #         # PnP failed and no KF initialized yet
+        #         return {
+        #             'frame': frame_idx,
+        #             'pose_estimation_failed': True,
+        #             'tracking_method': 'failed'
+        #         }, frame
+
+###########################################################################
+        # CASE 3: Tracking failed or not initialized - fall back to PnP
         logger.info(f"Frame {frame_idx}: FALLBACK MODE - Using PnP")
 
-        # Perform pure PnP estimation
+        # Perform pure PnP estimation (without Kalman filtering)
         pnp_pose_data, visualization, mkpts0, mkpts1, mpts3D = self.perform_pnp_estimation(
             frame, frame_idx, frame_feats, frame_keypoints
         )
 
-        # If KF is already initialized
-        if self.kf_initialized:
-            # Get the prediction from the filter
-            x_pred, P_pred = self.mekf.predict()
-            
-            # If PnP succeeded
-            if pnp_pose_data is not None and not pnp_pose_data.get('pose_estimation_failed', False):
-                # Extract PnP pose
-                tvec = np.array(pnp_pose_data['object_translation_in_cam'])
-                R = np.array(pnp_pose_data['object_rotation_in_cam'])
-                q = rotation_matrix_to_quaternion(R)
+        if pnp_pose_data is None:
+            # PnP also failed - use prediction if MEKF is initialized
+            if self.kf_initialized:
+                logger.warning(f"Frame {frame_idx}: PnP fallback failed - using prediction only")
                 
-                # Calculate differences between prediction and PnP result
-                position_diff = np.linalg.norm(tvec - x_pred[0:3])
-                
-                # For orientation, calculate angle between quaternions
-                def quaternion_angle_degrees(q1, q2):
-                    q1 = normalize_quaternion(q1)
-                    q2 = normalize_quaternion(q2)
-                    dot = np.clip(np.dot(q1, q2), -1.0, 1.0)
-                    angle = 2.0 * np.degrees(np.arccos(dot))
-                    if angle > 180.0:
-                        angle = 360.0 - angle
-                    return angle
-                
-                orientation_diff = quaternion_angle_degrees(q, x_pred[6:10])
-                
-                # Check PnP quality criteria
-                reprojection_error = pnp_pose_data['mean_reprojection_error']
-                num_inliers = pnp_pose_data['num_inliers']
-                
-                # Define thresholds for measurement acceptance
-                max_position_jump = 3#0.3  # meters
-                max_orientation_jump = 400#20.0  # degrees
-                max_reprojection_error = 10#5.0  # pixels
-                min_inliers = 5  # points
-                
-                # Validation gate: Check if PnP result is valid for updating the filter
-                if (position_diff <= max_position_jump and 
-                    orientation_diff <= max_orientation_jump and
-                    reprojection_error <= max_reprojection_error and
-                    num_inliers >= min_inliers):
-                    
-                    logger.info(f"Frame {frame_idx}: PnP passed validation, using loosely-coupled update")
-                    
-                    # Create measurement vector [x, y, z, qx, qy, qz, qw]
-                    z_pose = np.concatenate([tvec.flatten(), q])
-                    
-                    # Use loosely-coupled update with direct pose measurement
-                    x_upd, P_upd = self.mekf.update_loosely_coupled(z_pose)
-                    
-                    # Update tracking points for next frame
-                    inliers = np.array(pnp_pose_data['inliers'])
-                    self.tracking_3D_points = np.array(mpts3D)[inliers]
-                    self.tracking_2D_points = np.array(mkpts1)[inliers]
-                    
-                    # Extract updated state
-                    position_upd = x_upd[0:3]
-                    quaternion_upd = x_upd[6:10]
-                    R_upd = quaternion_to_rotation_matrix(quaternion_upd)
-                    
-                    # Create pose data
-                    pose_data = pnp_pose_data.copy()
-                    pose_data['kf_translation_vector'] = position_upd.tolist()
-                    pose_data['kf_quaternion'] = quaternion_upd.tolist()
-                    pose_data['kf_rotation_matrix'] = R_upd.tolist()
-                    pose_data['tracking_method'] = 'loosely_coupled'
-                    pose_data['position_diff'] = position_diff
-                    pose_data['orientation_diff'] = orientation_diff
-                    
-                    return pose_data, visualization
-                    
-                else:
-                    # PnP failed validation - use prediction only
-                    logger.warning(f"Frame {frame_idx}: PnP failed validation " +
-                                f"(pos_diff={position_diff:.2f}m, orient_diff={orientation_diff:.2f}°, " +
-                                f"reproj_err={reprojection_error:.2f}, inliers={num_inliers}), " +
-                                f"using KF prediction")
-                    
-                    # Extract prediction state
-                    position_pred = x_pred[0:3]
-                    quaternion_pred = x_pred[6:10]
-                    R_pred = quaternion_to_rotation_matrix(quaternion_pred)
-                    
-                    # Create pose data from prediction
-                    pose_data = {
-                        'frame': frame_idx,
-                        'kf_translation_vector': position_pred.tolist(),
-                        'kf_quaternion': quaternion_pred.tolist(),
-                        'kf_rotation_matrix': R_pred.tolist(),
-                        'pose_estimation_failed': False,
-                        'tracking_method': 'prediction',
-                        'rejected_pnp': True,
-                        'rejection_reason': f"pos_diff={position_diff:.2f}, orient_diff={orientation_diff:.2f}, " +
-                                        f"reproj_err={reprojection_error:.2f}, inliers={num_inliers}"
-                    }
-                    
-                    # Create simple visualization
-                    visualization = frame.copy()
-                    cv2.putText(visualization, "PnP Rejected - Using Prediction", 
-                            (30, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-                    
-                    return pose_data, visualization
-            
-            else:
-                # PnP completely failed - use pure prediction
-                logger.warning(f"Frame {frame_idx}: Complete PnP failure, using KF prediction")
-                
-                # Extract prediction state
+                # Extract from predicted state
                 position_pred = x_pred[0:3]
                 quaternion_pred = x_pred[6:10]
                 R_pred = quaternion_to_rotation_matrix(quaternion_pred)
                 
-                # Create pose data from prediction
                 pose_data = {
                     'frame': frame_idx,
                     'kf_translation_vector': position_pred.tolist(),
@@ -804,46 +879,60 @@ class PoseEstimator:
                 
                 # Create simple visualization
                 visualization = frame.copy()
-                cv2.putText(visualization, "PnP Failed - Using Prediction", 
-                        (30, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                cv2.putText(visualization, "Tracking Failed - Using Prediction", 
+                            (30, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
                 
                 return pose_data, visualization
-
-        else:
-            # KF not yet initialized - first initialization only
-            if pnp_pose_data is not None and not pnp_pose_data.get('pose_estimation_failed', False):
-                # Only initialize KF on first good PnP
-                if pnp_pose_data['mean_reprojection_error'] < 5.0:
-                    tvec = np.array(pnp_pose_data['object_translation_in_cam'])
-                    R = np.array(pnp_pose_data['object_rotation_in_cam'])
-                    q = rotation_matrix_to_quaternion(R)
-                    
-                    # Initialize MEKF
-                    self.mekf = MultExtendedKalmanFilter(dt=1.0/30.0)
-                    
-                    # Set initial state
-                    x_init = np.zeros(self.mekf.n_states)
-                    x_init[0:3] = tvec.flatten()  # Position
-                    x_init[6:10] = q              # Quaternion
-                    self.mekf.x = x_init
-                    
-                    # Initialize tracking points
-                    inliers = np.array(pnp_pose_data['inliers'])
-                    self.tracking_3D_points = np.array(mpts3D)[inliers]
-                    self.tracking_2D_points = np.array(mkpts1)[inliers]
-                    
-                    self.kf_initialized = True
-                    logger.info(f"Frame {frame_idx}: First MEKF initialization")
-                
-                # Return pure PnP result for first frame
-                return pnp_pose_data, visualization
             else:
-                # PnP failed and no KF initialized yet
+                # Complete failure - no MEKF and PnP failed
+                logger.error(f"Frame {frame_idx}: Complete pose estimation failure")
                 return {
                     'frame': frame_idx,
                     'pose_estimation_failed': True,
                     'tracking_method': 'failed'
                 }, frame
+
+        # PnP succeeded - check if we should use it to update/initialize the Kalman filter
+        if pnp_pose_data['mean_reprojection_error'] < 5.0:
+            # Good PnP pose - initialize if not initialized, but never reinitialize
+            if not self.kf_initialized:
+                # Initialize MEKF only if it hasn't been initialized before
+                self.mekf = MultExtendedKalmanFilter(dt=1.0/30.0)
+                
+                # Extract translation and quaternion from PnP result
+                tvec = np.array(pnp_pose_data['object_translation_in_cam'])
+                R = np.array(pnp_pose_data['object_rotation_in_cam'])
+                q = rotation_matrix_to_quaternion(R)
+                
+                # Set initial state
+                x_init = np.zeros(self.mekf.n_states)
+                x_init[0:3] = tvec  # Position
+                x_init[6:10] = q    # Quaternion
+                self.mekf.x = x_init
+                
+                # Store tracking information
+                inliers = np.array(pnp_pose_data['inliers'])
+                self.tracking_3D_points = np.array(mpts3D)[inliers]
+                self.tracking_2D_points = np.array(mkpts1)[inliers]
+                
+                self.kf_initialized = True
+                logger.info(f"Frame {frame_idx}: First MEKF initialization")
+            else:
+                # Kalman filter already initialized - never reinitialize
+                # Instead, just update tracking points for next frame's tracking attempt
+                logger.info(f"Frame {frame_idx}: Updating tracking points from PnP")
+                inliers = np.array(pnp_pose_data['inliers'])
+                self.tracking_3D_points = np.array(mpts3D)[inliers]
+                self.tracking_2D_points = np.array(mkpts1)[inliers]
+            
+            # Return the pure PnP result - we're not updating the KF state here
+            return pnp_pose_data, visualization
+        else:
+            logger.warning(f"Frame {frame_idx}: PnP fallback not good enough for tracking: " +
+                        f"reprojection error = {pnp_pose_data['mean_reprojection_error']:.2f}")
+            
+            # Return pure PnP result without updating Kalman filter
+            return pnp_pose_data, visualization
 
 
     def _init_kalman_filter(self):
