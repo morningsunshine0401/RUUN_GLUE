@@ -7,6 +7,7 @@ import atexit
 import os
 import numpy as np
 import torch
+
 # Disable gradient computation globally
 torch.set_grad_enabled(False)
 torch.autograd.set_grad_enabled(False)
@@ -26,7 +27,12 @@ class ThreadedPoseEstimator:
     """Wrapper around PoseEstimator to add threading functionality"""
     def __init__(self, opt, device):
         # Import the PoseEstimator class here to avoid circular imports
-        from pose_estimator_thread import PoseEstimator
+        
+        # Default
+        #from pose_estimator_thread import PoseEstimator
+        
+        #Tightly coupled
+        from pose_estimator_thread_tight import PoseEstimator
         
         # Initialize the pose estimator
         self.pose_estimator = PoseEstimator(opt, device)
