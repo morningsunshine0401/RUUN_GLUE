@@ -1,0 +1,7 @@
+{
+  "frame": 1,
+  "pose_estimation_failed": true,
+  "tracking_method": "pnp",
+  "timestamp": 1741869670.9252515,
+  "image_file": "webcam_000001"
+}

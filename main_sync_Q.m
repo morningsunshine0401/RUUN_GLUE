@@ -4,14 +4,15 @@
 clear all; close all; clc;
 
 %% (0) Toggle this to switch between raw data or KF/refined data
-useRawData = false;  % If true, use 'object_*' fields; if false, use 'kf_*' fields.
-%useRawData = true; 
+
+%useRawData = false;  % If true, use 'object_*' fields; if false, use 'kf_*' fields.
+useRawData = true; 
 
 %% (1) Preparations
 
 % Edit these paths to match your data:
 bagFile  = '20250128_test4.db3';
-jsonPath = '20250312_20250128_test4_tight_7.json';
+jsonPath = 'pose_estimation.json';
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -96,7 +97,7 @@ N_json   = numel(algData);
 % Specify the indices of frames you want to plot.
 % For example, to plot frames 1 to 40:
 % Specify the desired number of frames to plot
-desiredFrameCount = 50;
+desiredFrameCount = 600;
 % Automatically select frames from 1 up to the lesser of desiredFrameCount or the available JSON frames
 selectedFrames = 1:min(desiredFrameCount, N_json);
 if max(selectedFrames) > N_json

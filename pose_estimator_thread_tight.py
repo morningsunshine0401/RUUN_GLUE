@@ -42,6 +42,7 @@ class PoseEstimator:
         self.device = device
         self.initial_z_set = False  # Flag for first-frame Z override (if desired)
         self.kf_initialized = False  # To track if Kalman filter was ever updated
+        self.pred_only =0
 
         logger.info("Initializing PoseEstimator with separate SuperPoint and LightGlue models")
 
@@ -534,12 +535,11 @@ class PoseEstimator:
                 ###### This threshold is tuned for trakcing
                 ######
 
-                if min_dist < 8.0:#5.0:#20.0:  # Threshold in pixels
+                if min_dist < 4.0:#5.0:#20.0:  # Threshold in pixels
                     correspondences.append((i, min_idx, min_dist))
             
             # Sort by distance and remove duplicates
             correspondences.sort(key=lambda x: x[2])
-            
             used_3d = set()
             used_2d = set()
             final_correspondences = []
@@ -578,10 +578,14 @@ class PoseEstimator:
                     quaternion_upd = x_upd[6:10]
                     R_upd = quaternion_to_rotation_matrix(quaternion_upd)
                     
+                    print("ㅗㅗㅗㅗㅗㅗㅗㅗㅗㅗㅗㅗㅗㅗㅗㅗㅗㅗㅗㅗㅗㅗㅗㅗㅗㅗㅗㅗㅗㅗㅗㅗㅗㅗㅗㅗㅗㅗ\n")
                     # Create visualization
                     visualization = self._visualize_tracking(
                         frame, image_points, model_points, x_upd, frame_idx
                     )
+
+
+                    
                     
                     # Create pose data
                     pose_data = {
@@ -665,6 +669,13 @@ class PoseEstimator:
         #     # Extract translation and quaternion from PnP result
         #     tvec = np.array(pnp_pose_data['object_translation_in_cam'])
         #     R = np.array(pnp_pose_data['object_rotation_in_cam'])
+
+        #     # pnp_pose_data['kf_translation_vector'] = tvec.flatten().tolist()
+        #     # pnp_pose_data['kf_quaternion'] = rotation_matrix_to_quaternion(R).tolist()
+        #     # pnp_pose_data['kf_rotation_matrix'] = R.tolist()
+
+
+            
         #     q = rotation_matrix_to_quaternion(R)
             
         #     # Update/initialize MEKF state
@@ -692,10 +703,16 @@ class PoseEstimator:
         # CASE 3: Tracking failed - fall back to PnP
         logger.info(f"Frame {frame_idx}: FALLBACK MODE - Using PnP")
 
+
+        print("333333333333333333333333333333333333333333333333333333333333333333333\n")
+
         # Perform pure PnP estimation
         pnp_pose_data, visualization, mkpts0, mkpts1, mpts3D = self.perform_pnp_estimation(
             frame, frame_idx, frame_feats, frame_keypoints
         )
+        if self.pred_only > 5:
+            self.kf_initialized = False
+            self.pred_only = 0
 
         # If KF is already initialized
         if self.kf_initialized:
@@ -729,10 +746,10 @@ class PoseEstimator:
                 num_inliers = pnp_pose_data['num_inliers']
                 
                 # Define thresholds for measurement acceptance
-                max_position_jump = 50#0.3  # meters
+                max_position_jump = 20#0.3  # meters
                 max_orientation_jump = 400#20.0  # degrees
-                max_reprojection_error = 8#10#5.0  # pixels
-                min_inliers = 5  # points
+                max_reprojection_error = 10#6#8#10#5.0  # pixels
+                min_inliers = 6#5  # points
                 
                 # Validation gate: Check if PnP result is valid for updating the filter
                 if (position_diff <= max_position_jump and 
@@ -742,11 +759,19 @@ class PoseEstimator:
                     
                     logger.info(f"Frame {frame_idx}: PnP passed validation, using loosely-coupled update")
                     
+
+                    print("UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU\n")
                     # Create measurement vector [x, y, z, qx, qy, qz, qw]
                     z_pose = np.concatenate([tvec.flatten(), q])
                     
+                    print("Z_pose before KF:\n",z_pose)
+                    
                     # Use loosely-coupled update with direct pose measurement
+                    
                     x_upd, P_upd = self.mekf.update_loosely_coupled(z_pose)
+
+                    
+                    
                     
                     # Update tracking points for next frame
                     inliers = np.array(pnp_pose_data['inliers'])
@@ -757,6 +782,9 @@ class PoseEstimator:
                     position_upd = x_upd[0:3]
                     quaternion_upd = x_upd[6:10]
                     R_upd = quaternion_to_rotation_matrix(quaternion_upd)
+
+                    print("position_upd after KF:\n",position_upd)
+                    print("quaternion_upd after KF:\n",quaternion_upd)
                     
                     # Create pose data
                     pose_data = pnp_pose_data.copy()
@@ -799,6 +827,8 @@ class PoseEstimator:
                     cv2.putText(visualization, "PnP Rejected - Using Prediction", 
                             (30, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
                     
+                    self.pred_only = +1
+                    
                     return pose_data, visualization
             
             else:
@@ -824,6 +854,8 @@ class PoseEstimator:
                 visualization = frame.copy()
                 cv2.putText(visualization, "PnP Failed - Using Prediction", 
                         (30, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                
+                self.pred_only = +1
                 
                 return pose_data, visualization
 
@@ -863,10 +895,12 @@ class PoseEstimator:
                     'tracking_method': 'failed'
                 }, frame
 
-###########################################################################
+        ###########################################################################
         
         # # CASE 3: Tracking failed or not initialized - fall back to PnP
         # logger.info(f"Frame {frame_idx}: FALLBACK MODE - Using PnP")
+
+        # print("33333333333333333333333333333333333333333333333333333333333333333\n")
 
         # # Perform pure PnP estimation (without Kalman filtering)
         # pnp_pose_data, visualization, mkpts0, mkpts1, mpts3D = self.perform_pnp_estimation(
@@ -961,287 +995,287 @@ class PoseEstimator:
 
 
 
-    def _kalman_filter_update(
-        self, R, tvec, reprojection_errors, mean_reprojection_error,
-        std_reprojection_error, inliers, mkpts0, mkpts1, mpts3D,
-        mconf, frame_idx, rvec_o, rvec, coverage_score
-    ):
-        """
-        Update the Kalman filter with new pose measurements from PnP.
-        Performs quality checks before applying the update.
+    # def _kalman_filter_update(
+    #     self, R, tvec, reprojection_errors, mean_reprojection_error,
+    #     std_reprojection_error, inliers, mkpts0, mkpts1, mpts3D,
+    #     mconf, frame_idx, rvec_o, rvec, coverage_score
+    # ):
+    #     """
+    #     Update the Kalman filter with new pose measurements from PnP.
+    #     Performs quality checks before applying the update.
 
-        Args:
-            R: Rotation matrix from PnP
-            tvec: Translation vector from PnP
-            reprojection_errors: Array of reprojection errors for each point
-            mean_reprojection_error: Mean reprojection error
-            std_reprojection_error: Standard deviation of reprojection errors
-            inliers: Indices of inlier points
-            mkpts0: Matched keypoints from anchor
-            mkpts1: Matched keypoints from current frame
-            mpts3D: 3D points corresponding to mkpts0
-            mconf: Confidence scores for matches
-            frame_idx: Frame index
-            rvec_o: Original rotation vector from PnP
-            rvec: Refined rotation vector
-            coverage_score: Score for spatial distribution of feature points
+    #     Args:
+    #         R: Rotation matrix from PnP
+    #         tvec: Translation vector from PnP
+    #         reprojection_errors: Array of reprojection errors for each point
+    #         mean_reprojection_error: Mean reprojection error
+    #         std_reprojection_error: Standard deviation of reprojection errors
+    #         inliers: Indices of inlier points
+    #         mkpts0: Matched keypoints from anchor
+    #         mkpts1: Matched keypoints from current frame
+    #         mpts3D: 3D points corresponding to mkpts0
+    #         mconf: Confidence scores for matches
+    #         frame_idx: Frame index
+    #         rvec_o: Original rotation vector from PnP
+    #         rvec: Refined rotation vector
+    #         coverage_score: Score for spatial distribution of feature points
 
-        Returns:
-            dict: Pose data including original and filtered poses
-        """
-        num_inliers = len(inliers)
-        inlier_ratio = num_inliers / len(mkpts0) if len(mkpts0) > 0 else 0
+    #     Returns:
+    #         dict: Pose data including original and filtered poses
+    #     """
+    #     num_inliers = len(inliers)
+    #     inlier_ratio = num_inliers / len(mkpts0) if len(mkpts0) > 0 else 0
 
-        # Thresholds for quality checks
-        reprojection_error_threshold = 4.0
-        max_translation_jump = 2.0
-        max_orientation_jump = 20.0  # degrees
-        min_inlier = 4
-        coverage_threshold = 0.3
+    #     # Thresholds for quality checks
+    #     reprojection_error_threshold = 4.0
+    #     max_translation_jump = 2.0
+    #     max_orientation_jump = 20.0  # degrees
+    #     min_inlier = 4
+    #     coverage_threshold = 0.3
 
-        if coverage_score is None:
-            logger.info("Coverage score not calculated, using default value")
-            coverage_score = 0.0
+    #     if coverage_score is None:
+    #         logger.info("Coverage score not calculated, using default value")
+    #         coverage_score = 0.0
 
-        # Convert measured rotation R -> quaternion
-        q_measured = rotation_matrix_to_quaternion(R)
+    #     # Convert measured rotation R -> quaternion
+    #     q_measured = rotation_matrix_to_quaternion(R)
 
-        # Check viewpoint if anchor_viewpoint information is available
-        anchor_q = None
-        if hasattr(self, "anchor_viewpoint_eulers"):
-            # Convert Euler angles to quaternion if needed
-            # This is just a placeholder - actual conversion would depend on your convention
-            anchor_q = np.array([0.0, 0.0, 0.0, 1.0])  # Identity quaternion placeholder
+    #     # Check viewpoint if anchor_viewpoint information is available
+    #     anchor_q = None
+    #     if hasattr(self, "anchor_viewpoint_eulers"):
+    #         # Convert Euler angles to quaternion if needed
+    #         # This is just a placeholder - actual conversion would depend on your convention
+    #         anchor_q = np.array([0.0, 0.0, 0.0, 1.0])  # Identity quaternion placeholder
             
-        viewpoint_max_diff_deg = 380.0  # Very permissive threshold
-        viewpoint_diff = 0.0
+    #     viewpoint_max_diff_deg = 380.0  # Very permissive threshold
+    #     viewpoint_diff = 0.0
 
-        def quaternion_angle_degrees(q1, q2):
-            """Calculate angle between two quaternions in degrees"""
-            q1 = normalize_quaternion(q1)
-            q2 = normalize_quaternion(q2)
-            dot = np.clip(np.dot(q1, q2), -1.0, 1.0)
-            angle = 2.0 * np.degrees(np.arccos(dot))
-            if angle > 180.0:
-                angle = 360.0 - angle
-            return angle
+    #     def quaternion_angle_degrees(q1, q2):
+    #         """Calculate angle between two quaternions in degrees"""
+    #         q1 = normalize_quaternion(q1)
+    #         q2 = normalize_quaternion(q2)
+    #         dot = np.clip(np.dot(q1, q2), -1.0, 1.0)
+    #         angle = 2.0 * np.degrees(np.arccos(dot))
+    #         if angle > 180.0:
+    #             angle = 360.0 - angle
+    #         return angle
 
-        if anchor_q is not None:
-            viewpoint_diff = quaternion_angle_degrees(q_measured, anchor_q)
+    #     if anchor_q is not None:
+    #         viewpoint_diff = quaternion_angle_degrees(q_measured, anchor_q)
 
-                # Initialize the MEKF if this is the first good frame
-        if not self.kf_initialized:
-            logger.info("Initializing MEKF with first pose")
-            # Initialize the MEKF with the measured pose
-            self.mekf = MultExtendedKalmanFilter(dt=1.0/30.0)  # Assuming 30 fps
+    #             # Initialize the MEKF if this is the first good frame
+    #     if not self.kf_initialized:
+    #         logger.info("Initializing MEKF with first pose")
+    #         # Initialize the MEKF with the measured pose
+    #         self.mekf = MultExtendedKalmanFilter(dt=1.0/30.0)  # Assuming 30 fps
             
-            # Set initial state
-            x_init = np.zeros(self.mekf.n_states)
-            x_init[0:3] = tvec.flatten()  # Position
-            x_init[6:10] = q_measured     # Quaternion
-            self.mekf.x = x_init
+    #         # Set initial state
+    #         x_init = np.zeros(self.mekf.n_states)
+    #         x_init[0:3] = tvec.flatten()  # Position
+    #         x_init[6:10] = q_measured     # Quaternion
+    #         self.mekf.x = x_init
             
-            # Store tracking information for future frames - validate indices first
-            if isinstance(inliers, np.ndarray):
-                inlier_indices = inliers.flatten()
-            else:
-                inlier_indices = np.array(inliers)
+    #         # Store tracking information for future frames - validate indices first
+    #         if isinstance(inliers, np.ndarray):
+    #             inlier_indices = inliers.flatten()
+    #         else:
+    #             inlier_indices = np.array(inliers)
                 
-            # Validate indices to prevent out-of-bounds errors
-            valid_indices = []
-            for idx in inlier_indices:
-                if 0 <= idx < len(mpts3D):
-                    valid_indices.append(idx)
+    #         # Validate indices to prevent out-of-bounds errors
+    #         valid_indices = []
+    #         for idx in inlier_indices:
+    #             if 0 <= idx < len(mpts3D):
+    #                 valid_indices.append(idx)
                     
-            # Convert to numpy array for indexing
-            if valid_indices:
-                valid_indices = np.array(valid_indices)
-                self.tracking_3D_points = mpts3D[valid_indices]
-                self.tracking_2D_points = mkpts1[valid_indices]
-            else:
-                # If no valid indices, use all points but log a warning
-                logger.warning("No valid inlier indices during initialization, using all points")
-                self.tracking_3D_points = mpts3D
-                self.tracking_2D_points = mkpts1
+    #         # Convert to numpy array for indexing
+    #         if valid_indices:
+    #             valid_indices = np.array(valid_indices)
+    #             self.tracking_3D_points = mpts3D[valid_indices]
+    #             self.tracking_2D_points = mkpts1[valid_indices]
+    #         else:
+    #             # If no valid indices, use all points but log a warning
+    #             logger.warning("No valid inlier indices during initialization, using all points")
+    #             self.tracking_3D_points = mpts3D
+    #             self.tracking_2D_points = mkpts1
             
-            self.kf_initialized = True
-            self.kf_pose_first_update = False
+    #         self.kf_initialized = True
+    #         self.kf_pose_first_update = False
             
-            # For initialization, use the measured pose directly
-            R_estimated = R
-            px, py, pz = tvec.flatten()
-            qx, qy, qz, qw = q_measured
-        else:
-            # MEKF is already initialized, perform normal update process
+    #         # For initialization, use the measured pose directly
+    #         R_estimated = R
+    #         px, py, pz = tvec.flatten()
+    #         qx, qy, qz, qw = q_measured
+    #     else:
+    #         # MEKF is already initialized, perform normal update process
             
-            # 1) Get prediction from MEKF
-            x_pred, P_pred = self.mekf.predict()
+    #         # 1) Get prediction from MEKF
+    #         x_pred, P_pred = self.mekf.predict()
             
-            # Parse predicted state for threshold checks
-            px_pred, py_pred, pz_pred = x_pred[0:3]
-            qx_pred, qy_pred, qz_pred, qw_pred = x_pred[6:10]
+    #         # Parse predicted state for threshold checks
+    #         px_pred, py_pred, pz_pred = x_pred[0:3]
+    #         qx_pred, qy_pred, qz_pred, qw_pred = x_pred[6:10]
             
-            # Calculate changes from prediction to measurement
-            pred_quat = np.array([qx_pred, qy_pred, qz_pred, qw_pred])
-            orientation_change = quaternion_angle_degrees(q_measured, pred_quat)
-            translation_change = np.linalg.norm(tvec.flatten() - x_pred[0:3])
+    #         # Calculate changes from prediction to measurement
+    #         pred_quat = np.array([qx_pred, qy_pred, qz_pred, qw_pred])
+    #         orientation_change = quaternion_angle_degrees(q_measured, pred_quat)
+    #         translation_change = np.linalg.norm(tvec.flatten() - x_pred[0:3])
             
-            # 2) Build measurement vector z = [px, py, pz, qx, qy, qz, qw]
-            tvec_flat = tvec.flatten()
-            z_meas = np.array([
-                tvec_flat[0], tvec_flat[1], tvec_flat[2],
-                q_measured[0], q_measured[1], q_measured[2], q_measured[3]
-            ], dtype=np.float64)
+    #         # 2) Build measurement vector z = [px, py, pz, qx, qy, qz, qw]
+    #         tvec_flat = tvec.flatten()
+    #         z_meas = np.array([
+    #             tvec_flat[0], tvec_flat[1], tvec_flat[2],
+    #             q_measured[0], q_measured[1], q_measured[2], q_measured[3]
+    #         ], dtype=np.float64)
             
-            # 3) Apply quality checks before updating
-            update_valid = True
+    #         # 3) Apply quality checks before updating
+    #         update_valid = True
             
-            if mean_reprojection_error >= reprojection_error_threshold:
-                logger.debug(f"Skipping update: high reprojection error {mean_reprojection_error:.2f} >= {reprojection_error_threshold:.2f}")
-                update_valid = False
+    #         if mean_reprojection_error >= reprojection_error_threshold:
+    #             logger.debug(f"Skipping update: high reprojection error {mean_reprojection_error:.2f} >= {reprojection_error_threshold:.2f}")
+    #             update_valid = False
             
-            if num_inliers <= min_inlier:
-                logger.debug(f"Skipping update: insufficient inliers {num_inliers} <= {min_inlier}")
-                update_valid = False
+    #         if num_inliers <= min_inlier:
+    #             logger.debug(f"Skipping update: insufficient inliers {num_inliers} <= {min_inlier}")
+    #             update_valid = False
                 
-            if translation_change >= max_translation_jump:
-                logger.debug(f"Skipping update: large translation jump {translation_change:.2f} >= {max_translation_jump:.2f}")
-                update_valid = False
+    #         if translation_change >= max_translation_jump:
+    #             logger.debug(f"Skipping update: large translation jump {translation_change:.2f} >= {max_translation_jump:.2f}")
+    #             update_valid = False
                 
-            if orientation_change >= max_orientation_jump:
-                logger.debug(f"Skipping update: large orientation jump {orientation_change:.2f} >= {max_orientation_jump:.2f}")
-                update_valid = False
+    #         if orientation_change >= max_orientation_jump:
+    #             logger.debug(f"Skipping update: large orientation jump {orientation_change:.2f} >= {max_orientation_jump:.2f}")
+    #             update_valid = False
                 
-            if coverage_score < coverage_threshold:
-                logger.debug(f"Skipping update: poor coverage score {coverage_score:.2f} < {coverage_threshold:.2f}")
-                update_valid = False
+    #         if coverage_score < coverage_threshold:
+    #             logger.debug(f"Skipping update: poor coverage score {coverage_score:.2f} < {coverage_threshold:.2f}")
+    #             update_valid = False
                 
-            if viewpoint_diff > viewpoint_max_diff_deg:
-                logger.debug(f"Skipping update: large viewpoint diff {viewpoint_diff:.2f} > {viewpoint_max_diff_deg:.2f}")
-                update_valid = False
+    #         if viewpoint_diff > viewpoint_max_diff_deg:
+    #             logger.debug(f"Skipping update: large viewpoint diff {viewpoint_diff:.2f} > {viewpoint_max_diff_deg:.2f}")
+    #             update_valid = False
             
-            # 4) Update MEKF if quality checks pass
-            if update_valid:
-                # For loosely-coupled update, we'd use:
-                # x_upd, P_upd = self.mekf.update(z_meas)
+    #         # 4) Update MEKF if quality checks pass
+    #         if update_valid:
+    #             # For loosely-coupled update, we'd use:
+    #             # x_upd, P_upd = self.mekf.update(z_meas)
                 
-                # But since we're using tightly-coupled update, we need to extract valid correspondences
-                K, distCoeffs = self._get_camera_intrinsics()
+    #             # But since we're using tightly-coupled update, we need to extract valid correspondences
+    #             K, distCoeffs = self._get_camera_intrinsics()
                 
-                try:
-                    # Validate inliers format and convert to usable indices
-                    if isinstance(inliers, np.ndarray):
-                        inlier_indices = inliers.flatten()
-                    elif isinstance(inliers, list):
-                        inlier_indices = np.array(inliers)
-                    else:
-                        logger.warning(f"Unexpected inliers type: {type(inliers)}")
-                        inlier_indices = np.array([], dtype=int)
+    #             try:
+    #                 # Validate inliers format and convert to usable indices
+    #                 if isinstance(inliers, np.ndarray):
+    #                     inlier_indices = inliers.flatten()
+    #                 elif isinstance(inliers, list):
+    #                     inlier_indices = np.array(inliers)
+    #                 else:
+    #                     logger.warning(f"Unexpected inliers type: {type(inliers)}")
+    #                     inlier_indices = np.array([], dtype=int)
                     
-                    # Make sure indices are within bounds
-                    valid_indices = []
-                    for idx in inlier_indices:
-                        if 0 <= idx < len(mpts3D) and 0 <= idx < len(mkpts1):
-                            valid_indices.append(idx)
-                        else:
-                            logger.warning(f"Index {idx} is out of bounds (mpts3D size: {len(mpts3D)}, mkpts1 size: {len(mkpts1)})")
+    #                 # Make sure indices are within bounds
+    #                 valid_indices = []
+    #                 for idx in inlier_indices:
+    #                     if 0 <= idx < len(mpts3D) and 0 <= idx < len(mkpts1):
+    #                         valid_indices.append(idx)
+    #                     else:
+    #                         logger.warning(f"Index {idx} is out of bounds (mpts3D size: {len(mpts3D)}, mkpts1 size: {len(mkpts1)})")
                     
-                    # Use only valid indices
-                    if not valid_indices:
-                        logger.warning("No valid indices found for tightly-coupled update")
-                        # Fall back to using prediction
-                        px, py, pz = px_pred, py_pred, pz_pred
-                        qx, qy, qz, qw = qx_pred, qy_pred, qz_pred, qw_pred
-                        R_estimated = quaternion_to_rotation_matrix([qx, qy, qz, qw])
-                        update_valid = False
-                    else:
-                        # Convert to numpy array for indexing
-                        valid_indices = np.array(valid_indices)
-                        model_points = mpts3D[valid_indices]
-                        image_points = mkpts1[valid_indices]
+    #                 # Use only valid indices
+    #                 if not valid_indices:
+    #                     logger.warning("No valid indices found for tightly-coupled update")
+    #                     # Fall back to using prediction
+    #                     px, py, pz = px_pred, py_pred, pz_pred
+    #                     qx, qy, qz, qw = qx_pred, qy_pred, qz_pred, qw_pred
+    #                     R_estimated = quaternion_to_rotation_matrix([qx, qy, qz, qw])
+    #                     update_valid = False
+    #                 else:
+    #                     # Convert to numpy array for indexing
+    #                     valid_indices = np.array(valid_indices)
+    #                     model_points = mpts3D[valid_indices]
+    #                     image_points = mkpts1[valid_indices]
                         
-                        # Ensure we have at least 3 points for tightly-coupled update
-                        if len(valid_indices) < 3:
-                            logger.warning(f"Not enough valid points for tightly-coupled update: {len(valid_indices)} < 3")
-                            # Fall back to using prediction
-                            px, py, pz = px_pred, py_pred, pz_pred
-                            qx, qy, qz, qw = qx_pred, qy_pred, qz_pred, qw_pred
-                            R_estimated = quaternion_to_rotation_matrix([qx, qy, qz, qw])
-                            update_valid = False
-                except Exception as e:
-                    logger.error(f"Error preparing data for tightly-coupled update: {e}")
-                    # Fall back to using prediction
-                    px, py, pz = px_pred, py_pred, pz_pred
-                    qx, qy, qz, qw = qx_pred, qy_pred, qz_pred, qw_pred
-                    R_estimated = quaternion_to_rotation_matrix([qx, qy, qz, qw])
-                    update_valid = False
+    #                     # Ensure we have at least 3 points for tightly-coupled update
+    #                     if len(valid_indices) < 3:
+    #                         logger.warning(f"Not enough valid points for tightly-coupled update: {len(valid_indices)} < 3")
+    #                         # Fall back to using prediction
+    #                         px, py, pz = px_pred, py_pred, pz_pred
+    #                         qx, qy, qz, qw = qx_pred, qy_pred, qz_pred, qw_pred
+    #                         R_estimated = quaternion_to_rotation_matrix([qx, qy, qz, qw])
+    #                         update_valid = False
+    #             except Exception as e:
+    #                 logger.error(f"Error preparing data for tightly-coupled update: {e}")
+    #                 # Fall back to using prediction
+    #                 px, py, pz = px_pred, py_pred, pz_pred
+    #                 qx, qy, qz, qw = qx_pred, qy_pred, qz_pred, qw_pred
+    #                 R_estimated = quaternion_to_rotation_matrix([qx, qy, qz, qw])
+    #                 update_valid = False
                 
-                # Only perform update if we still have valid data
-                if update_valid and len(model_points) >= 3:
-                    try:
-                        # Perform tightly-coupled update
-                        x_upd, P_upd = self.mekf.update_tightly_coupled(
-                            image_points, model_points, K, distCoeffs
-                        )
+    #             # Only perform update if we still have valid data
+    #             if update_valid and len(model_points) >= 3:
+    #                 try:
+    #                     # Perform tightly-coupled update
+    #                     x_upd, P_upd = self.mekf.update_tightly_coupled(
+    #                         image_points, model_points, K, distCoeffs
+    #                     )
                         
-                        # Update tracking points for next frame
-                        if len(model_points) > 0 and len(image_points) > 0:
-                            self.tracking_3D_points = model_points
-                            self.tracking_2D_points = image_points
-                        else:
-                            logger.warning("Empty model or image points after update, keeping previous tracking points")
+    #                     # Update tracking points for next frame
+    #                     if len(model_points) > 0 and len(image_points) > 0:
+    #                         self.tracking_3D_points = model_points
+    #                         self.tracking_2D_points = image_points
+    #                     else:
+    #                         logger.warning("Empty model or image points after update, keeping previous tracking points")
                         
-                        # Extract updated pose
-                        px, py, pz = x_upd[0:3]
-                        qx, qy, qz, qw = x_upd[6:10]
-                        R_estimated = quaternion_to_rotation_matrix([qx, qy, qz, qw])
+    #                     # Extract updated pose
+    #                     px, py, pz = x_upd[0:3]
+    #                     qx, qy, qz, qw = x_upd[6:10]
+    #                     R_estimated = quaternion_to_rotation_matrix([qx, qy, qz, qw])
                         
-                        logger.debug("MEKF update applied successfully")
-                    except Exception as e:
-                        logger.error(f"Error in tightly-coupled update: {e}")
-                        # Fall back to using prediction
-                        px, py, pz = px_pred, py_pred, pz_pred
-                        qx, qy, qz, qw = qx_pred, qy_pred, qz_pred, qw_pred
-                        R_estimated = quaternion_to_rotation_matrix([qx, qy, qz, qw])
-                else:
-                    logger.debug("Skipping MEKF update due to validation failure")
-            else:
-                # Use prediction when update is invalid
-                logger.debug("Using predicted state due to failed quality checks")
-                px, py, pz = px_pred, py_pred, pz_pred
-                qx, qy, qz, qw = qx_pred, qy_pred, qz_pred, qw_pred
-                R_estimated = quaternion_to_rotation_matrix([qx, qy, qz, qw])
+    #                     logger.debug("MEKF update applied successfully")
+    #                 except Exception as e:
+    #                     logger.error(f"Error in tightly-coupled update: {e}")
+    #                     # Fall back to using prediction
+    #                     px, py, pz = px_pred, py_pred, pz_pred
+    #                     qx, qy, qz, qw = qx_pred, qy_pred, qz_pred, qw_pred
+    #                     R_estimated = quaternion_to_rotation_matrix([qx, qy, qz, qw])
+    #             else:
+    #                 logger.debug("Skipping MEKF update due to validation failure")
+    #         else:
+    #             # Use prediction when update is invalid
+    #             logger.debug("Using predicted state due to failed quality checks")
+    #             px, py, pz = px_pred, py_pred, pz_pred
+    #             qx, qy, qz, qw = qx_pred, qy_pred, qz_pred, qw_pred
+    #             R_estimated = quaternion_to_rotation_matrix([qx, qy, qz, qw])
 
-        # Build final pose_data dictionary
-        pose_data = {
-            'frame': frame_idx,
-            'object_rotation_in_cam': R.tolist(),
-            'object_translation_in_cam': tvec.flatten().tolist(),
-            'raw_rvec': rvec_o.flatten().tolist(),
-            'refined_raw_rvec': rvec.flatten().tolist(),
-            'num_inliers': num_inliers,
-            'total_matches': len(mkpts0),
-            'inlier_ratio': inlier_ratio,
-            'reprojection_errors': reprojection_errors.tolist(),
-            'mean_reprojection_error': float(mean_reprojection_error),
-            'std_reprojection_error': float(std_reprojection_error),
-            'inliers': inliers.flatten().tolist(),
-            'mkpts0': mkpts0.tolist(),
-            'mkpts1': mkpts1.tolist(),
-            'mpts3D': mpts3D.tolist(),
-            'mconf': mconf.tolist(),
+    #     # Build final pose_data dictionary
+    #     pose_data = {
+    #         'frame': frame_idx,
+    #         'object_rotation_in_cam': R.tolist(),
+    #         'object_translation_in_cam': tvec.flatten().tolist(),
+    #         'raw_rvec': rvec_o.flatten().tolist(),
+    #         'refined_raw_rvec': rvec.flatten().tolist(),
+    #         'num_inliers': num_inliers,
+    #         'total_matches': len(mkpts0),
+    #         'inlier_ratio': inlier_ratio,
+    #         'reprojection_errors': reprojection_errors.tolist(),
+    #         'mean_reprojection_error': float(mean_reprojection_error),
+    #         'std_reprojection_error': float(std_reprojection_error),
+    #         'inliers': inliers.flatten().tolist(),
+    #         'mkpts0': mkpts0.tolist(),
+    #         'mkpts1': mkpts1.tolist(),
+    #         'mpts3D': mpts3D.tolist(),
+    #         'mconf': mconf.tolist(),
 
-            # Filtered results from updated state:
-            'kf_translation_vector': [px, py, pz],
-            'kf_quaternion': [qx, qy, qz, qw],
-            'kf_rotation_matrix': R_estimated.tolist(),
+    #         # Filtered results from updated state:
+    #         'kf_translation_vector': [px, py, pz],
+    #         'kf_quaternion': [qx, qy, qz, qw],
+    #         'kf_rotation_matrix': R_estimated.tolist(),
 
-            # Additional coverage / viewpoint metrics
-            'coverage_score': coverage_score,
-            'viewpoint_diff_deg': viewpoint_diff
-        }
+    #         # Additional coverage / viewpoint metrics
+    #         'coverage_score': coverage_score,
+    #         'viewpoint_diff_deg': viewpoint_diff
+    #     }
         
-        return pose_data
+    #     return pose_data
 
 
     
@@ -1289,6 +1323,8 @@ class PoseEstimator:
             else:
                 R = np.array(pose_data['object_rotation_in_cam'])
                 tvec = np.array(pose_data['object_translation_in_cam']).reshape(3, 1)
+                print("PNP&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n")
+                
             
             # Convert to rotation vector for axis visualization
             rvec, _ = cv2.Rodrigues(R)
@@ -1396,13 +1432,31 @@ class PoseEstimator:
 
 
     def _get_camera_intrinsics(self):
-        # Camera calibration parameters
-        focal_length_x = 1430.10150
-        focal_length_y = 1430.48915
-        cx = 640.85462
-        cy = 480.64800
+        
+        # # Camera calibration parameters - DEFAULT
+        # focal_length_x = 1430.10150
+        # focal_length_y = 1430.48915
+        # cx = 640.85462
+        # cy = 480.64800
 
-        distCoeffs = np.array([0.3393, 2.0351, 0.0295, -0.0029, -10.9093], dtype=np.float32)
+        # distCoeffs = np.array([0.3393, 2.0351, 0.0295, -0.0029, -10.9093], dtype=np.float32)
+
+
+        # Calib_webcam ICUAS LAB 20250124
+        focal_length_x = 1460.10150  # fx from the calibrated camera matrix
+        focal_length_y = 1456.48915  # fy from the calibrated camera matrix
+        cx = 604.85462               # cx from the calibrated camera matrix
+        cy = 328.64800               # cy from the calibrated camera matrix
+
+        distCoeffs = np.array(
+            [3.56447550e-01, -1.09206851e+01, 1.40564820e-03, -1.10856449e-02, 1.20471120e+02],
+            dtype=np.float32
+        )
+
+        # distCoeffs = None
+
+
+
 
         K = np.array([
             [focal_length_x, 0, cx],
@@ -1505,131 +1559,131 @@ class PoseEstimator:
         # If no additional correspondences or refinement failed, return original pose
         return (rvec, tvec), mpts3D, mkpts1, None
     
-    # Update estimate_pose to use the fixed visualization function
-    def estimate_pose(self, mkpts0, mkpts1, mpts3D, mconf, frame, frame_idx, frame_keypoints):
-        logger.debug(f"Estimating pose for frame {frame_idx}")
-        K, distCoeffs = self._get_camera_intrinsics()
+    # # Update estimate_pose to use the fixed visualization function
+    # def estimate_pose(self, mkpts0, mkpts1, mpts3D, mconf, frame, frame_idx, frame_keypoints):
+    #     logger.debug(f"Estimating pose for frame {frame_idx}")
+    #     K, distCoeffs = self._get_camera_intrinsics()
 
-        objectPoints = mpts3D.reshape(-1, 1, 3)
-        imagePoints = mkpts1.reshape(-1, 1, 2).astype(np.float32)
+    #     objectPoints = mpts3D.reshape(-1, 1, 3)
+    #     imagePoints = mkpts1.reshape(-1, 1, 2).astype(np.float32)
 
-        # Solve initial PnP
-        success, rvec_o, tvec_o, inliers = cv2.solvePnPRansac(
-            objectPoints=objectPoints,
-            imagePoints=imagePoints,
-            cameraMatrix=K,
-            distCoeffs=distCoeffs,
-            reprojectionError=4,
-            confidence=0.99,
-            iterationsCount=1500,
-            flags=cv2.SOLVEPNP_EPNP
-        )
+    #     # Solve initial PnP
+    #     success, rvec_o, tvec_o, inliers = cv2.solvePnPRansac(
+    #         objectPoints=objectPoints,
+    #         imagePoints=imagePoints,
+    #         cameraMatrix=K,
+    #         distCoeffs=distCoeffs,
+    #         reprojectionError=4,
+    #         confidence=0.99,
+    #         iterationsCount=1500,
+    #         flags=cv2.SOLVEPNP_EPNP
+    #     )
 
-        if not success or inliers is None or len(inliers) < 6:
-            logger.warning("PnP pose estimation failed or not enough inliers.")
-            return None, frame
+    #     if not success or inliers is None or len(inliers) < 6:
+    #         logger.warning("PnP pose estimation failed or not enough inliers.")
+    #         return None, frame
 
-        # Enhance the initial pose by finding additional correspondences
-        (rvec, tvec), enhanced_3d, enhanced_2d, enhanced_inliers = self.enhance_pose_initialization(
-            (rvec_o, tvec_o), mkpts0, mkpts1, mpts3D, frame
-        )
+    #     # Enhance the initial pose by finding additional correspondences
+    #     (rvec, tvec), enhanced_3d, enhanced_2d, enhanced_inliers = self.enhance_pose_initialization(
+    #         (rvec_o, tvec_o), mkpts0, mkpts1, mpts3D, frame
+    #     )
 
-        # If enhancement failed, use the original results
-        if enhanced_inliers is None:
-            # Use the original results
-            objectPoints_inliers = objectPoints[inliers.flatten()]
-            imagePoints_inliers = imagePoints[inliers.flatten()]
+    #     # If enhancement failed, use the original results
+    #     if enhanced_inliers is None:
+    #         # Use the original results
+    #         objectPoints_inliers = objectPoints[inliers.flatten()]
+    #         imagePoints_inliers = imagePoints[inliers.flatten()]
             
-            # Refine with VVS
-            rvec, tvec = cv2.solvePnPRefineVVS(
-                objectPoints=objectPoints_inliers,
-                imagePoints=imagePoints_inliers,
-                cameraMatrix=K,
-                distCoeffs=distCoeffs,
-                rvec=rvec_o,
-                tvec=tvec_o
-            )
-        else:
-            # Use the enhanced results
-            objectPoints_inliers = enhanced_3d[enhanced_inliers.flatten()]
-            imagePoints_inliers = enhanced_2d[enhanced_inliers.flatten()]
-            inliers = enhanced_inliers
+    #         # Refine with VVS
+    #         rvec, tvec = cv2.solvePnPRefineVVS(
+    #             objectPoints=objectPoints_inliers,
+    #             imagePoints=imagePoints_inliers,
+    #             cameraMatrix=K,
+    #             distCoeffs=distCoeffs,
+    #             rvec=rvec_o,
+    #             tvec=tvec_o
+    #         )
+    #     else:
+    #         # Use the enhanced results
+    #         objectPoints_inliers = enhanced_3d[enhanced_inliers.flatten()]
+    #         imagePoints_inliers = enhanced_2d[enhanced_inliers.flatten()]
+    #         inliers = enhanced_inliers
 
-        # Convert to rotation matrix
-        R, _ = cv2.Rodrigues(rvec)
+    #     # Convert to rotation matrix
+    #     R, _ = cv2.Rodrigues(rvec)
 
-        # Initialize region counters
-        regions = {"front-right": 0, "front-left": 0, "back-right": 0, "back-left": 0}
+    #     # Initialize region counters
+    #     regions = {"front-right": 0, "front-left": 0, "back-right": 0, "back-left": 0}
 
-        # Classify points into regions
-        for point in objectPoints_inliers[:, 0]:
-            if point[0] < 0 and point[2] > 0:  # Front-Right
-                regions["front-right"] += 1
-            elif point[0] < 0 and point[2] < 0:  # Front-Left
-                regions["front-left"] += 1
-            elif point[0] > 0 and point[2] > 0:  # Back-Right
-                regions["back-right"] += 1
-            elif point[0] > 0 and point[2] < 0:  # Back-Left
-                regions["back-left"] += 1
+    #     # Classify points into regions
+    #     for point in objectPoints_inliers[:, 0]:
+    #         if point[0] < 0 and point[2] > 0:  # Front-Right
+    #             regions["front-right"] += 1
+    #         elif point[0] < 0 and point[2] < 0:  # Front-Left
+    #             regions["front-left"] += 1
+    #         elif point[0] > 0 and point[2] > 0:  # Back-Right
+    #             regions["back-right"] += 1
+    #         elif point[0] > 0 and point[2] < 0:  # Back-Left
+    #             regions["back-left"] += 1
 
-        # Calculate coverage score
-        total_points = sum(regions.values())
-        if total_points > 0:
-            valid_conf = mconf[inliers.flatten()] if len(inliers) > 0 else []
+    #     # Calculate coverage score
+    #     total_points = sum(regions.values())
+    #     if total_points > 0:
+    #         valid_conf = mconf[inliers.flatten()] if len(inliers) > 0 else []
             
-            if len(valid_conf) == 0 or np.isnan(valid_conf).any():
-                coverage_score = 0
-            else:
-                # Calculate entropy term
-                entropy_sum = 0
-                for count in regions.values():
-                    if count > 0:
-                        proportion = count / total_points
-                        entropy_sum += proportion * np.log(proportion)
+    #         if len(valid_conf) == 0 or np.isnan(valid_conf).any():
+    #             coverage_score = 0
+    #         else:
+    #             # Calculate entropy term
+    #             entropy_sum = 0
+    #             for count in regions.values():
+    #                 if count > 0:
+    #                     proportion = count / total_points
+    #                     entropy_sum += proportion * np.log(proportion)
                 
-                # Normalize by log(4) as specified in the paper
-                normalized_entropy = -entropy_sum / np.log(4)
+    #             # Normalize by log(4) as specified in the paper
+    #             normalized_entropy = -entropy_sum / np.log(4)
                 
-                # Calculate mean confidence
-                mean_confidence = 1
+    #             # Calculate mean confidence
+    #             mean_confidence = 1
                 
-                # Final coverage score
-                coverage_score = normalized_entropy * mean_confidence
+    #             # Final coverage score
+    #             coverage_score = normalized_entropy * mean_confidence
                 
-                # Ensure score is in valid range [0,1]
-                coverage_score = np.clip(coverage_score, 0, 1)
-                print('Coverage score:', coverage_score)
-        else:
-            coverage_score = 0
+    #             # Ensure score is in valid range [0,1]
+    #             coverage_score = np.clip(coverage_score, 0, 1)
+    #             print('Coverage score:', coverage_score)
+    #     else:
+    #         coverage_score = 0
 
-        # Compute reprojection errors
-        projected_points, _ = cv2.projectPoints(
-            objectPoints_inliers, rvec, tvec, K, distCoeffs
-        )
-        reprojection_errors = np.linalg.norm(imagePoints_inliers - projected_points, axis=2).flatten()
-        mean_reprojection_error = np.mean(reprojection_errors)
-        std_reprojection_error = np.std(reprojection_errors)
+    #     # Compute reprojection errors
+    #     projected_points, _ = cv2.projectPoints(
+    #         objectPoints_inliers, rvec, tvec, K, distCoeffs
+    #     )
+    #     reprojection_errors = np.linalg.norm(imagePoints_inliers - projected_points, axis=2).flatten()
+    #     mean_reprojection_error = np.mean(reprojection_errors)
+    #     std_reprojection_error = np.std(reprojection_errors)
 
-        # Update Kalman filter
-        pose_data = self._kalman_filter_update(
-            R, tvec, reprojection_errors, mean_reprojection_error,
-            std_reprojection_error, inliers, 
-            enhanced_3d if enhanced_inliers is not None else mkpts0, 
-            enhanced_2d if enhanced_inliers is not None else mkpts1, 
-            objectPoints_inliers.reshape(-1, 3),
-            mconf, frame_idx, rvec_o, rvec, coverage_score=coverage_score
-        )
+    #     # Update Kalman filter
+    #     pose_data = self._kalman_filter_update(
+    #         R, tvec, reprojection_errors, mean_reprojection_error,
+    #         std_reprojection_error, inliers, 
+    #         enhanced_3d if enhanced_inliers is not None else mkpts0, 
+    #         enhanced_2d if enhanced_inliers is not None else mkpts1, 
+    #         objectPoints_inliers.reshape(-1, 3),
+    #         mconf, frame_idx, rvec_o, rvec, coverage_score=coverage_score
+    #     )
 
-        # Store the inlier 3D points for tracking
-        self.tracking_3D_points = objectPoints_inliers.reshape(-1, 3)
-        self.tracking_2D_points = imagePoints_inliers.reshape(-1, 2)
+    #     # Store the inlier 3D points for tracking
+    #     self.tracking_3D_points = objectPoints_inliers.reshape(-1, 3)
+    #     self.tracking_2D_points = imagePoints_inliers.reshape(-1, 2)
 
-        # Use the updated visualization function with additional info
-        visualization = self._visualize_tracking(
-            frame, inliers, pose_data, frame_idx, (mkpts0, mkpts1, mconf, frame_keypoints)
-        )
+    #     # Use the updated visualization function with additional info
+    #     visualization = self._visualize_tracking(
+    #         frame, inliers, pose_data, frame_idx, (mkpts0, mkpts1, mconf, frame_keypoints)
+    #     )
         
-        return pose_data, visualization
+    #     return pose_data, visualization
     
     def perform_pnp_estimation(self, frame, frame_idx, frame_feats, frame_keypoints):
         """
@@ -1820,9 +1874,13 @@ class PoseEstimator:
         }
         
         # Also set KF values to the raw PnP results (will be updated if KF is used)
-        pose_data['kf_translation_vector'] = tvec.flatten().tolist()
-        pose_data['kf_quaternion'] = rotation_matrix_to_quaternion(R).tolist()
-        pose_data['kf_rotation_matrix'] = R.tolist()
+        #pose_data['kf_translation_vector'] = tvec.flatten().tolist()
+        #pose_data['kf_quaternion'] = rotation_matrix_to_quaternion(R).tolist()
+        #ose_data['kf_rotation_matrix'] = R.tolist()
+
+        #pose_data['kf_translation_vector'] = None
+        #pose_data['kf_quaternion'] = None
+        #pose_data['kf_rotation_matrix'] = None
         
         # Create visualization
         visualization = self._visualize_tracking(

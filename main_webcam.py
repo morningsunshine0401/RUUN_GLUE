@@ -8,8 +8,9 @@ import json
 import numpy as np
 from datetime import datetime
 from threaded_pose_estimator import ThreadedPoseEstimator
+from utils import create_unique_filename  # Import the same utility used in main_thread.py
 
-# Configure logging
+# Configure logging (same as your existing code)
 logging.basicConfig(
     #level=logging.DEBUG,
     level=logging.WARNING,
@@ -106,8 +107,11 @@ class WebcamPoseEstimator:
         # Queue to store results that haven't been displayed yet
         self.pending_results = []
         
+        # List to store all pose data for consolidated JSON output
+        self.all_poses = []
+        
         # Create output directories for JSON files
-        if args.save_pose_data:
+        if args.save_pose_data or args.save_consolidated_json:
             self.results_dir = os.path.join(args.output_dir, 'results')
             os.makedirs(self.results_dir, exist_ok=True)
             logger.info(f"Created output directory for pose data: {self.results_dir}")
@@ -115,6 +119,22 @@ class WebcamPoseEstimator:
             # Create session timestamp
             self.session_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             logger.info(f"Session timestamp: {self.session_timestamp}")
+            
+        # Prepare consolidated JSON filename
+        if args.save_consolidated_json:
+            if os.path.isdir(args.consolidated_json_filename):
+                base_filename = 'pose_estimation.json'
+                self.consolidated_json_path = create_unique_filename(args.consolidated_json_filename, base_filename)
+            else:
+                save_dir = os.path.dirname(args.consolidated_json_filename)
+                if save_dir and not os.path.exists(save_dir):
+                    os.makedirs(save_dir, exist_ok=True)
+                base_filename = os.path.basename(args.consolidated_json_filename)
+                if not save_dir:  # If no directory specified, use results_dir
+                    save_dir = self.results_dir
+                self.consolidated_json_path = create_unique_filename(save_dir, base_filename)
+            
+            logger.info(f"Will save consolidated pose data to: {self.consolidated_json_path}")
     
     def run(self):
         """Main loop for capturing frames and processing results"""
@@ -221,7 +241,7 @@ class WebcamPoseEstimator:
             self.pending_results = []
             
             # Process this result
-            self.display_result(pose_data, visualization, frame_idx)
+            self.display_result(pose_data, visualization, frame_idx, frame_t, img_name)
             
             # No longer waiting for first result
             self.waiting_for_first_result = False
@@ -237,7 +257,7 @@ class WebcamPoseEstimator:
             # Display the waiting frame
             cv2.imshow('Pose Estimation', blank)
     
-    def display_result(self, pose_data, visualization, frame_idx):
+    def display_result(self, pose_data, visualization, frame_idx, frame_t, img_name):
         """Display pose estimation result"""
         # Check if we have visualization
         if visualization is None:
@@ -307,14 +327,25 @@ class WebcamPoseEstimator:
                         (display.shape[1] - 300, display.shape[0] - 10), 
                         cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
         
-        # # Show the visualization
-        # cv2.imshow('Pose Estimation', display)
-        # Only update display every 5 frames to reduce overhead
+        # Only update display every frame to reduce overhead
         if self.frame_count % 1 == 0:
             cv2.imshow('Pose Estimation', display)
             cv2.waitKey(1)
         
-        # Save pose data as JSON
+        # Store pose data for consolidated JSON output if available
+        if pose_data and hasattr(self.args, 'save_consolidated_json') and self.args.save_consolidated_json:
+            # Create a copy of pose_data that is fully serializable
+            json_data = self._prepare_pose_data_for_json(pose_data)
+            
+            # Add frame metadata to the pose data
+            json_data['frame_idx'] = frame_idx
+            json_data['timestamp'] = frame_t
+            json_data['image_name'] = img_name
+            
+            # Add to the list of all poses
+            self.all_poses.append(json_data)
+        
+        # Save individual pose data as JSON
         if hasattr(self.args, 'save_pose_data') and self.args.save_pose_data and pose_data:
             json_filename = os.path.join(
                 self.results_dir, 
@@ -349,10 +380,23 @@ class WebcamPoseEstimator:
                 json_data[key] = value
                 
         return json_data
+
+    def save_consolidated_json(self):
+        """Save all pose data as a single consolidated JSON file"""
+        if hasattr(self.args, 'save_consolidated_json') and self.args.save_consolidated_json and self.all_poses:
+            logger.info(f"Saving consolidated pose data to {self.consolidated_json_path}")
+            
+            with open(self.consolidated_json_path, 'w') as f:
+                json.dump(self.all_poses, f, indent=2)
+            
+            logger.info(f"Saved {len(self.all_poses)} pose entries to {self.consolidated_json_path}")
     
     def cleanup(self):
         """Clean up resources"""
         logger.info("Cleaning up resources")
+        
+        # Save consolidated JSON before cleaning up other resources
+        self.save_consolidated_json()
         
         # Release webcam
         if hasattr(self, 'cap') and self.cap.isOpened():
@@ -412,7 +456,11 @@ def parse_args():
     parser.add_argument('--save_frames', action='store_true',
                         help='Save output frames to disk')
     parser.add_argument('--save_pose_data', action='store_true',
-                        help='Save pose data as JSON files')
+                        help='Save individual pose data as JSON files')
+    parser.add_argument('--save_consolidated_json', action='store_true',
+                        help='Save all pose data as a single consolidated JSON file')
+    parser.add_argument('--consolidated_json_filename', type=str, default='pose_estimation.json',
+                        help='Filename for consolidated JSON output (default: pose_estimation.json)')
     
     # Add under "Performance settings":
     parser.add_argument('--dual_resolution', action='store_true',
@@ -431,6 +479,10 @@ if __name__ == "__main__":
     # Parse command line arguments
     args = parse_args()
     
+    # Create output directory if it doesn't exist
+    if not os.path.exists(args.output_dir):
+        os.makedirs(args.output_dir, exist_ok=True)
+    
     # Create and run the webcam pose estimator
     try:
         estimator = WebcamPoseEstimator(args)
@@ -439,7 +491,6 @@ if __name__ == "__main__":
         logger.error(f"Error: {e}")
         import traceback
         logger.error(traceback.format_exc())
-
 
 # import cv2
 # import time

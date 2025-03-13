@@ -52,7 +52,7 @@ class PoseEstimator:
         logger.info(f"Loaded and resized anchor image from {opt.anchor}")
 
         # Initialize SuperPoint and LightGlue models
-        self.extractor = SuperPoint(max_num_keypoints=2048).eval().to(device)
+        self.extractor = SuperPoint(max_num_keypoints=1024).eval().to(device)
         self.matcher = LightGlue(features="superpoint").eval().to(device)
         logger.info("Initialized SuperPoint and LightGlue models")
 
