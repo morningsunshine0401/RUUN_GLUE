@@ -27,7 +27,8 @@ import csv
 
 # Configure logging
 logging.basicConfig(
-    level=logging.DEBUG,  # Use DEBUG for detailed logs
+    #level=logging.DEBUG,  # Use DEBUG for detailed logs
+    level=logging.WARNING,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
         logging.FileHandler("main_separate.log"),
@@ -344,6 +345,7 @@ if __name__ == '__main__':
             frame_count += 1
             end_time = time.time()
             logger.info(f"Frame {result_idx} processed in {end_time - start_time:.3f}s.")
+            logger.warning(f"Frame {result_idx} processed in {end_time - start_time:.3f}s.")
         
         except KeyboardInterrupt:
             logger.info("Keyboard interrupt detected. Exiting...")
@@ -369,6 +371,10 @@ if __name__ == '__main__':
     if frame_count > 0 and total_elapsed_time > 0:
         total_fps = frame_count / total_elapsed_time
         logger.info(
+            f"Processed {frame_count} frames in {total_elapsed_time:.2f}s "
+            f"(Total FPS: {total_fps:.2f})"
+        )
+        logger.warning(
             f"Processed {frame_count} frames in {total_elapsed_time:.2f}s "
             f"(Total FPS: {total_fps:.2f})"
         )

@@ -14,7 +14,8 @@ torch.autograd.set_grad_enabled(False)
 
 # Configure logging
 logging.basicConfig(
-    level=logging.DEBUG,
+    #level=logging.DEBUG,
+    level=logging.WARNING,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
         logging.FileHandler("threaded_pose_estimator.log"),
@@ -38,23 +39,49 @@ class ThreadedPoseEstimator:
         self.pose_estimator = PoseEstimator(opt, device)
         
         # Add threading components
-        self.frame_queue = queue.Queue(maxsize=10)
+
+        ## DEFAULT
+        #self.frame_queue = queue.Queue(maxsize=10)
+        self.frame_queue = queue.Queue(maxsize=50)
+
+
+        ## MORE THREADS?
+        #self.frame_queue = queue.Queue(maxsize=30)
+        
+        
         self.result_queue = queue.Queue()
         self.running = True
         self.worker_thread = None
         
-        # Start worker thread
+        ## Start worker thread
+        
+        #DEFAULT
         self.start_worker()
+
+        # MORE THREADS ? 
+        # self.start_workers(num_workers=4)
         
         # Register cleanup
         atexit.register(self.cleanup)
     
+    # DEFAULT
     def start_worker(self):
         """Start the worker thread for processing frames"""
         self.worker_thread = threading.Thread(target=self._process_frames_worker)
         self.worker_thread.daemon = True
         self.worker_thread.start()
         logger.info("Started pose estimation worker thread")
+    
+    # # MORE THREADS?
+    # def start_workers(self, num_workers=4):
+    #     self.worker_threads = []
+    #     for i in range(num_workers):
+    #         t = threading.Thread(target=self._process_frames_worker)
+    #         t.daemon = True
+    #         t.start()
+    #         self.worker_threads.append(t)
+    #     logger.info(f"Started {num_workers} pose estimation worker threads")
+
     
     def _process_frames_worker(self):
         """Worker function that processes frames from the queue"""
@@ -232,24 +259,42 @@ class ThreadedPoseEstimator:
                     
             return False
 
-    def get_result(self, timeout=5.0):
-        """Get a result from the result queue with timeout"""
-        try:
-            # Check if there are any results before waiting
-            if self.result_queue.empty():
-                logger.info(f"Result queue is empty, waiting up to {timeout}s for results...")
+    # def get_result(self, timeout=5.0):
+    #     """Get a result from the result queue with timeout"""
+    #     try:
+    #         # Check if there are any results before waiting
+    #         if self.result_queue.empty():
+    #             logger.info(f"Result queue is empty, waiting up to {timeout}s for results...")
             
+    #         start_time = time.time()
+    #         result = self.result_queue.get(timeout=timeout)
+    #         elapsed = time.time() - start_time
+            
+    #         if elapsed > 1.0:  # Only log if waiting took more than 1 second
+    #             logger.info(f"Got result after waiting {elapsed:.2f}s")
+                
+    #         return result
+    #     except queue.Empty:
+    #         logger.warning(f"Timeout waiting for processing result (timeout={timeout}s)")
+    #         return None, None, -1, 0, ""
+    
+    def get_result(self, timeout=5.0):
+        try:
+            if self.result_queue.empty():
+                # Optionally comment out this info log if it's not needed frequently
+                # logger.info(f"Result queue is empty, waiting up to {timeout}s for results...")
+                pass
             start_time = time.time()
             result = self.result_queue.get(timeout=timeout)
             elapsed = time.time() - start_time
-            
             if elapsed > 1.0:  # Only log if waiting took more than 1 second
                 logger.info(f"Got result after waiting {elapsed:.2f}s")
-                
             return result
         except queue.Empty:
-            logger.warning(f"Timeout waiting for processing result (timeout={timeout}s)")
+            # Optionally reduce the logging level here if desired
+            # logger.warning(f"Timeout waiting for processing result (timeout={timeout}s)")
             return None, None, -1, 0, ""
+
     
     def cleanup(self):
         """Clean up resources and stop worker thread"""
