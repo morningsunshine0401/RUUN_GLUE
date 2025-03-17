@@ -33,7 +33,16 @@ class ThreadedPoseEstimator:
         #from pose_estimator_thread import PoseEstimator
         
         #Tightly coupled
-        from pose_estimator_thread_tight import PoseEstimator
+        #from pose_estimator_thread_tight import PoseEstimator
+
+        #Tightly coupled 2
+        from pose_estimator_thread_tight2 import PoseEstimator
+
+        #loosly coupled 
+        from pose_estimator_thread_loose import PoseEstimator
+
+
+        ################################################################
         
         # Initialize the pose estimator
         self.pose_estimator = PoseEstimator(opt, device)
@@ -41,8 +50,8 @@ class ThreadedPoseEstimator:
         # Add threading components
 
         ## DEFAULT
-        #self.frame_queue = queue.Queue(maxsize=10)
         self.frame_queue = queue.Queue(maxsize=50)
+        #self.frame_queue = queue.Queue(maxsize=50)
 
 
         ## MORE THREADS?
@@ -158,9 +167,12 @@ class ThreadedPoseEstimator:
                 # Unpack frame data
                 frame, frame_idx, frame_t, img_name = item
                 
-                # Process the frame using the pose estimator
+                ## Process the frame using the pose estimator
+
                 pose_data, visualization = self.pose_estimator.process_frame(frame, frame_idx)
-                
+                # 20250317 trying to fix!!!
+                #pose_data, visualization = self.pose_estimator.process_frame_safely(frame, frame_idx)
+
                 # Add timestamp and filename to pose data
                 if pose_data:
                     pose_data['timestamp'] = frame_t

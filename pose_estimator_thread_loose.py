@@ -330,9 +330,8 @@ class PoseEstimator:
     def process_frame(self, frame, frame_idx):
         """
         Process a frame to estimate the pose
-        - First frame: Use SuperPoint+LightGlue+PnP for initialization with anchor
-        - Subsequent frames: Use frame-to-frame tracking with tightly-coupled MEKF
-        - When tracking fails: Reinitialize using anchor-based matching
+        - Always match against the anchor image, never use frame-to-frame tracking
+        - Uses PnP estimation followed by KF update (loosely-coupled)
         """
         logger.info(f"Processing frame {frame_idx}")
         start_time = time.time()
@@ -349,216 +348,17 @@ class PoseEstimator:
         # Get keypoints from current frame
         frame_keypoints = frame_feats["keypoints"][0].detach().cpu().numpy()
 
-        # CASE 1: First frame - always use PnP with anchor
-        if frame_idx == 1 or not self.kf_initialized:
-            logger.info(f"Frame {frame_idx}: INITIALIZATION MODE - Using PnP with anchor")
-            
-            # Perform pure PnP estimation (without Kalman filtering)
-            pnp_pose_data, visualization, mkpts0, mkpts1, mpts3D = self.perform_pnp_estimation(
-                frame, frame_idx, frame_feats, frame_keypoints
-            )
-            
-            if pnp_pose_data is None:
-                # PnP failed
-                logger.warning(f"PnP initialization failed for frame {frame_idx}")
-                return {
-                    'frame': frame_idx,
-                    'pose_estimation_failed': True,
-                    'tracking_method': 'pnp'
-                }, frame
-            
-            # Check if pose is good enough for future tracking (use reprojection error threshold)
-            if pnp_pose_data['mean_reprojection_error'] < 2: #3.0:
-                # Good PnP pose - initialize MEKF with this pose
-                self.kf_initialized = True
-                
-                # Extract translation and quaternion from PnP result
-                tvec = np.array(pnp_pose_data['object_translation_in_cam'])
-                R = np.array(pnp_pose_data['object_rotation_in_cam'])
-                q = rotation_matrix_to_quaternion(R)
-                
-                # Create MEKF instance
-                self.mekf = MultExtendedKalmanFilter(dt=1.0/30.0)  # Assuming 30 fps
-                
-                # Set initial state
-                x_init = np.zeros(self.mekf.n_states)
-                x_init[0:3] = tvec  # Position
-                x_init[6:10] = q    # Quaternion
-                self.mekf.x = x_init
-                
-                # Store tracking information - use inlier points for tracking
-                inliers = np.array(pnp_pose_data['inliers'])
-                self.tracking_3D_points = np.array(mpts3D)[inliers]
-                self.tracking_2D_points = np.array(mkpts1)[inliers]
-                
-                # Store current frame features for next frame matching
-                self.prev_frame = frame.copy()
-                self.prev_frame_feats = frame_feats
-                self.prev_frame_keypoints = frame_keypoints
-                
-                logger.info(f"MEKF initialized with {len(inliers)} tracking points")
-                
-                # On first frame, we just return the PnP result
-                return pnp_pose_data, visualization
-            else:
-                logger.warning(f"PnP pose not good enough for tracking: " +
-                            f"reprojection error = {pnp_pose_data['mean_reprojection_error']:.2f}")
-                self.kf_initialized = False
-                
-                # Return pure PnP result
-                return pnp_pose_data, visualization
-        
-        # CASE 2: Tracking mode - frame-to-frame matching with LightGlue and tightly-coupled MEKF
-        if self.kf_initialized:
-            logger.info(f"Frame {frame_idx}: TRACKING MODE - Frame-to-frame tracking with LightGlue")
-            
-            try:
-                # Match features between previous and current frame using LightGlue
-                with torch.no_grad():
-                    matches_dict = self.matcher({
-                        'image0': self.prev_frame_feats, 
-                        'image1': frame_feats
-                    })
-                    
-                # Remove batch dimension and move to CPU
-                prev_feats, curr_feats, matches = [rbd(x) for x in [self.prev_frame_feats, frame_feats, matches_dict]]
-                
-                # Get keypoints and matches
-                prev_kpts = self.prev_frame_keypoints
-                curr_kpts = frame_keypoints
-                match_indices = matches["matches"].detach().cpu().numpy()
-                match_confidence = matches.get("scores", torch.ones(len(match_indices))).detach().cpu().numpy()
-                
-                if len(match_indices) < 10:
-                    logger.warning(f"Frame {frame_idx}: Too few matches ({len(match_indices)}) for tracking")
-                    raise Exception("Insufficient matches for tracking")
-                    
-                # Map current 2D points to previous 2D points
-                matched_prev_kpts = prev_kpts[match_indices[:, 0]]
-                matched_curr_kpts = curr_kpts[match_indices[:, 1]]
-                
-                # Predict next state using MEKF
-                x_pred, P_pred = self.mekf.predict()
-                
-                # Extract predicted pose
-                position_pred = x_pred[0:3]
-                quaternion_pred = x_pred[6:10]
-                R_pred = quaternion_to_rotation_matrix(quaternion_pred)
-                
-                # Get camera parameters
-                K, distCoeffs = self._get_camera_intrinsics()
-                
-                # Find correspondences between current frame features and 3D model points
-                # For each tracked 3D point, find if it's visible in the current frame
-                tracked_2D_to_3D = {}
-                
-                # Build a map from previous frame 2D points to their corresponding 3D points
-                prev_2D_to_3D = {}
-                for i, prev_pt in enumerate(self.tracking_2D_points):
-                    prev_2D_to_3D[tuple(prev_pt)] = self.tracking_3D_points[i]
-                
-                # Now for each match between previous and current frame, check if we have a 3D correspondence
-                curr_2D_points = []
-                curr_3D_points = []
-                
-                for prev_pt, curr_pt in zip(matched_prev_kpts, matched_curr_kpts):
-                    # Find the closest point in self.tracking_2D_points
-                    prev_pt_tuple = tuple(prev_pt)
-                    min_dist = float('inf')
-                    closest_prev_pt = None
-                    
-                    for tracked_pt in map(tuple, self.tracking_2D_points):
-                        dist = np.linalg.norm(np.array(prev_pt_tuple) - np.array(tracked_pt))
-                        if dist < min_dist:
-                            min_dist = dist
-                            closest_prev_pt = tracked_pt
-                    
-                    # If close enough, consider it a match and establish 2D-3D correspondence
-                    if min_dist < 1.5:  # Threshold in pixels
-                        if closest_prev_pt in prev_2D_to_3D:
-                            curr_2D_points.append(curr_pt)
-                            curr_3D_points.append(prev_2D_to_3D[closest_prev_pt])
-                
-                # Need at least 6 points for tightly-coupled update
-                if len(curr_2D_points) >= 6:
-                    curr_2D_points = np.array(curr_2D_points)
-                    curr_3D_points = np.array(curr_3D_points)
-                    
-                    # Update MEKF with feature points
-                    x_upd, P_upd = self.mekf.update_tightly_coupled(
-                        curr_2D_points, curr_3D_points, K, distCoeffs
-                    )
-                    
-                    # Extract updated pose
-                    position_upd = x_upd[0:3]
-                    quaternion_upd = x_upd[6:10]
-                    R_upd = quaternion_to_rotation_matrix(quaternion_upd)
-                    
-                    # Project 3D points to check reprojection error
-                    rvec_upd, _ = cv2.Rodrigues(R_upd)
-                    projected_points, _ = cv2.projectPoints(
-                        curr_3D_points, rvec_upd, position_upd.reshape(3, 1), K, distCoeffs
-                    )
-                    projected_points = projected_points.reshape(-1, 2)
-                    
-                    # Calculate reprojection errors
-                    reprojection_errors = np.linalg.norm(projected_points - curr_2D_points, axis=1)
-                    avg_reproj_error = np.mean(reprojection_errors)
-                    
-                    logger.info(f"Frame {frame_idx}: Successful tracking with {len(curr_2D_points)} " + 
-                            f"points (avg error: {avg_reproj_error:.2f}px)")
-                    
-                    # Create visualization
-                    visualization = self._visualize_tracking(
-                        frame, curr_2D_points, curr_3D_points, x_upd, frame_idx
-                    )
-                    
-                    # Create pose data
-                    pose_data = {
-                        'frame': frame_idx,
-                        'kf_translation_vector': position_upd.tolist(),
-                        'kf_quaternion': quaternion_upd.tolist(),
-                        'kf_rotation_matrix': R_upd.tolist(),
-                        'pose_estimation_failed': False,
-                        'num_correspondences': len(curr_2D_points),
-                        'tracking_method': 'frame_to_frame',
-                        'avg_reprojection_error': avg_reproj_error
-                    }
-                    
-                    # Update tracking points for next frame
-                    self.tracking_3D_points = curr_3D_points
-                    self.tracking_2D_points = curr_2D_points
-                    
-                    # Update previous frame information for next iteration
-                    self.prev_frame = frame.copy()
-                    self.prev_frame_feats = frame_feats
-                    self.prev_frame_keypoints = frame_keypoints
-                    
-                    return pose_data, visualization
-                else:
-                    # Not enough correspondences for tightly-coupled update
-                    logger.warning(f"Frame {frame_idx}: Not enough 2D-3D correspondences for tightly-coupled update " +
-                                f"({len(curr_2D_points)} found, need at least 6)")
-                    raise Exception("Insufficient 2D-3D correspondences")
-            
-            except Exception as e:
-                logger.warning(f"Frame {frame_idx}: Tracking failed ({str(e)}), need reinitialization")
-                # If we reach here, tracking failed - need to use CASE 3
-                pass
-        
-        # CASE 3: Reinitialization with anchor-based matching
-        logger.info(f"Frame {frame_idx}: REINITIALIZATION MODE - Using anchor-based matching")
-        
-        # Perform pure PnP estimation against anchor
+        # For every frame, do PnP with the anchor image
+        # Perform pure PnP estimation
         pnp_pose_data, visualization, mkpts0, mkpts1, mpts3D = self.perform_pnp_estimation(
             frame, frame_idx, frame_feats, frame_keypoints
         )
         
-        if pnp_pose_data is None or pnp_pose_data.get('pose_estimation_failed', False):
-            # PnP failed completely
-            logger.warning(f"Frame {frame_idx}: Reinitialization failed")
+        # Check if PnP succeeded
+        if pnp_pose_data is None or pnp_pose_data.get('pose_estimation_failed', True):
+            logger.warning(f"PnP failed for frame {frame_idx}")
             
-            # If KF was previously initialized, try using prediction
+            # If KF initialized, try using prediction
             if self.kf_initialized:
                 # Get the prediction from the filter
                 x_pred, P_pred = self.mekf.predict()
@@ -580,96 +380,150 @@ class PoseEstimator:
                 
                 # Create simple visualization
                 visualization = frame.copy()
-                cv2.putText(visualization, "Reinit Failed - Using Prediction", 
+                cv2.putText(visualization, "PnP Failed - Using Prediction", 
                         (30, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-                
-                # Keep the Kalman filter initialized but don't update the previous frame
-                # so we'll try to reinitialize again next frame
                 
                 return pose_data, visualization
             else:
-                # No KF initialized yet or completely failed
+                # No KF initialized, return failure
                 return {
                     'frame': frame_idx,
                     'pose_estimation_failed': True,
                     'tracking_method': 'failed'
                 }, frame
         
-        # PnP succeeded - check if good enough for tracking
+        # PnP succeeded - extract pose data
         reprojection_error = pnp_pose_data['mean_reprojection_error']
         num_inliers = pnp_pose_data['num_inliers']
         
-        if reprojection_error < 5.0 and num_inliers >= 8:
-            # Good PnP result - reinitialize tracking
-            logger.info(f"Frame {frame_idx}: Reinitialization successful " +
+        # Extract raw PnP pose
+        tvec = np.array(pnp_pose_data['object_translation_in_cam'])
+        R = np.array(pnp_pose_data['object_rotation_in_cam'])
+        q = rotation_matrix_to_quaternion(R)
+        
+        # Check if KF is already initialized
+        if not self.kf_initialized:
+            # Initialize Kalman filter if PnP is good enough
+            if reprojection_error < 3.0 and num_inliers >= 6:
+                self.mekf = MultExtendedKalmanFilter(dt=1.0/30.0)
+                
+                # Set initial state
+                x_init = np.zeros(self.mekf.n_states)
+                x_init[0:3] = tvec  # Position
+                x_init[6:10] = q    # Quaternion
+                self.mekf.x = x_init
+                
+                self.kf_initialized = True
+                logger.info(f"MEKF initialized with PnP pose (error: {reprojection_error:.2f}, inliers: {num_inliers})")
+                
+                # Just return the raw PnP results for the first frame
+                return pnp_pose_data, visualization
+            else:
+                # PnP not good enough for initialization
+                logger.warning(f"PnP pose not good enough for KF initialization: " +
+                            f"error={reprojection_error:.2f}px, inliers={num_inliers}")
+                return pnp_pose_data, visualization
+        
+        # If we get here, KF is initialized and PnP succeeded
+        # Predict next state
+        x_pred, P_pred = self.mekf.predict()
+        
+        # Create pose measurement for loosely-coupled update
+        pose_measurement = np.concatenate([tvec.flatten(), q])
+        
+        # Check if PnP result is reliable enough for KF update
+        if reprojection_error < 3.0 and num_inliers >= 5:
+            # Update KF with pose measurement (loosely-coupled)
+            x_upd, P_upd = self.mekf.update_loosely_coupled(pose_measurement)
+            
+            # Extract updated pose
+            position_upd = x_upd[0:3]
+            quaternion_upd = x_upd[6:10]
+            R_upd = quaternion_to_rotation_matrix(quaternion_upd)
+            
+            logger.info(f"Frame {frame_idx}: KF updated with PnP pose " +
                     f"(error: {reprojection_error:.2f}px, inliers: {num_inliers})")
             
-            # Extract pose from PnP
-            tvec = np.array(pnp_pose_data['object_translation_in_cam'])
-            R = np.array(pnp_pose_data['object_rotation_in_cam'])
-            q = rotation_matrix_to_quaternion(R)
+            # Create pose data using KF-updated pose
+            pose_data = {
+                'frame': frame_idx,
+                'kf_translation_vector': position_upd.tolist(),
+                'kf_quaternion': quaternion_upd.tolist(),
+                'kf_rotation_matrix': R_upd.tolist(),
+                'raw_pnp_translation': tvec.flatten().tolist(),
+                'raw_pnp_rotation': R.tolist(),
+                'pose_estimation_failed': False,
+                'num_inliers': num_inliers,
+                'reprojection_error': reprojection_error,
+                'tracking_method': 'anchor_pnp_with_kf'
+            }
             
-            # If first initialization, create MEKF
-            if not hasattr(self, 'mekf') or self.mekf is None:
-                self.mekf = MultExtendedKalmanFilter(dt=1.0/30.0)
-            
-            # Set MEKF state
-            x_init = np.zeros(self.mekf.n_states)
-            x_init[0:3] = tvec  # Position
-            x_init[6:10] = q    # Quaternion
-            self.mekf.x = x_init
-            
-            # Reset tracking points
+            # Create visualization with KF pose
+            K, distCoeffs = self._get_camera_intrinsics()
             inliers = np.array(pnp_pose_data['inliers'])
-            self.tracking_3D_points = np.array(mpts3D)[inliers]
-            self.tracking_2D_points = np.array(mkpts1)[inliers]
             
-            # Update previous frame for next iteration
-            self.prev_frame = frame.copy()
-            self.prev_frame_feats = frame_feats
-            self.prev_frame_keypoints = frame_keypoints
+            # Use all keypoints for visualization
+            visualization = frame.copy()
             
-            # Mark as initialized
-            self.kf_initialized = True
+            # Add KF-specific information to visualization
+            cv2.putText(visualization, f"Frame: {frame_idx}", (10, 30), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+            cv2.putText(visualization, f"Reprojection Error: {reprojection_error:.2f}px", 
+                    (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+            cv2.putText(visualization, f"Inliers: {num_inliers}", 
+                    (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+            cv2.putText(visualization, f"Method: Anchor PnP + KF", 
+                    (10, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
             
-            # Return the reinitialization result
-            pnp_pose_data['tracking_method'] = 'reinitialized'
-            return pnp_pose_data, visualization
+            # Draw coordinate axes with KF pose
+            axis_length = 0.1  # 10cm for visualization
+            axis_points = np.float32([
+                [0, 0, 0],
+                [axis_length, 0, 0],
+                [0, axis_length, 0],
+                [0, 0, axis_length]
+            ])
+            
+            rvec_upd, _ = cv2.Rodrigues(R_upd)
+            axis_proj, _ = cv2.projectPoints(axis_points, rvec_upd, position_upd.reshape(3, 1), K, distCoeffs)
+            axis_proj = axis_proj.reshape(-1, 2)
+            
+            # Draw axes
+            origin = tuple(map(int, axis_proj[0]))
+            visualization = cv2.line(visualization, origin, tuple(map(int, axis_proj[1])), (0, 0, 255), 3)  # X-axis (red)
+            visualization = cv2.line(visualization, origin, tuple(map(int, axis_proj[2])), (0, 255, 0), 3)  # Y-axis (green)
+            visualization = cv2.line(visualization, origin, tuple(map(int, axis_proj[3])), (255, 0, 0), 3)  # Z-axis (blue)
+            
+            return pose_data, visualization
         else:
-            # PnP succeeded but not good enough
-            logger.warning(f"Frame {frame_idx}: Reinitialization not good enough " +
-                        f"(error: {reprojection_error:.2f}px, inliers: {num_inliers})")
+            # PnP successful but not reliable enough - use KF prediction only
+            logger.warning(f"Frame {frame_idx}: PnP pose not reliable enough for KF update: " +
+                        f"error={reprojection_error:.2f}px, inliers={num_inliers}")
             
-            if self.kf_initialized:
-                # Use prediction from filter
-                x_pred, P_pred = self.mekf.predict()
-                
-                # Extract prediction state
-                position_pred = x_pred[0:3]
-                quaternion_pred = x_pred[6:10]
-                R_pred = quaternion_to_rotation_matrix(quaternion_pred)
-                
-                # Create pose data from prediction
-                pose_data = {
-                    'frame': frame_idx,
-                    'kf_translation_vector': position_pred.tolist(),
-                    'kf_quaternion': quaternion_pred.tolist(),
-                    'kf_rotation_matrix': R_pred.tolist(),
-                    'pose_estimation_failed': False,
-                    'tracking_method': 'prediction',
-                    'pnp_result': 'not_good_enough'
-                }
-                
-                # Create simple visualization
-                visualization = frame.copy()
-                cv2.putText(visualization, "PnP Not Good Enough - Using Prediction", 
-                        (30, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-                
-                return pose_data, visualization
-            else:
-                # No KF initialized, return PnP result anyway
-                pnp_pose_data['tracking_method'] = 'pnp_low_quality'
-                return pnp_pose_data, visualization
+            # Extract prediction state
+            position_pred = x_pred[0:3]
+            quaternion_pred = x_pred[6:10]
+            R_pred = quaternion_to_rotation_matrix(quaternion_pred)
+            
+            # Create pose data from prediction
+            pose_data = {
+                'frame': frame_idx,
+                'kf_translation_vector': position_pred.tolist(),
+                'kf_quaternion': quaternion_pred.tolist(),
+                'kf_rotation_matrix': R_pred.tolist(),
+                'raw_pnp_translation': tvec.flatten().tolist(),
+                'raw_pnp_rotation': R.tolist(),
+                'pose_estimation_failed': False,
+                'tracking_method': 'prediction',
+                'pnp_result': 'not_reliable_enough'
+            }
+            
+            # Create simple visualization
+            visualization = frame.copy()
+            cv2.putText(visualization, "PnP Not Reliable - Using Prediction", 
+                    (30, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+            
+            return pose_data, visualization
 
         
 

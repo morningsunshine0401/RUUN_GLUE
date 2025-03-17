@@ -401,7 +401,8 @@ python3 main_webcam.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anc
 CUDA_LAUNCH_BLOCKING=1 python3 main_webcam.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --device cuda --camera_width 1280 --camera_height 720 --save_consolidated_json
 
 
-python3 main_webcam.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --device cuda --dual_resolution --process_width 1280 --process_height 720 --camera_width 1280 --camera_height 720
+python3 main_webcam.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --device cuda --dual_resolution --process_width 1280 --process_height 720 --camera_width 1280 --camera_height 720 --save_consolidated_json
 
+python3 main_webcam.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --device cuda --camera_width 1280 --camera_height 720 --save_consolidated_json
 
 
