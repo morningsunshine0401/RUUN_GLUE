@@ -363,7 +363,7 @@ python3 main_thread.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anc
 
 python3 main_thread.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --image_dir assets/Ruun_images/ICUAS/20250203/extracted_images_20250203_test2/ --csv_file assets/Ruun_images/ICUAS/20250203/extracted_images_20250203_test2/image_index.csv --save_pose 202503012_20250203_test2_tight.json
 
-# 20250313
+# 20250313 Webcam
 
 python3 main_webcam.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --device cuda --resize 1280 720
 
@@ -388,4 +388,20 @@ python3 main_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Ancho
 python3 main_webcam.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --device cuda --camera_width 1280 --camera_height 720
 
 python3 main_webcam.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --device cuda --camera_width 1280 --camera_height 720 --save_consolidated_json
+
+# 20250314
+
+python3 main_webcam.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --device cuda --camera_width 1280 --camera_height 720 --save_consolidated_json
+
+
+# 20250317
+
+python3 main_webcam.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --device cuda --camera_width 1280 --camera_height 720 --save_consolidated_json
+
+CUDA_LAUNCH_BLOCKING=1 python3 main_webcam.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --device cuda --camera_width 1280 --camera_height 720 --save_consolidated_json
+
+
+python3 main_webcam.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --device cuda --dual_resolution --process_width 1280 --process_height 720 --camera_width 1280 --camera_height 720
+
+
 
