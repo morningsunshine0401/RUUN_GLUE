@@ -4,6 +4,11 @@ import argparse
 import logging
 import torch
 import os
+
+os.environ['CUDA_LAUNCH_BLOCKING']="1"
+os.environ['TORCH_USE_CUDA_DSA'] = "1"
+
+
 import json
 import numpy as np
 from datetime import datetime

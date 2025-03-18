@@ -464,7 +464,7 @@ class PoseEstimator:
             
             # Use all keypoints for visualization
             visualization = frame.copy()
-            
+
             # Add KF-specific information to visualization
             cv2.putText(visualization, f"Frame: {frame_idx}", (10, 30), 
                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
@@ -474,8 +474,8 @@ class PoseEstimator:
                     (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
             cv2.putText(visualization, f"Method: Anchor PnP + KF", 
                     (10, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-            
-            # Draw coordinate axes with KF pose
+
+            # Define axis parameters
             axis_length = 0.1  # 10cm for visualization
             axis_points = np.float32([
                 [0, 0, 0],
@@ -483,16 +483,73 @@ class PoseEstimator:
                 [0, axis_length, 0],
                 [0, 0, axis_length]
             ])
+
+            # DRAW RAW PNP AXES
+            rvec_raw, _ = cv2.Rodrigues(R)  # R is the raw PnP rotation
+            axis_proj_raw, _ = cv2.projectPoints(axis_points, rvec_raw, tvec.reshape(3, 1), K, distCoeffs)
+            axis_proj_raw = axis_proj_raw.reshape(-1, 2)
+            origin_raw = tuple(map(int, axis_proj_raw[0]))
+
+            # Draw raw PnP axes with thinner lines
+            visualization = cv2.line(visualization, origin_raw, tuple(map(int, axis_proj_raw[1])), (0, 0, 255), 2)  # X-axis (red)
+            visualization = cv2.line(visualization, origin_raw, tuple(map(int, axis_proj_raw[2])), (0, 255, 0), 2)  # Y-axis (green)
+            visualization = cv2.line(visualization, origin_raw, tuple(map(int, axis_proj_raw[3])), (255, 0, 0), 2)  # Z-axis (blue)
+
+            # Add label for raw PnP axes
+            cv2.putText(visualization, "Raw PnP", (origin_raw[0] + 5, origin_raw[1] - 5), 
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+
+            # DRAW KALMAN FILTER AXES
+            rvec_upd, _ = cv2.Rodrigues(R_upd)  # R_upd is the Kalman filter rotation
+            axis_proj_kf, _ = cv2.projectPoints(axis_points, rvec_upd, position_upd.reshape(3, 1), K, distCoeffs)
+            axis_proj_kf = axis_proj_kf.reshape(-1, 2)
+            origin_kf = tuple(map(int, axis_proj_kf[0]))
+
+            # Draw KF axes with thicker lines
+            visualization = cv2.line(visualization, origin_kf, tuple(map(int, axis_proj_kf[1])), (0, 0, 200), 3)  # X-axis (darker red)
+            visualization = cv2.line(visualization, origin_kf, tuple(map(int, axis_proj_kf[2])), (0, 200, 0), 3)  # Y-axis (darker green)
+            visualization = cv2.line(visualization, origin_kf, tuple(map(int, axis_proj_kf[3])), (200, 0, 0), 3)  # Z-axis (darker blue)
+
+            # Add label for KF axes
+            cv2.putText(visualization, "Kalman Filter", (origin_kf[0] + 5, origin_kf[1] - 5), 
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+
+            # Calculate and display rotation difference
+            raw_quat = rotation_matrix_to_quaternion(R)
+            kf_quat = quaternion_upd
+            dot_product = min(1.0, abs(np.dot(raw_quat, kf_quat)))
+            angle_diff = np.arccos(dot_product) * 2 * 180 / np.pi
+            cv2.putText(visualization, f"Rot Diff: {angle_diff:.1f}°", 
+                        (10, 150), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
             
-            rvec_upd, _ = cv2.Rodrigues(R_upd)
-            axis_proj, _ = cv2.projectPoints(axis_points, rvec_upd, position_upd.reshape(3, 1), K, distCoeffs)
-            axis_proj = axis_proj.reshape(-1, 2)
+            # # Add KF-specific information to visualization
+            # cv2.putText(visualization, f"Frame: {frame_idx}", (10, 30), 
+            #         cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+            # cv2.putText(visualization, f"Reprojection Error: {reprojection_error:.2f}px", 
+            #         (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+            # cv2.putText(visualization, f"Inliers: {num_inliers}", 
+            #         (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+            # cv2.putText(visualization, f"Method: Anchor PnP + KF", 
+            #         (10, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
             
-            # Draw axes
-            origin = tuple(map(int, axis_proj[0]))
-            visualization = cv2.line(visualization, origin, tuple(map(int, axis_proj[1])), (0, 0, 255), 3)  # X-axis (red)
-            visualization = cv2.line(visualization, origin, tuple(map(int, axis_proj[2])), (0, 255, 0), 3)  # Y-axis (green)
-            visualization = cv2.line(visualization, origin, tuple(map(int, axis_proj[3])), (255, 0, 0), 3)  # Z-axis (blue)
+            # # Draw coordinate axes with KF pose
+            # axis_length = 0.1  # 10cm for visualization
+            # axis_points = np.float32([
+            #     [0, 0, 0],
+            #     [axis_length, 0, 0],
+            #     [0, axis_length, 0],
+            #     [0, 0, axis_length]
+            # ])
+            
+            # rvec_upd, _ = cv2.Rodrigues(R_upd)
+            # axis_proj, _ = cv2.projectPoints(axis_points, rvec_upd, position_upd.reshape(3, 1), K, distCoeffs)
+            # axis_proj = axis_proj.reshape(-1, 2)
+            
+            # # Draw axes
+            # origin = tuple(map(int, axis_proj[0]))
+            # visualization = cv2.line(visualization, origin, tuple(map(int, axis_proj[1])), (0, 0, 255), 3)  # X-axis (red)
+            # visualization = cv2.line(visualization, origin, tuple(map(int, axis_proj[2])), (0, 255, 0), 3)  # Y-axis (green)
+            # visualization = cv2.line(visualization, origin, tuple(map(int, axis_proj[3])), (255, 0, 0), 3)  # Z-axis (blue)
             
             return pose_data, visualization
         else:

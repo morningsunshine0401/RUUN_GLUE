@@ -36,7 +36,7 @@ class ThreadedPoseEstimator:
         #from pose_estimator_thread_tight import PoseEstimator
 
         #Tightly coupled 2
-        from pose_estimator_thread_tight2 import PoseEstimator
+        #from pose_estimator_thread_tight2 import PoseEstimator
 
         #loosly coupled 
         from pose_estimator_thread_loose import PoseEstimator

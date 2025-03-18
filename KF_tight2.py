@@ -29,13 +29,13 @@ class MultExtendedKalmanFilter:
         # self.Q_w = np.eye(3) * 8e-4  # Angular velocity noise
         
         # Increase these values in __init__
-        self.Q_p = np.eye(3) * 5e-4  # Position noise (increased)
-        self.Q_v = np.eye(3) * 1e-3   # Velocity noise (increased)
-        self.Q_q = np.eye(3) * 5e-4  # Quaternion noise (increased)
-        self.Q_w = np.eye(3) * 1e-3   # Angular velocity noise (increased)
+        self.Q_p = np.eye(3) * 5e-1#4  # Position noise (increased)
+        self.Q_v = np.eye(3) * 1e-1#3   # Velocity noise (increased)
+        self.Q_q = np.eye(3) * 5e-1#4  # Quaternion noise (increased)
+        self.Q_w = np.eye(3) * 1e-1#3   # Angular velocity noise (increased)
         
         # Add slight damping to velocity model for smoother behavior
-        self.velocity_damping = 0.8 #0.98  # Slight damping for formation flight
+        self.velocity_damping = 0.1#0.8 #0.98  # Slight damping for formation flight
         
         # Add adaptive measurement noise setting
         self.measurement_base_noise = 0.5 #1.0 #2.0
@@ -318,11 +318,17 @@ class MultExtendedKalmanFilter:
         # Compute quaternion error in vector space (using small-angle approximation)
         # q_err = q_meas ⊗ q_pred^(-1) ≈ [rotation vector, 1]
         q_pred = x_pred[6:10]
-        q_pred_conj = np.array([q_pred[0], q_pred[1], q_pred[2], -q_pred[3]])  # Conjugate
+        # q_pred_conj = np.array([q_pred[0], q_pred[1], q_pred[2], -q_pred[3]])  # Conjugate
         
+        # # For small rotations, vector part of error quaternion approximates the rotation vector
+        # q_err_vec = 2 * (quat_meas[0:3] * q_pred[3] - q_pred[0:3] * quat_meas[3] - 
+        #                 np.cross(quat_meas[0:3], q_pred[0:3]))
+
+        q_pred_conj = np.array([-q_pred[0], -q_pred[1], -q_pred[2], q_pred[3]])  # Conjugate (sign corrected)
+
         # For small rotations, vector part of error quaternion approximates the rotation vector
-        q_err_vec = 2 * (quat_meas[0:3] * q_pred[3] - q_pred[0:3] * quat_meas[3] - 
-                        np.cross(quat_meas[0:3], q_pred[0:3]))
+        q_err_vec = 2 * (quat_meas[0:3] * q_pred[3] - q_pred[0:3] * quat_meas[3] + 
+                        np.cross(quat_meas[0:3], q_pred[0:3])) 
         
         # Combine position and orientation measurements
         z = np.concatenate([pos_meas, q_err_vec])
