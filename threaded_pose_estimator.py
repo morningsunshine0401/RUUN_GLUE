@@ -41,11 +41,22 @@ class ThreadedPoseEstimator:
         #loosly coupled 
         from pose_estimator_thread_loose import PoseEstimator
 
+        #loosly coupled with Xfeat
+        #from pose_estimator_thread_loose_X import PoseEstimator
+
+        #loosly and tightly coupled 
+        from pose_estimator_thread_MK2 import PoseEstimator
+
+        # Pass KF mode to PoseEstimator
+        kf_mode = getattr(opt, 'KF_mode', 'auto')
+        # Initialize the pose estimator
+        self.pose_estimator = PoseEstimator(opt, device, kf_mode=kf_mode)
+
 
         ################################################################
         
-        # Initialize the pose estimator
-        self.pose_estimator = PoseEstimator(opt, device)
+        # Initialize the pose estimator DEFAULT
+        #self.pose_estimator = PoseEstimator(opt, device)
         
         # Add threading components
 

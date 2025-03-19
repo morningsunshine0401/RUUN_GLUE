@@ -477,6 +477,12 @@ def parse_args():
     parser.add_argument(
         '--show_keypoints', action='store_true',
         help='Show detected keypoints')
+    
+    # Add this argument after the optimization/performance settings:
+    parser.add_argument('--KF_mode', type=str, default='auto',
+                        choices=['L', 'T', 'auto'],
+                        help='Kalman filter mode: L for loosely-coupled, T for tightly-coupled, auto for automatic')
+    
         
     return parser.parse_args()
 

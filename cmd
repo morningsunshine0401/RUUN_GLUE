@@ -406,3 +406,12 @@ python3 main_webcam.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anc
 python3 main_webcam.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --device cuda --camera_width 1280 --camera_height 720 --save_consolidated_json
 
 
+#20250319
+
+python3 main_webcam.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --device cuda --camera_width 1280 --camera_height 720 --save_consolidated_json --KF_mode L
+
+
+
+
+
+

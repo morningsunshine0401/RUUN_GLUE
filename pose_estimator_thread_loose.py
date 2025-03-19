@@ -43,6 +43,7 @@ class PoseEstimator:
         self.initial_z_set = False  # Flag for first-frame Z override (if desired)
         self.kf_initialized = False  # To track if Kalman filter was ever updated
         self.pred_only =0
+        
 
         logger.info("Initializing PoseEstimator with separate SuperPoint and LightGlue models")
 
@@ -428,13 +429,50 @@ class PoseEstimator:
         # Predict next state
         x_pred, P_pred = self.mekf.predict()
         
+        ######################################################################################
+
         # Create pose measurement for loosely-coupled update
         pose_measurement = np.concatenate([tvec.flatten(), q])
         
         # Check if PnP result is reliable enough for KF update
-        if reprojection_error < 3.0 and num_inliers >= 5:
+        #if reprojection_error < 3.0 and num_inliers >= 5:
+        if reprojection_error < 4.0 and num_inliers >= 5:
             # Update KF with pose measurement (loosely-coupled)
-            x_upd, P_upd = self.mekf.update_loosely_coupled(pose_measurement)
+            #x_upd, P_upd = self.mekf.update_loosely_coupled(pose_measurement)
+            
+            x_upd, P_upd = self.mekf.improved_update(pose_measurement)
+            
+            print("LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL\n")
+
+        ##################################################################################
+        
+        # # Add code to set up tightly-coupled updates:
+        # if reprojection_error < 4.0 and num_inliers >= 5:
+        #     # Extract inlier points for tightly-coupled update
+        #     inlier_indices = np.array(pnp_pose_data['inliers'])
+        #     feature_points = np.array(pnp_pose_data['mkpts1'])[inlier_indices]
+        #     model_points = np.array(pnp_pose_data['mpts3D'])[inlier_indices]
+            
+        #     # Get camera parameters
+        #     K, distCoeffs = self._get_camera_intrinsics()
+            
+        #     # Try tightly-coupled update using the feature points directly
+        #     try:
+        #         x_upd, P_upd = self.mekf.enhanced_tightly_coupled(
+        #             feature_points, model_points, K, distCoeffs
+        #         )
+        #         update_method = "tightly_coupled"
+        #         print("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT\n")
+        #     except Exception as e:
+        #         # Fall back to improved loosely-coupled update if tightly-coupled fails
+        #         logger.warning(f"Tightly-coupled update failed, falling back to loosely-coupled: {e}")
+        #         pose_measurement = np.concatenate([tvec.flatten(), q])
+        #         x_upd, P_upd = self.mekf.improved_update(pose_measurement)
+        #         update_method = "loosely_coupled_fallback"
+        #         print("LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL\n")
+
+
+        #######################################################################################
             
             # Extract updated pose
             position_upd = x_upd[0:3]
@@ -456,6 +494,7 @@ class PoseEstimator:
                 'num_inliers': num_inliers,
                 'reprojection_error': reprojection_error,
                 'tracking_method': 'anchor_pnp_with_kf'
+                #'tracking_method': update_method
             }
             
             # Create visualization with KF pose
@@ -522,35 +561,41 @@ class PoseEstimator:
             cv2.putText(visualization, f"Rot Diff: {angle_diff:.1f}°", 
                         (10, 150), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
             
-            # # Add KF-specific information to visualization
-            # cv2.putText(visualization, f"Frame: {frame_idx}", (10, 30), 
-            #         cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-            # cv2.putText(visualization, f"Reprojection Error: {reprojection_error:.2f}px", 
-            #         (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-            # cv2.putText(visualization, f"Inliers: {num_inliers}", 
-            #         (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-            # cv2.putText(visualization, f"Method: Anchor PnP + KF", 
-            #         (10, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-            
-            # # Draw coordinate axes with KF pose
-            # axis_length = 0.1  # 10cm for visualization
-            # axis_points = np.float32([
-            #     [0, 0, 0],
-            #     [axis_length, 0, 0],
-            #     [0, axis_length, 0],
-            #     [0, 0, axis_length]
-            # ])
-            
-            # rvec_upd, _ = cv2.Rodrigues(R_upd)
-            # axis_proj, _ = cv2.projectPoints(axis_points, rvec_upd, position_upd.reshape(3, 1), K, distCoeffs)
-            # axis_proj = axis_proj.reshape(-1, 2)
-            
-            # # Draw axes
-            # origin = tuple(map(int, axis_proj[0]))
-            # visualization = cv2.line(visualization, origin, tuple(map(int, axis_proj[1])), (0, 0, 255), 3)  # X-axis (red)
-            # visualization = cv2.line(visualization, origin, tuple(map(int, axis_proj[2])), (0, 255, 0), 3)  # Y-axis (green)
-            # visualization = cv2.line(visualization, origin, tuple(map(int, axis_proj[3])), (255, 0, 0), 3)  # Z-axis (blue)
-            
+            # ADD THIS CODE:
+            # # If we have a previous loosely-coupled update for comparison
+            # if hasattr(self, 'last_loose_update') and update_method == 'tightly_coupled':
+            #     # Get the last loose update for comparison
+            #     pos_loose = self.last_loose_update[0:3]
+            #     quat_loose = self.last_loose_update[6:10]
+            #     R_loose = quaternion_to_rotation_matrix(quat_loose)
+
+            #     # Calculate position difference
+            #     pos_diff = np.linalg.norm(position_upd - pos_loose)
+                
+            #     # Draw loose update axes in different colors
+            #     rvec_loose, _ = cv2.Rodrigues(R_loose)
+            #     axis_proj_loose, _ = cv2.projectPoints(axis_points, rvec_loose, pos_loose.reshape(3, 1), K, distCoeffs)
+            #     axis_proj_loose = axis_proj_loose.reshape(-1, 2)
+            #     origin_loose = tuple(map(int, axis_proj_loose[0]))
+
+            #     # Draw loose axes with yellow/purple/cyan colors
+            #     visualization = cv2.line(visualization, origin_loose, tuple(map(int, axis_proj_loose[1])), (0, 220, 220), 2)  # X-axis (cyan)
+            #     visualization = cv2.line(visualization, origin_loose, tuple(map(int, axis_proj_loose[2])), (220, 220, 0), 2)  # Y-axis (yellow)
+            #     visualization = cv2.line(visualization, origin_loose, tuple(map(int, axis_proj_loose[3])), (220, 0, 220), 2)  # Z-axis (purple)
+
+            #     # Add label for loose KF
+            #     cv2.putText(visualization, "Loose KF", (origin_loose[0] + 5, origin_loose[1] - 5), 
+            #                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (220, 220, 0), 1)
+                
+            #     # Display position difference
+            #     cv2.putText(visualization, f"TC vs LC diff: {pos_diff:.3f}m", 
+            #                 (10, 180), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+
+            # # Store current update for comparison next frame
+            # if 'update_method' in locals():
+            #     if update_method == 'loosely_coupled' or update_method == 'loosely_coupled_fallback':
+            #         self.last_loose_update = x_upd.copy()
+
             return pose_data, visualization
         else:
             # PnP successful but not reliable enough - use KF prediction only

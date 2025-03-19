@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.linalg import block_diag
-from utils import normalize_quaternion, quaternion_to_rotation_matrix
+from utils import normalize_quaternion, quaternion_to_rotation_matrix , rotation_matrix_to_quaternion
+import cv2
 
 class MultExtendedKalmanFilter:
     """
@@ -35,11 +36,11 @@ class MultExtendedKalmanFilter:
         self.Q_w = np.eye(3) * 1e-1#3   # Angular velocity noise (increased)
         
         # Add slight damping to velocity model for smoother behavior
-        self.velocity_damping = 0.1#0.8 #0.98  # Slight damping for formation flight
+        self.velocity_damping = 0.6#0.8 #0.98  # Slight damping for formation flight
         
         # Add adaptive measurement noise setting
-        self.measurement_base_noise = 0.5 #1.0 #2.0
-        self.measurement_error_scale = 0.2 #0.5  # How quickly to increase noise with error
+        self.measurement_base_noise = 2#0.5 #1.0 #2.0
+        self.measurement_error_scale = 1#0.2 #0.5  # How quickly to increase noise with error
         
         # Track feature consistency
         self.prev_feature_points = None
@@ -327,7 +328,7 @@ class MultExtendedKalmanFilter:
         q_pred_conj = np.array([-q_pred[0], -q_pred[1], -q_pred[2], q_pred[3]])  # Conjugate (sign corrected)
 
         # For small rotations, vector part of error quaternion approximates the rotation vector
-        q_err_vec = 2 * (quat_meas[0:3] * q_pred[3] - q_pred[0:3] * quat_meas[3] + 
+        q_err_vec = 2 * (quat_meas[0:3] * q_pred[3] - q_pred[0:3] * quat_meas[3] - 
                         np.cross(quat_meas[0:3], q_pred[0:3])) 
         
         # Combine position and orientation measurements
@@ -346,8 +347,8 @@ class MultExtendedKalmanFilter:
         H = np.vstack([H_pos, H_quat])
         
         # Measurement noise - adjusted for formation flight scenario
-        R_pos = np.eye(3) * 0.005 #0.01  # Position uncertainty (in meters)
-        R_quat = np.eye(3) * 0.005 #0.01  # Orientation uncertainty (in radians)
+        R_pos = np.eye(3) * 0.002 #0.01  # Position uncertainty (in meters)
+        R_quat = np.eye(3) * 0.002 #0.01  # Orientation uncertainty (in radians)
         R = block_diag(R_pos, R_quat)
         
         # Innovation
@@ -358,8 +359,8 @@ class MultExtendedKalmanFilter:
         quat_innovation = np.linalg.norm(y[3:6])
         
         # Threshold for rejecting significant outliers
-        pos_threshold = 0.5  # meters
-        quat_threshold = 0.4  # radians
+        pos_threshold = 2#0.5  # meters
+        quat_threshold = 1.6#0.4  # radians
         
         if pos_innovation > pos_threshold or quat_innovation > quat_threshold:
             # Increase measurement noise for suspicious measurements
@@ -442,3 +443,393 @@ class MultExtendedKalmanFilter:
         }
         
         return uncertainty
+    
+    def improved_update(self, pose_measurement):
+        """
+        Improved update that balances simplicity and proper Kalman filtering
+        """
+        # Current state estimate
+        x_pred = self.x
+        P_pred = self.P
+        
+        # Extract measurements
+        pos_meas = pose_measurement[0:3]
+        quat_meas = normalize_quaternion(pose_measurement[3:7])
+        
+        # Extract current state
+        pos_pred = x_pred[0:3]
+        q_pred = x_pred[6:10]
+        
+        # 1. Position update - use standard Kalman filter approach
+        # Measurement matrix for position
+        H_pos = np.zeros((3, self.n_states))
+        H_pos[0:3, 0:3] = np.eye(3)
+        
+        # Measurement noise
+        R_pos = np.eye(3) * 0.001  # Small measurement noise for responsive updates
+        
+        # Kalman gain for position
+        S_pos = H_pos @ P_pred @ H_pos.T + R_pos
+        K_pos = P_pred @ H_pos.T @ np.linalg.inv(S_pos)
+        
+        # Position update - fix the dimension mismatch
+        pos_innovation = pos_meas - pos_pred
+        dx_pos = K_pos @ pos_innovation  # This applies the innovation to all state variables
+        
+        # Update entire state with position part
+        x_upd = x_pred.copy() + dx_pos
+        
+        # 2. Quaternion update - use simplified approach
+        # Calculate quaternion difference (error quaternion)
+        q_pred_conj = np.array([-q_pred[0], -q_pred[1], -q_pred[2], q_pred[3]])
+        
+        # Quaternion multiplication: q_err = q_meas ⊗ q_pred_conj
+        q_err = np.array([
+            quat_meas[3]*q_pred_conj[0] + quat_meas[0]*q_pred_conj[3] + quat_meas[1]*q_pred_conj[2] - quat_meas[2]*q_pred_conj[1],
+            quat_meas[3]*q_pred_conj[1] - quat_meas[0]*q_pred_conj[2] + quat_meas[1]*q_pred_conj[3] + quat_meas[2]*q_pred_conj[0],
+            quat_meas[3]*q_pred_conj[2] + quat_meas[0]*q_pred_conj[1] - quat_meas[1]*q_pred_conj[0] + quat_meas[2]*q_pred_conj[3],
+            quat_meas[3]*q_pred_conj[3] - quat_meas[0]*q_pred_conj[0] - quat_meas[1]*q_pred_conj[1] - quat_meas[2]*q_pred_conj[2]
+        ])
+        
+        # Convert to axis-angle (only using the vector part for small rotations)
+        rot_vec = q_err[0:3] * 2.0  # Simplified approximation for small rotations
+        
+        # Apply rotation update with damping
+        alpha_rot = 0.5  # Rotation update strength (0-1)
+        
+        # Create rotation update quaternion
+        angle = np.linalg.norm(rot_vec * alpha_rot)
+        if angle > 1e-6:
+            axis = rot_vec / np.linalg.norm(rot_vec)
+            q_update = np.zeros(4)
+            q_update[0:3] = axis * np.sin(angle/2.0)
+            q_update[3] = np.cos(angle/2.0)
+        else:
+            q_update = np.array([0, 0, 0, 1])  # Identity quaternion
+        
+        # Apply quaternion update: q_new = q_update ⊗ q_pred
+        q_new = np.array([
+            q_update[3]*q_pred[0] + q_update[0]*q_pred[3] + q_update[1]*q_pred[2] - q_update[2]*q_pred[1],
+            q_update[3]*q_pred[1] - q_update[0]*q_pred[2] + q_update[1]*q_pred[3] + q_update[2]*q_pred[0],
+            q_update[3]*q_pred[2] + q_update[0]*q_pred[1] - q_update[1]*q_pred[0] + q_update[2]*q_pred[3],
+            q_update[3]*q_pred[3] - q_update[0]*q_pred[0] - q_update[1]*q_pred[1] - q_update[2]*q_pred[2]
+        ])
+        
+        # Normalize the quaternion and update state
+        x_upd[6:10] = normalize_quaternion(q_new)
+        
+        # 4. Update covariance
+        # We'll use a simplified approach
+        alpha_P = 0.9  # Covariance update factor (0-1)
+        P_upd = alpha_P * P_pred  # Simplified covariance update
+        
+        # Store updates
+        self.x = x_upd
+        self.P = P_upd
+        
+        return x_upd.copy(), P_upd.copy()
+    
+
+    def enhanced_tightly_coupled(self, feature_points, model_points, camera_matrix, distCoeffs):
+        """
+        Enhanced tightly-coupled update using feature points directly
+        Combines robust quaternion handling with proper feature reprojection
+        """
+        # Current state estimate
+        x_pred = self.x
+        P_pred = self.P
+        
+        # Number of feature points
+        n_points = len(feature_points)
+        if n_points < 3:
+            # Not enough points for update
+            return x_pred.copy(), P_pred.copy()
+        
+        # Calculate feature consistency weights - this part is good from original
+        consistency_weights = self.calculate_feature_consistency(feature_points)
+        
+        # Camera parameters
+        f_x = camera_matrix[0, 0]
+        f_y = camera_matrix[1, 1]
+        c_x = camera_matrix[0, 2]
+        c_y = camera_matrix[1, 2]
+        
+        # Extract pose
+        position = x_pred[0:3]
+        quaternion = x_pred[6:10]
+        R = quaternion_to_rotation_matrix(quaternion)
+        
+        # Set up measurement processing
+        total_innovation = np.zeros(3)  # For position
+        total_weight = 0.0
+        rotation_errors = []  # Collect all rotation errors for later averaging
+        
+        # Process each point for initial error analysis
+        filtered_points = []
+        filtered_model_points = []
+        filtered_weights = []
+        
+        for i in range(n_points):
+            # Transform 3D point to camera frame
+            p_model = model_points[i]
+            p_cam = R @ p_model + position
+            
+            # Project point to image plane
+            if p_cam[2] > 1e-6:  # Check if point is in front of camera
+                u_pred = f_x * p_cam[0] / p_cam[2] + c_x
+                v_pred = f_y * p_cam[1] / p_cam[2] + c_y
+                
+                # Get actual point
+                u_actual, v_actual = feature_points[i]
+                
+                # Calculate reprojection error
+                error = np.sqrt((u_pred - u_actual)**2 + (v_pred - v_actual)**2)
+                
+                # Only use points with reasonable error (outlier rejection)
+                if error < 20.0:  # Generous threshold for initial filtering
+                    filtered_points.append(feature_points[i])
+                    filtered_model_points.append(model_points[i])
+                    
+                    # Weight based on error and consistency
+                    point_weight = 1.0 / (1.0 + error * 0.1) * consistency_weights[i]
+                    filtered_weights.append(point_weight)
+        
+        # If we have too few good points, just return prediction
+        if len(filtered_points) < 3:
+            return x_pred.copy(), P_pred.copy()
+        
+        # Convert to numpy arrays
+        filtered_points = np.array(filtered_points)
+        filtered_model_points = np.array(filtered_model_points)
+        filtered_weights = np.array(filtered_weights)
+        
+        # Now set up proper Kalman filter update using the filtered points
+        n_good_points = len(filtered_points)
+        
+        # Use standard EKF approach for position update with these points
+        H = np.zeros((2 * n_good_points, self.n_states))
+        z_pred = np.zeros(2 * n_good_points)
+        z = filtered_points.flatten()
+        R_diag = np.eye(2 * n_good_points)
+        
+        # Fill in measurement matrix and predicted measurements
+        for i in range(n_good_points):
+            # Transform 3D point to camera frame
+            p_model = filtered_model_points[i]
+            p_cam = R @ p_model + position
+            
+            # Project point
+            u_pred = f_x * p_cam[0] / p_cam[2] + c_x
+            v_pred = f_y * p_cam[1] / p_cam[2] + c_y
+            
+            # Store predictions
+            z_pred[2*i] = u_pred
+            z_pred[2*i+1] = v_pred
+            
+            # Calculate Jacobians (same as original)
+            J_proj = np.zeros((2, 3))
+            J_proj[0, 0] = f_x / p_cam[2]
+            J_proj[0, 2] = -f_x * p_cam[0] / (p_cam[2]**2)
+            J_proj[1, 1] = f_y / p_cam[2]
+            J_proj[1, 2] = -f_y * p_cam[1] / (p_cam[2]**2)
+            
+            J_pos = np.eye(3)
+            
+            p_skew = np.array([
+                [0, -p_model[2], p_model[1]],
+                [p_model[2], 0, -p_model[0]],
+                [-p_model[1], p_model[0], 0]
+            ])
+            J_quat = 2 * R @ p_skew
+            
+            # Fill measurement Jacobian
+            H[2*i:2*i+2, 0:3] = J_proj @ J_pos
+            H[2*i:2*i+2, 6:9] = J_proj @ J_quat
+            
+            # More responsive measurement noise based on point weight
+            weight = filtered_weights[i]
+            R_diag[2*i:2*i+2, 2*i:2*i+2] = np.eye(2) * (0.5 / weight)
+        
+        # Innovation
+        y = z - z_pred
+        
+        # Kalman update for full state
+        S = H @ P_pred @ H.T + R_diag
+        K = P_pred @ H.T @ np.linalg.inv(S)
+        
+        # State update
+        dx = K @ y
+        x_upd = x_pred.copy() + dx
+        
+        # Directly handle quaternion update after EKF correction
+        # Extract updated quaternion (which might not preserve unit norm)
+        q_ekf = x_upd[6:10].copy()
+        
+        # Mix with from_scratch quaternion calculation for robustness
+        # This is similar to our improved_update approach
+        
+        # 1. Estimate rotation from 3D-2D correspondences directly
+        # This is a "from scratch" orientation estimation based on our current filtered points
+        if n_good_points >= 4:
+            try:
+                # Use PnP to get a fresh rotation estimate
+                _, rvec, tvec, _ = cv2.solvePnPRansac(
+                    filtered_model_points.reshape(-1, 1, 3),
+                    filtered_points.reshape(-1, 1, 2),
+                    camera_matrix, distCoeffs,
+                    flags=cv2.SOLVEPNP_EPNP,
+                    reprojectionError=5.0
+                )
+                
+                # Convert to rotation matrix and quaternion
+                R_pnp, _ = cv2.Rodrigues(rvec)
+                # Assuming you have a function to convert rotation matrix to quaternion
+                q_pnp = rotation_matrix_to_quaternion(R_pnp)
+                
+                # Blend EKF and PnP quaternions
+                # Use more of the PnP for fast rotation changes, more EKF for stability
+                # Lower alpha uses more PnP, higher uses more EKF
+                alpha_rot = 0.7  # Balances PnP freshness with EKF stability
+                
+                # Ensure both quaternions represent the rotation in the same way
+                # (handle possible sign flip in quaternion)
+                if np.dot(q_ekf, q_pnp) < 0:
+                    q_pnp = -q_pnp
+                    
+                # Weighted blend
+                q_blend = normalize_quaternion(alpha_rot * q_ekf + (1 - alpha_rot) * q_pnp)
+                
+                # Use the blended quaternion
+                x_upd[6:10] = q_blend
+            except:
+                # If PnP fails, just normalize the EKF quaternion
+                x_upd[6:10] = normalize_quaternion(q_ekf)
+        else:
+            # Not enough points for PnP, just normalize the EKF quaternion
+            x_upd[6:10] = normalize_quaternion(q_ekf)
+        
+        # Update covariance using Joseph form (this part is good from original)
+        I_KH = np.eye(self.n_states) - K @ H
+        P_upd = I_KH @ P_pred @ I_KH.T + K @ R_diag @ K.T
+        
+        # Ensure symmetry
+        P_upd = (P_upd + P_upd.T) / 2
+        
+        # Store updates
+        self.x = x_upd
+        self.P = P_upd
+        
+        return x_upd.copy(), P_upd.copy()
+    
+    
+    
+    def proper_mekf_update(self, pose_measurement):
+        """
+        Full Multiplicative Extended Kalman Filter update for quaternion-based pose estimation
+        """
+        # Current state estimate
+        x_pred = self.x
+        P_pred = self.P
+        
+        # Extract measurements
+        pos_meas = pose_measurement[0:3]
+        quat_meas = normalize_quaternion(pose_measurement[3:7])
+        
+        # Extract current state
+        pos_pred = x_pred[0:3]
+        q_pred = x_pred[6:10]
+        
+        # 1. Build complete measurement model Jacobian
+        H = np.zeros((6, self.n_states))  # 3 for position, 3 for orientation error
+        
+        # Position part is linear
+        H[0:3, 0:3] = np.eye(3)
+        
+        # Orientation part - this is critical and was missing
+        # For MEKF, this maps the global error quaternion to the local rotation vector
+        H[3:6, 6:9] = np.eye(3)  # Direct mapping to quaternion vector part
+        
+        # 2. Define measurement noise
+        R_meas = np.zeros((6, 6))
+        R_meas[0:3, 0:3] = np.eye(3) * 0.001  # Position measurement noise
+        R_meas[3:6, 3:6] = np.eye(3) * 0.005  # Orientation measurement noise
+        
+        # 3. Compute quaternion error (convert to 3D rotation vector)
+        # First, ensure we're using the right convention [x,y,z,w]
+        q_pred_conj = np.array([-q_pred[0], -q_pred[1], -q_pred[2], q_pred[3]])
+        
+        # Quaternion multiplication: q_err = q_meas ⊗ q_pred_conj
+        q_err = np.array([
+            quat_meas[3]*q_pred_conj[0] + quat_meas[0]*q_pred_conj[3] + quat_meas[1]*q_pred_conj[2] - quat_meas[2]*q_pred_conj[1],
+            quat_meas[3]*q_pred_conj[1] - quat_meas[0]*q_pred_conj[2] + quat_meas[1]*q_pred_conj[3] + quat_meas[2]*q_pred_conj[0],
+            quat_meas[3]*q_pred_conj[2] + quat_meas[0]*q_pred_conj[1] - quat_meas[1]*q_pred_conj[0] + quat_meas[2]*q_pred_conj[3],
+            quat_meas[3]*q_pred_conj[3] - quat_meas[0]*q_pred_conj[0] - quat_meas[1]*q_pred_conj[1] - quat_meas[2]*q_pred_conj[2]
+        ])
+        
+        # Small angle approximation for error quaternion
+        # Check if we need to negate the quaternion (to ensure shortest path)
+        if q_err[3] < 0:
+            q_err = -q_err
+        
+        # For small angles: rotation vector ≈ 2 * quaternion vector part
+        delta_theta = 2 * q_err[0:3]
+        
+        # 4. Build complete measurement residual
+        residual = np.zeros(6)
+        residual[0:3] = pos_meas - pos_pred
+        residual[3:6] = delta_theta
+        
+        # 5. Compute Kalman gain
+        S = H @ P_pred @ H.T + R_meas
+        K = P_pred @ H.T @ np.linalg.inv(S)
+        
+        # 6. Compute state update
+        dx = K @ residual
+        
+        # 7. Apply state update
+        x_upd = x_pred.copy()
+        
+        # Linear state updates (position, velocity)
+        x_upd[0:6] += dx[0:6]
+        
+        # Quaternion update (multiplicative)
+        delta_q = np.zeros(4)
+        delta_angle = np.linalg.norm(dx[6:9])
+        
+        if delta_angle > 1e-10:  # Use smaller threshold
+            delta_axis = dx[6:9] / delta_angle
+            delta_q[0:3] = delta_axis * np.sin(delta_angle/2)
+            delta_q[3] = np.cos(delta_angle/2)
+        else:
+            delta_q = np.array([0, 0, 0, 1])  # Identity quaternion
+        
+        # Apply quaternion update: q_new = delta_q ⊗ q_pred
+        q_new = np.array([
+            delta_q[3]*q_pred[0] + delta_q[0]*q_pred[3] + delta_q[1]*q_pred[2] - delta_q[2]*q_pred[1],
+            delta_q[3]*q_pred[1] - delta_q[0]*q_pred[2] + delta_q[1]*q_pred[3] + delta_q[2]*q_pred[0],
+            delta_q[3]*q_pred[2] + delta_q[0]*q_pred[1] - delta_q[1]*q_pred[0] + delta_q[2]*q_pred[3],
+            delta_q[3]*q_pred[3] - delta_q[0]*q_pred[0] - delta_q[1]*q_pred[1] - delta_q[2]*q_pred[2]
+        ])
+        
+        # Update angular velocity with some influence from the quaternion error
+        # This helps the filter track rotational motion better
+        rotation_rate_gain = 0.1
+        implied_angular_velocity = delta_theta / self.dt * rotation_rate_gain
+        x_upd[10:13] = x_upd[10:13] * 0.8 + implied_angular_velocity * 0.2
+        
+        # Normalize and update quaternion
+        x_upd[6:10] = normalize_quaternion(q_new)
+        
+        # 8. Update covariance using Joseph form
+        I_KH = np.eye(self.n_states) - K @ H
+        P_upd = I_KH @ P_pred @ I_KH.T + K @ R_meas @ K.T
+        
+        # Ensure symmetry
+        P_upd = (P_upd + P_upd.T) / 2
+        
+        # Store updates
+        self.x = x_upd
+        self.P = P_upd
+        
+        return x_upd.copy(), P_upd.copy()
+    
