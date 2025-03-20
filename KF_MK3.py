@@ -9,8 +9,7 @@ from utils import normalize_quaternion, rotation_matrix_to_quaternion
 
 logger = logging.getLogger(__name__)
 
-############################
-class KalmanFilterPose:
+class MultExtendedKalmanFilter:
 
     """
     EKF with state x = [px, py, pz, vx, vy, vz, qx, qy, qz, qw, wx, wy, wz]^T
@@ -36,8 +35,8 @@ class KalmanFilterPose:
         self.P = np.eye(self.n_states) * 0.1
 
         # Tuning: process noise Q, measurement noise R
-        self.Q = np.eye(self.n_states)*1e-4
-        self.R = np.eye(self.n_measurements)*1e-2
+        self.Q = np.eye(self.n_states)*1e-3
+        self.R = np.eye(self.n_measurements)*1e-3#5
 
     def predict(self):
         """

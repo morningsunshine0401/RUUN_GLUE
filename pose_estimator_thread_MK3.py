@@ -14,8 +14,8 @@ from utils import (
     normalize_quaternion
 )
 
-from KF_tight2 import MultExtendedKalmanFilter
 
+from KF_MK3 import MultExtendedKalmanFilter
 
 import matplotlib.cm as cm
 from models.utils import make_matching_plot_fast
@@ -452,8 +452,12 @@ class PoseEstimator:
                 # This is a hybrid and works best
                 #x_upd, P_upd = self.mekf.improved_update(pose_measurement) # This works great
                 
+                # # This is a MEKF and work well
+                # x_upd, P_upd = self.mekf.proper_mekf_update(pose_measurement)
+
                 # This is a MEKF and work well
-                x_upd, P_upd = self.mekf.proper_mekf_update(pose_measurement)
+                x_upd, P_upd = self.mekf.update(pose_measurement)
+                
                 
                 
                 update_method = "loosely_coupled"

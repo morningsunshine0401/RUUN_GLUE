@@ -14,8 +14,8 @@ torch.autograd.set_grad_enabled(False)
 
 # Configure logging
 logging.basicConfig(
-    #level=logging.DEBUG,
-    level=logging.WARNING,
+    level=logging.INFO,
+    #level=logging.WARNING,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
         logging.FileHandler("threaded_pose_estimator.log"),
@@ -39,13 +39,19 @@ class ThreadedPoseEstimator:
         #from pose_estimator_thread_tight2 import PoseEstimator
 
         #loosly coupled 
-        from pose_estimator_thread_loose import PoseEstimator
+        #from pose_estimator_thread_loose import PoseEstimator
 
         #loosly coupled with Xfeat
         #from pose_estimator_thread_loose_X import PoseEstimator
 
-        #loosly and tightly coupled 
-        from pose_estimator_thread_MK2 import PoseEstimator
+        #loosly and tightly coupled and it uses MEKF  WORKS!
+        #from pose_estimator_thread_MK2 import PoseEstimator
+
+        #Fuck tried to fix MK2 but is weird, needs to work more
+        #from pose_estimator_thread_MK1 import PoseEstimator
+
+        # This one uses KF_MK3(same as KF_Q, just EKF) and it WORKS!
+        from pose_estimator_thread_MK3 import PoseEstimator
 
         # Pass KF mode to PoseEstimator
         kf_mode = getattr(opt, 'KF_mode', 'auto')
