@@ -421,6 +421,23 @@ python3 main_thread.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anc
 python3 main_webcam.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --device cuda --camera_width 1280 --camera_height 720 --save_consolidated_json --KF_mode L
 
 
+#20250324
+
+python3 demo_superglue.py --input DJI_Clean.mp4 --anchor T1.png --superglue outdoor 
+
+
+# 20250325
+
+python3 main_webcam.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --device cuda --camera_width 1280 --camera_height 720 --save_consolidated_json --KF_mode L
+
+python3 main_webcam.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --device cuda --camera_width 1280 --camera_height 720 --save_consolidated_json --KF_mode L --consolidated_json_filename Blur.json
+
+python3 main_webcam.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --device cuda --camera_width 1280 --camera_height 720 --save_consolidated_json --KF_mode T --consolidated_json_filename T1.json
+
+watch -n 1 sensors
+
+python3 main_webcam.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --device cuda --camera_width 1280 --camera_height 720 --save_consolidated_json --KF_mode L --consolidated_json_filename KF_Upgrade.json
+
 
 
 

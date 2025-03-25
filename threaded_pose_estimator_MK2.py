@@ -27,88 +27,33 @@ logger = logging.getLogger(__name__)
 class ThreadedPoseEstimator:
     """Wrapper around PoseEstimator to add threading functionality"""
     def __init__(self, opt, device):
-        # Import the PoseEstimator class here to avoid circular imports
-        
-        # Default
-        #from pose_estimator_thread import PoseEstimator
-        
-        #Tightly coupled
-        #from pose_estimator_thread_tight import PoseEstimator
-
-        #Tightly coupled 2
-        #from pose_estimator_thread_tight2 import PoseEstimator
-
-        #loosly coupled 
-        #from pose_estimator_thread_loose import PoseEstimator
-
-        #loosly coupled with Xfeat
-        #from pose_estimator_thread_loose_X import PoseEstimator
-
-        #loosly and tightly coupled and it uses MEKF  WORKS!
-        #from pose_estimator_thread_MK2 import PoseEstimator
-
-        #Fuck tried to fix MK2 but is weird, needs to work more
-        #from pose_estimator_thread_MK1 import PoseEstimator
-
-        # This one uses KF_MK3(same as KF_Q, just EKF) and it WORKS!
-        from pose_estimator_thread_MK3 import PoseEstimator
-
+        # This one uses KF_MK4(same as KF_Q, just EKF) with ViT
+        from pose_estimator_thread_MK4 import PoseEstimator
 
         # Pass KF mode to PoseEstimator
         kf_mode = getattr(opt, 'KF_mode', 'auto')
+        
         # Initialize the pose estimator
         self.pose_estimator = PoseEstimator(opt, device, kf_mode=kf_mode)
-
-
-        ################################################################
-        
-        # Initialize the pose estimator DEFAULT
-        #self.pose_estimator = PoseEstimator(opt, device)
         
         # Add threading components
-
-        ## DEFAULT
         self.frame_queue = queue.Queue(maxsize=50)
-        #self.frame_queue = queue.Queue(maxsize=50)
-
-
-        ## MORE THREADS?
-        #self.frame_queue = queue.Queue(maxsize=30)
-        
-        
         self.result_queue = queue.Queue()
         self.running = True
         self.worker_thread = None
         
-        ## Start worker thread
-        
-        #DEFAULT
+        # Start worker thread
         self.start_worker()
-
-        # MORE THREADS ? 
-        # self.start_workers(num_workers=4)
         
         # Register cleanup
         atexit.register(self.cleanup)
     
-    # DEFAULT
     def start_worker(self):
         """Start the worker thread for processing frames"""
         self.worker_thread = threading.Thread(target=self._process_frames_worker)
         self.worker_thread.daemon = True
         self.worker_thread.start()
         logger.info("Started pose estimation worker thread")
-    
-    # # MORE THREADS?
-    # def start_workers(self, num_workers=4):
-    #     self.worker_threads = []
-    #     for i in range(num_workers):
-    #         t = threading.Thread(target=self._process_frames_worker)
-    #         t.daemon = True
-    #         t.start()
-    #         self.worker_threads.append(t)
-    #     logger.info(f"Started {num_workers} pose estimation worker threads")
-
     
     def _process_frames_worker(self):
         """Worker function that processes frames from the queue"""
@@ -185,11 +130,8 @@ class ThreadedPoseEstimator:
                 # Unpack frame data
                 frame, frame_idx, frame_t, img_name = item
                 
-                ## Process the frame using the pose estimator
-
+                # Process the frame using the pose estimator
                 pose_data, visualization = self.pose_estimator.process_frame(frame, frame_idx)
-                # 20250317 trying to fix!!!
-                #pose_data, visualization = self.pose_estimator.process_frame_safely(frame, frame_idx)
 
                 # Add timestamp and filename to pose data
                 if pose_data:
@@ -289,30 +231,11 @@ class ThreadedPoseEstimator:
                     
             return False
 
-    # def get_result(self, timeout=5.0):
-    #     """Get a result from the result queue with timeout"""
-    #     try:
-    #         # Check if there are any results before waiting
-    #         if self.result_queue.empty():
-    #             logger.info(f"Result queue is empty, waiting up to {timeout}s for results...")
-            
-    #         start_time = time.time()
-    #         result = self.result_queue.get(timeout=timeout)
-    #         elapsed = time.time() - start_time
-            
-    #         if elapsed > 1.0:  # Only log if waiting took more than 1 second
-    #             logger.info(f"Got result after waiting {elapsed:.2f}s")
-                
-    #         return result
-    #     except queue.Empty:
-    #         logger.warning(f"Timeout waiting for processing result (timeout={timeout}s)")
-    #         return None, None, -1, 0, ""
-    
     def get_result(self, timeout=5.0):
+        """Get a result from the result queue with timeout"""
         try:
             if self.result_queue.empty():
-                # Optionally comment out this info log if it's not needed frequently
-                # logger.info(f"Result queue is empty, waiting up to {timeout}s for results...")
+                # Optionally log if needed
                 pass
             start_time = time.time()
             result = self.result_queue.get(timeout=timeout)
@@ -322,9 +245,7 @@ class ThreadedPoseEstimator:
             return result
         except queue.Empty:
             # Optionally reduce the logging level here if desired
-            # logger.warning(f"Timeout waiting for processing result (timeout={timeout}s)")
             return None, None, -1, 0, ""
-
     
     def cleanup(self):
         """Clean up resources and stop worker thread"""
@@ -355,4 +276,3 @@ class ThreadedPoseEstimator:
                 pass
         
         logger.info("Cleanup complete")
-

@@ -17,8 +17,8 @@ from utils import create_unique_filename  # Import the same utility used in main
 
 # Configure logging (same as your existing code)
 logging.basicConfig(
-    level=logging.INFO,
-    #level=logging.WARNING,
+    #level=logging.INFO,
+    level=logging.WARNING,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
         logging.FileHandler("webcam_pose_estimator.log"),
