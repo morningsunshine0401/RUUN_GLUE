@@ -52,9 +52,17 @@ class PoseEstimator:
 
         # Load anchor (leader) image
         self.anchor_image = cv2.imread(opt.anchor)
+        
+        #assert self.anchor_image is not None, f'Failed to load anchor image at {opt.anchor}'
         assert self.anchor_image is not None, f'Failed to load anchor image at {opt.anchor}'
-        self.anchor_image = self._resize_image(self.anchor_image, opt.resize)
+
+        
+        #self.anchor_image = self._resize_image(self.anchor_image, opt.resize)
+        self.anchor_image = cv2.resize(self.anchor_image, (1280,720))#(742, 672))
+        print(f"DEBUG AFTER RESIZE: Anchor image shape: {self.anchor_image.shape}")
+
         logger.info(f"Loaded and resized anchor image from {opt.anchor}")
+       
 
         # Initialize SuperPoint and LightGlue models
         #self.extractor = SuperPoint(max_num_keypoints=2048).eval().to(device)
@@ -64,6 +72,8 @@ class PoseEstimator:
 
         # We will store the anchor's 2D/3D keypoints here.
         # For your anchor image, you can define them directly or load from a file.
+        
+        # This is a mini aircraft 
         anchor_keypoints_2D = np.array([
             [511, 293], #0
             [591, 284], #
@@ -150,6 +160,144 @@ class PoseEstimator:
             [-0.080, -0.000, -0.156]
         ], dtype=np.float32)
 
+
+
+        # # TRANSWING CAD 20250414
+        # anchor_keypoints_2D = np.array([
+        #     [370, 209],
+        #     [372, 225],
+        #     [372, 241],
+        #     [188, 270],
+        #     [559, 268],
+        #     [539, 272],
+        #     [205, 273],
+        #     [202, 286], #
+        #     [543, 284],
+        #     [420, 286],
+        #     [320, 287],
+        #     [372, 328],
+        #     [317, 339],
+        #     [428, 339],
+        #     [552, 350],
+        #     [189, 357],
+        #     [521, 384],#
+        #     [232, 386],
+        #     [561, 420],
+        #     [189, 423],
+        #     [521, 425],##
+        #     [233, 427],
+        #     [350, 457],
+        #     [401, 458],
+        #     [550, 515],
+        #     [201, 516],
+        #     [365, 522],
+        #     [387, 522]
+        # ]
+        # , dtype=np.float32)
+
+        
+        # # TRANSWING Real 20250416
+        # anchor_keypoints_2D = np.array([
+        #     #[370, 209],
+        #     [603, 272],
+        #     [604, 298],
+        #     [454, 313],
+        #     #[559, 268],
+        #     #[539, 272],
+        #     #[205, 273],
+        #     [470, 330], #
+        #     #[543, 284],
+        #     [645, 321],
+        #     [563, 328],
+        #     #[372, 328],
+        #     [561, 366],
+        #     [657, 360],
+        #     [775, 330],
+        #     [444, 357],
+        #     [783, 347],#
+        #     [459, 366],
+        #     [808, 373],
+        #     [429, 402],
+        #     [798, 385],##
+        #     [453, 404],
+        #     #[350, 457],
+        #     #[401, 458],
+        #     [794, 477],
+        #     [446, 504],
+        #     [602, 502],
+        #     [660, 497]
+        # ]
+        # , dtype=np.float32)
+
+
+
+
+        # anchor_keypoints_3D = np.array([
+        #     [0.643,  0.000,  -0.203],
+        #     [ 0.093, 0.000, 0.130],
+        #     [0.093,  0.000, 0.040],
+        #     [-0.051,  0.473,  0.084],
+        #     [-0.051,  -0.473,  0.084],
+        #     [ 0.087,  -0.427, -0.021],
+        #     [ 0.087,  0.427, -0.021],
+        #     [ 0.000,  0.430,  -0.003],#
+        #     [ 0.000,  -0.430,  -0.003],
+        #     [0.001,  -0.121, -0.003],
+        #     [ 0.001,  0.121, -0.003],
+        #     [-0.207,  0.000, 0.056],
+        #     [-0.155, 0.135,  -0.057],
+        #     [ -0.155, -0.135,  -0.057],
+        #     [-0.390, -0.453,  0.065],
+        #     [-0.390, 0.453,  0.065],
+        #     [-0.873, -0.365, 0.309],#
+        #     [-0.873, 0.365, 0.309],
+        #     [-0.729, -0.471,  0.084],
+        #     [-0.729, 0.471,  0.084],
+        #     [-1.063, -0.367, 0.307],
+        #     [-1.063, 0.367, 0.307],
+        #     [-0.839, 0.052,  0.035],
+        #     [-0.839, -0.052,  0.035],
+        #     [-0.729, -0.445, -0.213],
+        #     [-0.729, 0.445, -0.213],
+        #     [-1.089, 0.020, 0.018],
+        #     [-1.089, -0.020, 0.018]
+        # ], dtype=np.float32)
+
+
+        # # CAMERA coordinate base
+
+        # anchor_keypoints_3D = np.array([
+        #     #[-0.000,  -0.203,  0.643],
+        #     [-0.000,  -0.130,  0.093],
+        #     [-0.000,  -0.040,  0.093],
+        #     [-0.473,  -0.084,  -0.051],
+        #     #[0.473,  -0.084,  -0.051],
+        #     #[0.427,  0.021,  0.087],
+        #     #[-0.427,  0.021,  0.087],
+        #     [-0.430,  0.003,  0.000],
+        #     #[0.430,  0.003,  0.000],
+        #     [0.121,  0.003,  0.001],
+        #     [-0.121,  0.003,  0.001],
+        #     #[-0.000,  -0.056,  -0.207],
+        #     [-0.135,  0.057,  -0.155],
+        #     [0.135,  0.057,  -0.155],
+        #     [0.453,  -0.065,  -0.390],
+        #     [-0.453,  -0.065,  -0.390],
+        #     [0.365,  -0.309,  -0.873],
+        #     [-0.365,  -0.309,  -0.873],
+        #     [0.471,  -0.084,  -0.729],
+        #     [-0.471,  -0.084,  -0.729],
+        #     [0.367,  -0.307,  -1.063],##
+        #     [-0.367,  -0.307,  -1.063],
+        #     #[-0.052,  -0.035,  -0.839],
+        #     #[0.052,  -0.035,  -0.839],
+        #     [0.445,  0.213,  -0.729],
+        #     [-0.445,  0.213,  -0.729],
+        #     [-0.020,  -0.018,  -1.089],
+        #     [0.020,  -0.018,  -1.089]
+        # ])
+
+
         # Set anchor features (run SuperPoint on anchor, match to known 2D->3D)
         self._set_anchor_features(
             anchor_bgr_image=self.anchor_image,
@@ -194,6 +342,7 @@ class PoseEstimator:
             # 2. Resize the image
             new_anchor_image = self._resize_image(new_anchor_image, self.opt.resize)
             logger.info(f"Resized anchor image to {new_anchor_image.shape}")
+            print("Resized anchor image to {new_anchor_image.shape}\n")
 
             # 3. Update anchor image (with lock)
             lock_acquired = self.session_lock.acquire(timeout=5.0)
@@ -247,7 +396,28 @@ class PoseEstimator:
             # Record the start time
             start_time = time.time()
             logger.info("Starting anchor feature extraction...")
+
+            # Print anchor image shape for debugging
+            print(f"DEBUG: Anchor image shape: {anchor_bgr_image.shape}")
+            expected_width, expected_height = 1280,720 #742, 672
             
+            # Scale keypoints if anchor image is not at expected size
+            actual_width, actual_height = anchor_bgr_image.shape[1], anchor_bgr_image.shape[0]
+            
+            if actual_width != expected_width or actual_height != expected_height:
+                scale_x = actual_width / expected_width
+                scale_y = actual_height / expected_height
+                print(f"DEBUG: Scaling keypoints by {scale_x:.2f}x, {scale_y:.2f}y")
+                
+                # Create a copy and scale
+                scaled_keypoints = anchor_keypoints_2D.copy()
+                scaled_keypoints[:, 0] *= scale_x
+                scaled_keypoints[:, 1] *= scale_y
+                anchor_keypoints_2D = scaled_keypoints
+            
+            print(f"DEBUG: Using 2D keypoints in range x=[{np.min(anchor_keypoints_2D[:,0]):.1f}-{np.max(anchor_keypoints_2D[:,0]):.1f}], y=[{np.min(anchor_keypoints_2D[:,1]):.1f}-{np.max(anchor_keypoints_2D[:,1]):.1f}]")
+            
+                
             # Try to acquire the lock with a timeout
             lock_acquired = self.session_lock.acquire(timeout=10.0)  # 10 second timeout
             if not lock_acquired:
@@ -255,6 +425,10 @@ class PoseEstimator:
                 return False
             
             try:
+                # Print anchor image shape for debugging
+                print(f"DEBUG: Anchor image shape: {anchor_bgr_image.shape}")
+                print(f"DEBUG: 2D keypoints shape: {anchor_keypoints_2D.shape}")
+
                 # Precompute anchor's SuperPoint descriptors with gradients disabled
                 logger.info("Processing anchor image...")
                 with torch.no_grad():
@@ -279,14 +453,24 @@ class PoseEstimator:
                 logger.info("Building KDTree for anchor keypoints...")
                 sp_tree = cKDTree(self.anchor_keypoints_sp)
                 distances, indices = sp_tree.query(anchor_keypoints_2D, k=1)
+
+                # Print distances for debugging
+                print(f"DEBUG: KDTree distances min/max/avg: {np.min(distances)}/{np.max(distances)}/{np.mean(distances)}")
+            
+                
                 valid_matches = distances < 5.0  # Increased threshold for "close enough"
                 
                 logger.info(f"KDTree query completed in {time.time() - start_time:.3f}s")
                 logger.info(f"Valid matches: {sum(valid_matches)} out of {len(anchor_keypoints_2D)}")
+                print(f"DEBUG: Valid matches: {sum(valid_matches)} out of {len(anchor_keypoints_2D)}")
+            
                 
                 # Check if we have any valid matches
                 if not np.any(valid_matches):
                     logger.error("No valid matches found between anchor keypoints and 2D points!")
+                    # Initialize with empty arrays to prevent None attribute errors
+                    self.matched_anchor_indices = np.array([], dtype=np.int64)
+                    self.matched_3D_keypoints = np.array([], dtype=np.float32).reshape(0, 3)
                     return False
                 
                 self.matched_anchor_indices = indices[valid_matches]
@@ -340,10 +524,16 @@ class PoseEstimator:
         logger.info(f"Processing frame {frame_idx}")
         start_time = time.time()
 
+        print(f"DEBUG: Input frame@#@#@#@#@# {frame_idx} shape before resize: {frame.shape}")
+
+
         # Ensure gradients are disabled
         with torch.no_grad():
             # Resize frame to target resolution
             frame = self._resize_image(frame, self.opt.resize)
+
+            print(f"DEBUG: Input frame {frame_idx} shape after resize: {frame.shape}")
+        
             
             # Extract features from the frame
             frame_tensor = self._convert_cv2_to_tensor(frame)
@@ -824,19 +1014,34 @@ class PoseEstimator:
         # distCoeffs = np.array([0.3393, 2.0351, 0.0295, -0.0029, -10.9093], dtype=np.float32)
 
 
-        # Calib_webcam ICUAS LAB 20250124
-        focal_length_x = 1460.10150  # fx from the calibrated camera matrix
-        focal_length_y = 1456.48915  # fy from the calibrated camera matrix
-        cx = 604.85462               # cx from the calibrated camera matrix
-        cy = 328.64800               # cy from the calibrated camera matrix
+        # ## Calib_webcam ICUAS LAB 20250124
+        # focal_length_x = 1460.10150  # fx from the calibrated camera matrix
+        # focal_length_y = 1456.48915  # fy from the calibrated camera matrix
+        # cx = 604.85462               # cx from the calibrated camera matrix
+        # cy = 328.64800               # cy from the calibrated camera matrix
 
-        distCoeffs = np.array(
-            [3.56447550e-01, -1.09206851e+01, 1.40564820e-03, -1.10856449e-02, 1.20471120e+02],
-            dtype=np.float32
-        )
+        # distCoeffs = np.array(
+        #     [3.56447550e-01, -1.09206851e+01, 1.40564820e-03, -1.10856449e-02, 1.20471120e+02],
+        #     dtype=np.float32
+        # )
 
         # distCoeffs = None
 
+
+        ## DJI calibration
+        ## Calib_camera 20250414
+
+        focal_length_x = 1313.36340#1.4065844e+03#1313.36340  # fx from the calibrated camera matrix
+        focal_length_y = 1313.36340#1.4065844e+03#1316.59196  # fy from the calibrated camera matrix
+        cx = 955.924592             # cx from the calibrated camera matrix
+        cy = 583.905916             # cy from the calibrated camera matrix
+
+        distCoeffs = np.array(
+            [2.33571678e-01, -1.63149722e+00, 8.52446663e-03, 2.40400897e-04, 2.83400276e+00],
+            dtype=np.float32
+        )
+
+        #distCoeffs = None
 
 
 
@@ -921,7 +1126,7 @@ class PoseEstimator:
                 tvec=tvec,
                 useExtrinsicGuess=True,
                 reprojectionError=4.0,
-                iterationsCount=1000,#100,
+                iterationsCount=500,#1000,
                 flags=cv2.SOLVEPNP_EPNP
             )
             
@@ -1019,12 +1224,13 @@ class PoseEstimator:
             cameraMatrix=K,
             distCoeffs=distCoeffs,
             reprojectionError=4,
-            confidence=0.99,
-            iterationsCount=1500,
+            confidence=0.9,#0.99,
+            iterationsCount=1500,#500,
             flags=cv2.SOLVEPNP_EPNP
         )
 
-        if not success or inliers is None or len(inliers) < 6:
+        if not success or inliers is None or len(inliers) < 6:#4:#6:
+            print("INLIERS ARE :\n",len(inliers))
             logger.warning("PnP pose estimation failed or not enough inliers.")
             return None, None, None, None, None
 

@@ -30,8 +30,8 @@ class MultExtendedKalmanFilter:
         self.P = np.eye(self.n_states) * 0.1
 
         # Tuning: process noise Q, measurement noise R
-        self.Q = np.eye(self.n_states)*1e-3
-        self.R = np.eye(self.n_measurements)*1e-4#3
+        self.Q = np.eye(self.n_states)*1e-4#*1e-3
+        self.R = np.eye(self.n_measurements)*1e-2#*1e-4
         #self.R_tight = np.eye(2) * 4.0 
 
     def predict(self):
@@ -83,6 +83,7 @@ class MultExtendedKalmanFilter:
             q_new = self._quaternion_multiply(dq, q)
         
         q_new = normalize_quaternion(q_new)
+
 
         # d) angular velocity => constant
         wx_new, wy_new, wz_new = wx, wy, wz

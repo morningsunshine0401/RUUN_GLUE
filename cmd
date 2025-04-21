@@ -439,6 +439,94 @@ watch -n 1 sensors
 python3 main_webcam.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --device cuda --camera_width 1280 --camera_height 720 --save_consolidated_json --KF_mode L --consolidated_json_filename KF_Upgrade.json
 
 
+# 20250326
+
+
+python3 main_webcam.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --device cuda --camera_width 640 --camera_height 480 --save_consolidated_json --KF_mode L --consolidated_json_filename KF_Upgrade.json
+
+
+python3 main_webcam.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --device cuda --camera_width 1280 --camera_height 720 --save_consolidated_json --KF_mode L --consolidated_json_filename KF_Upgrade.json --dual_resolution --process_width 640 --process_height 480
+
+
+python3 main_webcam.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --device cuda --camera_width 640 --camera_height 480 --save_consolidated_json --KF_mode T --consolidated_json_filename T1.json
+
+
+# 20250331
+
+python3 match_pairs.py --resize 1600 --superglue outdoor --max_keypoints 2048 --nms_radius 3  --resize_float --input_dir dump_match_pairs/20241204/2/ --input_pairs assets/scannet_sample_pairs_with_gt.txt --output_dir dump_match_pairs/20241204/3/ --viz
+
+
+
+# 20250401
+
+python3 demo_superglue.py --anchor 1000029745.png --input 20250331_real_video_2.mp4 --superglue outdoor --match_threshold 0.25
+
+
+
+# 20250414
+
+python3 demo_superglue_2d_info.py --anchor Back_CAD.png --input DJI_0122.MP4 --superglue outdoor --match_threshold 0.25 --output_dir dump_match_pairs/20250414/ --no_display
+
+
+python3 20241218_manual_keypoint_on_image.py 
+
+
+python3 demo_superglue_2d_info.py --anchor Back_CAD.png --input CAD/ --superglue outdoor --match_threshold 0.25 --output_dir dump_match_pairs/20250414/CAD/ --no_display --resize 742 672
+
+
+python3 main_MK4.py --anchor Back_CAD.png --device cuda --input DJI_back.mp4 --save_consolidated_json --KF_mode L --consolidated_json_filename 20250414_TRANS_CAD.json --resize 1920 1080
+
+
+
+python3 demo_superglue_2d_info.py --anchor Back_CAD.png --input DJI_back.mp4 --superglue outdoor --match_threshold 0.25 --output_dir dump_match_pairs/20250414/ANALYSIS/ --no_display
+
+
+
+python3 main_MK4.py --anchor Back_CAD.png --device cuda --input DJI_back2.mp4 --save_consolidated_json --KF_mode L --consolidated_json_filename 20250414_TRANS_CAD.json --resize 1920 1080
+
+
+
+python3 main_MK4.py --anchor Back_CAD.png --device cuda --input DJI_back2.mp4 --save_consolidated_json --KF_mode L --consolidated_json_filename 20250414_TRANS_CAD.json --resize 1140 1044
+
+
+# 20250415
+
+python3 main_MK4.py --anchor Back_CAD.png --device cuda --input DJI_back.mp4 --save_consolidated_json --KF_mode L --consolidated_json_filename 20250415_TC_show_p.json --resize 1920 1080 --show_keypoints
+
+
+python3 demo_superglue_2d_info.py --anchor Back_CAD.png --input DJI_back.mp4 --superglue outdoor --match_threshold 0.25 --output_dir dump_match_pairs/20250414/ANALYSIS/ --show_keypoints
+
+
+python3 main_MK4.py --anchor Back_CAD.png --device cuda --input DJI_back.mp4 --save_consolidated_json --KF_mode L --consolidated_json_filename 20250415_TC_diff_intrin.json --resize 1920 1080 
+
+
+
+# 20250416
+
+python3 main_MK4.py --anchor Back_CAD.png --device cuda --input DJI_back2.mp4 --save_consolidated_json --KF_mode L --consolidated_json_filename 20250416.json --resize 1920 1080 
+
+
+python3 demo_superglue_2d_info.py --anchor dust3r_3.png --input DJI_back.mp4 --superglue outdoor --match_threshold 0.25 --output_dir dump_match_pairs/20250416 --show_keypoints
+
+
+python3 demo_superglue_2d_info.py --anchor Real_Back.png --input DJI_back.mp4 --superglue outdoor --match_threshold 0.25 --output_dir dump_match_pairs/20250416/real --show_keypoints --resize 1280 720
+
+
+python3 20241218_manual_keypoint_on_image.py 
+
+
+python3 main_MK4.py --anchor Real_Back.png --device cuda --input DJI_back.mp4 --save_consolidated_json --KF_mode L --consolidated_json_filename 20250416_real.json --resize 1280 720 
+
+python3 main_MK4.py --anchor Real_Back.png --device cuda --input DJI_back2.mp4 --save_consolidated_json --KF_mode L --consolidated_json_filename 20250416_real.json --resize 570 522 
+
+
+# 20250421
+
+python3 main_MK4.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --device cuda --input far_0421.mp4 --save_consolidated_json --KF_mode L --consolidated_json_filename 20250421_far.json --resize 1280 720 
+
+
+
+python3 demo_superglue_2d_info.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --input far_0421.mp4 --superglue outdoor --match_threshold 0.25 --output_dir dump_match_pairs/20250421/ --show_keypoints --resize 1280 720
 
 
 
