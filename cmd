@@ -529,6 +529,29 @@ python3 main_MK4.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor
 python3 demo_superglue_2d_info.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --input far_0421.mp4 --superglue outdoor --match_threshold 0.25 --output_dir dump_match_pairs/20250421/ --show_keypoints --resize 1280 720
 
 
+# 20250423
+
+# Basic usage - measurements every 5 steps with moderate noise
+python3 kf_analysis_tool.py --meas-interval 5 --noise-pos 0.05 --noise-quat 0.01
+
+# Track Kalman gains and covariances for detailed analysis
+python3 kf_analysis_tool.py --meas-interval 3 --noise-pos 0.1 --track-gains
+
+# Save plots to files
+python3 kf_analysis_tool.py --meas-interval 10 --noise-pos 0.2 --track-gains --save-plots
+
+
+python3 kf_analysis_tool.py --meas-interval 5 --noise-pos 0.05 --noise-quat 0.01 --track-gains
+
+
+python3 kf_analysis_tool.py --simple-trajectory --meas-interval 10 --noise-pos 0.05
+
+
+
+python3 kf_analysis_tool.py --meas-interval 3 --noise-pos 0.05 --noise-quat 0.01
+
+
+
 
 
 

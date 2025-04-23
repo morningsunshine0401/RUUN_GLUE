@@ -75,8 +75,10 @@ def run(args):
                             np.deg2rad(args.rate))
 
     kf = MultExtendedKalmanFilter(args.dt)
-    kf.x[0:3]  = p_gt[0]
-    kf.x[6:10] = q_gt[0]
+    kf.x[0:3]  = p_gt[0]                # Position
+    kf.x[3:6]  = np.array(args.vel)     # Linear velocity 
+    kf.x[6:10] = q_gt[0]                # Quaternion
+    kf.x[10:13] = np.deg2rad(args.rate) # Angular velocity
 
     pos_pred   = np.zeros((n_steps, 3))
     eul_pred   = np.zeros((n_steps, 3))

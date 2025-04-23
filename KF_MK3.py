@@ -22,6 +22,7 @@ class MultExtendedKalmanFilter:
         # If you measure angular velocity or anything else, adapt.
         self.n_measurements = 7  
 
+
         # State: [p(3), v(3), q(4), w(3)]
         self.x = np.zeros(self.n_states)
         self.x[9] = 1.0  # quaternion w=1, x=y=z=0
