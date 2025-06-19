@@ -551,6 +551,273 @@ python3 kf_analysis_tool.py --simple-trajectory --meas-interval 10 --noise-pos 0
 python3 kf_analysis_tool.py --meas-interval 3 --noise-pos 0.05 --noise-quat 0.01
 
 
+python3 kf_analysis_tool.py --simple-trajectory --meas-interval 4 --noise-pos 0.05 --noise-quat 0.01
+
+
+python3 kf_debug_runner.py --update-mod 2 --update-phase 0
+
+
+python3 kf_analysis_tool.py --meas-interval 3 --noise-pos 0.05 --noise-quat 0.01 --track-gains
+
+
+
+python3 kf_analysis_tool.py --meas-interval 3 --noise-pos 0.05 --noise-quat 0.01 --track-gains --save-plots
+
+
+
+# Process model check
+
+
+python3 kf_process_check.py --warmup 3 --noise-pos 0.01
+
+
+python3 kf_process_check.py --warmup 3 --noise-pos 0.03 --noise-quat 0.02
+
+
+
+# 20250502
+
+
+python3 demo_superglue_2d_info.py --anchor Heechan.png --input Heechan_20250502.mp4 --superglue outdoor --match_threshold 0.25 --output_dir dump_match_pairs/20250502/ --show_keypoints --resize 1280 720
+
+
+python3 demo_superglue_2d_info.py --anchor Heechan.png --input 20250502_far1_1.mp4 --superglue outdoor --match_threshold 0.25 --output_dir dump_match_pairs/20250502/far1/ --show_keypoints --resize 1280 720
+
+
+python3 main_MK4.py --anchor Real_Back.png --device cuda --input DJI_back.mp4 --save_consolidated_json --KF_mode L --consolidated_json_filename 20250502_real.json --resize 1280 720 
+
+
+python3 main_MK4.py --anchor Real_Back.png --device cuda --input DJI_back2.mp4 --save_consolidated_json --KF_mode L --consolidated_json_filename 20250502_real2.json --resize 570 522 
+
+
+20250331_real_video_2
+
+
+python3 main_MK4.py --anchor Real_Back.png --device cuda --input 20250502_real_video_1.mp4 --save_consolidated_json --KF_mode L --consolidated_json_filename 20250502_real.json --resize 950 522 #1280 720 
+
+
+python3 demo_superglue_2d_info.py --anchor Real_Back.png --input 20250502_real_video_1.mp4 --superglue outdoor --match_threshold 0.25 --output_dir dump_match_pairs/20250502/real/ --show_keypoints --resize 950 522
+
+
+python3 demo_superglue_2d_info.py --anchor Real_Back.png --input 20250331_real_video_2.mp4 --superglue outdoor --match_threshold 0.25 --output_dir dump_match_pairs/20250502/real/far/ --show_keypoints --resize 1920 1080
+
+
+python3 main_MK4.py --anchor Real_Back.png --device cuda --input 20250331_real_video_2.mp4 --save_consolidated_json --KF_mode L --consolidated_json_filename 20250502_real_hard.json --resize 1920 1080 
+
+
+python3 main_MK4.py --anchor Real_Back.png --device cuda --input 20250502_real_video_2.mp4 --save_consolidated_json --KF_mode L --consolidated_json_filename 20250502_real_3.json --resize 982 514
+
+python3 main_MK4.py --anchor Real_Back.png --device cuda --input 20250502_real_video_2.mp4 --save_consolidated_json --KF_mode L --consolidated_json_filename 20250502_real_g.json --resize 982 514
+
+python3 main_MK4.py --anchor Real_Back.png --device cuda --input 20250331_real_video_3.mp4 --save_consolidated_json --KF_mode L --consolidated_json_filename 20250502_real_g2.json --resize 1482 830
+
+
+
+# 20250506
+
+python3 main_MK4.py --anchor Real_Back.png --device cuda --input 20250331_real_video_3.mp4 --save_consolidated_json --KF_mode L --consolidated_json_filename 20250506_real.json --resize 1482 830
+
+python3 main_MK4.py --anchor Real_Back.png --device cuda --input 20250502_real_video_2.mp4 --save_consolidated_json --KF_mode L --consolidated_json_filename 20250506_real_2.json --resize 982 514
+
+
+python3 demo_superglue_2d_info.py --anchor Heechan.png --input 20250506_far.MP4 --superglue outdoor --match_threshold 0.25 --output_dir dump_match_pairs/20250506/ --show_keypoints --resize 1920 1080
+
+
+python3 demo_superglue_2d_info.py --anchor Doll.png --input Doll.MP4 --superglue outdoor --match_threshold 0.25 --output_dir dump_match_pairs/20250506/Doll/ --show_keypoints --resize 1920 1080
+
+
+python3 20241218_manual_keypoint_on_image.py 
+
+python3 demo_superglue_2d_info.py --anchor Heechan.png --input 20250506_far.MP4 --superglue outdoor --match_threshold 0.25 --output_dir dump_match_pairs/20250506/ --show_keypoints --resize 1030 543
+
+
+python3 demo_superglue_2d_info.py --anchor Heechan.png --input 20250506_far2.mp4 --superglue outdoor --match_threshold 0.25 --output_dir dump_match_pairs/20250506/far2/ --show_keypoints --resize 1280 720
+
+python3 demo_superglue_2d_info.py --anchor Heechan.png --input 20250506_occlusion.mp4 --superglue outdoor --match_threshold 0.25 --output_dir dump_match_pairs/20250506/occlusion/ --show_keypoints --resize 1280 720
+
+python3 demo_superglue_2d_info.py --anchor Heechan2.png --input 20250506_far2.mp4 --superglue outdoor --match_threshold 0.25 --resize 1280 720
+
+python3 demo_superglue_2d_info.py --anchor Heechan.png --input 20250506_far2.mp4 --superglue outdoor --match_threshold 0.25 --resize 1030 543
+
+python3 demo_superglue_2d_info.py --anchor Heechan3.png --input 20250506_far2.mp4 --superglue outdoor --match_threshold 0.25 --resize 1280 720
+
+python3 demo_superglue_2d_info.py --anchor Heechan3.png --input 20250506_far3.mp4 --superglue outdoor --match_threshold 0.25 --resize 1280 720
+
+python3 demo_superglue_2d_info.py --anchor Heechan.png --input 20250506_far.MP4 --superglue outdoor --match_threshold 0.25 --output_dir dump_match_pairs/20250506/ --show_keypoints --resize 1030 543
+
+python3 demo_superglue_2d_info.py --anchor Heechan.png --input 20250506_far.MP4 --superglue outdoor --match_threshold 0.25 --show_keypoints --resize 1920 1080
+
+python3 demo_superglue_2d_info.py --anchor Heechan3.png --input 20250506_far.MP4 --superglue outdoor --match_threshold 0.25 --show_keypoints --resize 1920 1080
+
+python3 demo_superglue_2d_info.py --anchor Heechan3.png --input 20250506_far_short.mp4 --superglue outdoor --match_threshold 0.25 --show_keypoints --resize 1920 1080 --output_dir dump_match_pairs/20250506/far_short/ --no_display
+
+
+python3 main_MK4.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --device cuda --input 20250506_test1.mp4 --save_consolidated_json --KF_mode L --consolidated_json_filename 20250506_test1.json --resize 1280 720 
+
+
+
+# 20250507
+
+python3 main_MK4.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --device cuda --input 20250507_test1.mp4 --save_consolidated_json --KF_mode L --consolidated_json_filename 20250507_test1.json --resize 1280 720 
+
+
+python3 demo_superglue_2d_info.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --input 20250507_test1.mp4 --superglue outdoor --match_threshold 0.25 --show_keypoints --resize 1280 720
+
+
+
+python3 demo_superglue_2d_info.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --input 20250507_test2.mp4 --superglue outdoor --match_threshold 0.25 --show_keypoints --resize 640 480
+
+
+python3 main_MK4.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --device cuda --input 20250507_test1.mp4 --save_consolidated_json --KF_mode L --consolidated_json_filename 20250507_test1.json --resize 1280 720 
+
+
+# 20250508
+
+python3 main_thread.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --image_dir assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test4/ --csv_file assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test4/image_index.csv --save_pose 20250508_20250128_test4.json
+
+
+python3 main_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --image_dir assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test2/ --csv_file assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test2/image_index.csv --save_pose 20250508_20250128_test2.json
+
+
+python3 main_MK4.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --device cuda --input 20250508_far.mp4 --save_consolidated_json --KF_mode L --consolidated_json_filename 20250508_far.json --resize 1280 720 
+
+
+python3 main_MK4.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --device cuda --input 20250508_yaw.mp4 --save_consolidated_json --KF_mode L --consolidated_json_filename 20250508_4.json --resize 1280 720 
+
+
+
+python3 main_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --image_dir assets/Ruun_images/ICUAS/20250203/extracted_images_20250203_test2/ --csv_file assets/Ruun_images/ICUAS/20250203/extracted_images_20250203_test2/image_index.csv --save_pose 20250508_20250203_test2_pixel.json
+
+
+python3 main_MK4.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --device cuda --input 20250508_standard.mp4 --save_consolidated_json --KF_mode L --consolidated_json_filename 20250508_standard.json --resize 1280 720 
+
+python3 main_MK4.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --device cuda --input 20250508_blur.mp4 --save_consolidated_json --KF_mode L --consolidated_json_filename 20250508_2.json --resize 1280 720 
+
+python3 main_MK4.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --device cuda --input 20250508_edge.mp4 --save_consolidated_json --KF_mode L --consolidated_json_filename 20250508_3.json --resize 1280 720 
+
+python3 main_MK4.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --device cuda --input 20250508_yaw.mp4 --save_consolidated_json --KF_mode L --consolidated_json_filename 20250508_4.json --resize 1280 720 
+
+
+
+python3 main_MK4.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --device cuda --input 20250508_test2.mp4 --save_consolidated_json --KF_mode L --consolidated_json_filename 20250508_4.json --resize 1280 720 
+
+
+python3 main_MK4.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --device cuda --input 20250507_test1.mp4 --save_consolidated_json --KF_mode L --consolidated_json_filename 20250508_t1.json --resize 1280 720 
+
+
+
+python3 main_MK4.py --anchor Real_Back.png --device cuda --input 20250502_real_video_2.mp4 --save_consolidated_json --KF_mode L --consolidated_json_filename 20250506_real_2.json --resize 982 514
+
+
+python3 main_MK4.py --anchor Real_Back.png --device cuda --input 20250502_real_video_2.mp4 --save_consolidated_json --KF_mode L --consolidated_json_filename 20250506_real_2.json --resize 1280 720
+
+
+
+python3 main_MK4.py --anchor Real_Back.png --device cuda --input 20250502_real_video_1.mp4 --save_consolidated_json --KF_mode L --consolidated_json_filename 20250506_real_2.json --resize 950 522
+
+
+python3 main_MK4.py --anchor Real_Back.png --device cuda --input 20250331_real_video_3.mp4 --save_consolidated_json --KF_mode L --consolidated_json_filename 20250506_real.json --resize 1482 830
+
+
+# 20250512
+
+python3 main_MK4.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --device cuda --input 20250508_blur.mp4 --save_consolidated_json --KF_mode L --consolidated_json_filename 20250512_blur.json --resize 1280 720 
+
+python3 main_MK4.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --device cuda --input 20250508_edge.mp4 --save_consolidated_json --KF_mode L --consolidated_json_filename 20250512_edge.json --resize 1280 720 
+
+python3 main_MK4.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --device cuda --input 20250508_yaw.mp4 --save_consolidated_json --KF_mode L --consolidated_json_filename 20250512_yaw.json --resize 1280 720 
+
+
+
+
+# 20250522
+
+
+python3 demo_superglue_2d_info.py --anchor LM_cat_f.png --input assets/LM/train/ --superglue outdoor --match_threshold 0.25 --output_dir dump_match_pairs/20250522/
+
+python3 main_MK42.py --device cuda --camera_id 0 --camera_width 1280 --camera_height 720 --resize 1280 720 --KF_mode L --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png
+
+python3 main_MK42.py --device cuda --camera_id 0 --camera_width 1280 --camera_height 720 --resize 1280 720 --KF_mode L --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png
+
+python3 main_MK42.py --device cuda --camera_id 0 --camera_width 1280 --camera_height 720 --resize 1280 720 --KF_mode L --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png
+
+
+
+
+# Generate full visual report
+python3 aircraft_annotator.py --reference assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --input-folder annotation_input/ --visualize
+
+# Then open: annotations/visualizations/report.html
+
+
+# 20250605
+
+python3 annotator_MK2.py --reference-folder references/ --num-keypoints 6 --input-folder annotation_input1/
+
+python3 auto_annotator_DINOv2.py     --reference-config interactive_reference_config.json     --input-folder annotation_input1/     --object-name aircraft     --visualize --selected-method enhanced_hybrid --debug
+
+python3 AutoAnnotate.py     --reference-config interactive_reference_config.json     --input-folder annotation_input1/     --object-name aircraft     --visualize --selection-method best_keypoint_match
+
+python3 annotator_config.py --reference-folder references/ --num-keypoints 6
+
+python3 AutoMK2.py     --reference-config interactive_reference_config.json     --input-folder annotation_input1/     --visualize 
+# This one at the top of this line is good
+
+python3 LLMMK1.py --reference-config interactive_reference_config.json --input-folder annotation_input1/ --object-name "white aircraft toy"
+
+
+
+
+
+
+#20250609
+
+python3 annotator_config.py --reference-folder references/coffee/ --num-keypoints 10
+
+python3 AutoMK3.py     --reference-config interactive_reference_config.json     --input-folder annotation_input1/coffee/     --visualize 
+
+
+
+
+# 20250615
+
+python3 annotator_config.py --reference-folder references/ --num-keypoints 6
+
+python3 AutoMK3.py     --reference-config interactive_reference_config.json     --input-folder annotation_input1/     --visualize 
+
+
+
+python3 main_MK43.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --device cuda
+
+
+# 20250616
+
+python3 VAPE_MK3.py --device cuda # This one used xfeat
+
+
+python3 VAPE_XFEAT.py
+# 또는
+python3 VAPE_XFEAT.py --target-fps 25 --performance-mode
+
+
+python3 VAPE_MK1.py --device cuda # This one used superpoint
+
+
+
+# 20250618
+
+python3 annotator_config.py --reference-folder references/ --num-keypoints 6
+
+python3 AutoMK3.py     --reference-config interactive_reference_config.json     --input-folder anno_images/     --visualize 
+
+
+# 20250619
+
+python3 VAPE_MK42.py
+
+
+
+
 
 
 

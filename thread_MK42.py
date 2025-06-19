@@ -28,7 +28,9 @@ logger = logging.getLogger(__name__)
 class ThreadedPoseEstimator:
     """Wrapper around PoseEstimator to add threading functionality"""
     def __init__(self, opt, device):
-        from pose_estimator_MK42 import PoseEstimator
+        
+        #from pose_estimator_MK42 import PoseEstimator
+        from O_pose_estimator_MK42 import PoseEstimator
 
         # Pass KF mode to PoseEstimator
         kf_mode = getattr(opt, 'KF_mode', 'auto')
