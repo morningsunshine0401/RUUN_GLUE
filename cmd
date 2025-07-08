@@ -817,8 +817,161 @@ python3 VAPE_MK42.py
 
 
 
+# 202506124
+
+python3 annotator_config.py --reference-folder references/ --num-keypoints 6
+
+python3 AutoMK2.py     --reference-config interactive_reference_config.json     --input-folder anno_images/     --visualize 
 
 
+python3 AutoMK4.py     --reference-config interactive_reference_config.json     --input-folder anno_images/   --selection-method sam_segment_based
+
+
+
+python3 AutoMK5.py     --reference-config interactive_reference_config.json     --input-folder anno_images/ --text-prompt "white aircraft"     --yolo-confidence 0.3     --sam-model sam2_b.pt     --debug
+
+
+python3 annotaion_setup.py     --reference-folder references/     --num-keypoints 6     --text-prompt "white aircraft"
+
+
+#20250625
+
+python3 VAPE_MK43.py
+
+
+
+#20250626
+
+python3 VAPE_MK45_ONNX.py
+
+python3 VAPE_MK45_debug_ONNX.py
+
+python3 onnx_pose.py
+
+
+#20250630
+
+python3 annotator_config.py --reference-folder references/ --num-keypoints 14
+
+python3 AutoMK3.py     --reference-config interactive_reference_config.json     --input-folder anno_images/     --visualize 
+
+python3 AutoMK43.py     --reference-config interactive_reference_config.json     --input-folder anno_images/     --visualize --bbox-mode minimal
+
+
+
+# Camera Mode (Original)
+python3 VAPE_MK43_with_JSON_Export.py --save_pose results.json
+
+# Batch Mode (Like main_sync.py)
+python3 VAPE_MK43_JSONver.py --image_dir assets/Ruun_images/ICUAS/20250210/extracted_images_test5/ --csv_file assets/Ruun_images/ICUAS/20250210/extracted_images_test5/image_index.csv --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --save_pose results_20250702.json
+
+
+# 20250705
+
+python3 AutoMK7.py     --reference-config interactive_reference_config.json     --input-folder /media/runbk0401/Storage5/RUUN_GLUE_DATABASE/assets/Ruun_images/ICUAS/merged/     --ransac-threshold 10 --distance-threshold 10 --min-matches-for-ransac 8 --debug --crop-padding-ratio 0.16
+
+
+
+#20250706
+python3 VAPE_MK43_JSONver.py --image_dir /media/runbk0401/Storage5/RUUN_GLUE_DATABASE/REF-20250124/extracted_images_20250124_ICUAS1/ --csv_file /media/runbk0401/Storage5/RUUN_GLUE_DATABASE/REF-20250124/extracted_images_20250124_ICUAS1/image_index.csv --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --save_pose results_20250706_ICUAS.json
+
+
+python3 VAPE_MK43_JSONver.py --image_dir /media/runbk0401/Storage5/RUUN_GLUE_DATABASE/assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test2/ --csv_file /media/runbk0401/Storage5/RUUN_GLUE_DATABASE/assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test2/image_index.csv --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --save_pose results_20250706_ICUAS.json
+
+
+python3 main_sync.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --image_dir /media/runbk0401/Storage5/RUUN_GLUE_DATABASE/assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test2/ --csv_file /media/runbk0401/Storage5/RUUN_GLUE_DATABASE/assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test2/image_index.csv --save_pose 20250706_20250128_test2.json
+
+python3 VAPE_MK45_Robust.py --image_dir /media/runbk0401/Storage5/RUUN_GLUE_DATABASE/assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test2/ --csv_file /media/runbk0401/Storage5/RUUN_GLUE_DATABASE/assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test2/image_index.csv 
+
+
+# 20250707
+
+python3 VAPE_Journal.py --video_file simple_indoor.mp4
+
+python3 VAPE_MK46.py --image_dir /media/runbk0401/Storage5/RUUN_GLUE_DATABASE/assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test2/ --csv_file /media/runbk0401/Storage5/RUUN_GLUE_DATABASE/assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test2/image_index.csv 
+
+# 20250708
+
+python3 VAPE_MK46.py 
+
+python3 VAPE_MK47.py 
+
+python3 AnchorTool.py --reference assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --new_anchor NE.png --reference_viewpoint NE
+
+python3 AnchorTool.py --reference assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --new_anchor SE.png --reference_viewpoint SE
+
+
+
+######### CAMERA INTRINSICS ###########
+
+# # Calib_Phone_Opti
+        # focal_length_x = 1078.06451
+        # focal_length_y = 1081.77221
+        # cx = 628.078538
+        # cy = 362.156441
+
+        # distCoeffs = np.array(
+        #     [5.63748710e-02, -7.51721332e-01, -6.97952865e-04, -3.84299642e-03,6.18234012e+00],
+        #     dtype=np.float32
+        # )
+
+
+
+	# # Camera calibration parameters - DEFAULT
+        # focal_length_x = 1430.10150
+        # focal_length_y = 1430.48915
+        # cx = 640.85462
+        # cy = 480.64800
+
+        # distCoeffs = np.array([0.3393, 2.0351, 0.0295, -0.0029, -10.9093], dtype=np.float32)
+
+
+        ## Calib_webcam ICUAS LAB 20250124
+        focal_length_x = 1460.10150  # fx from the calibrated camera matrix
+        focal_length_y = 1456.48915  # fy from the calibrated camera matrix
+        cx = 604.85462               # cx from the calibrated camera matrix
+        cy = 328.64800               # cy from the calibrated camera matrix
+
+        distCoeffs = np.array(
+            [3.56447550e-01, -1.09206851e+01, 1.40564820e-03, -1.10856449e-02, 1.20471120e+02],
+            dtype=np.float32
+        )
+
+        distCoeffs = None
+
+
+        # ## DJI calibration
+        # ## Calib_camera 20250414
+
+        # focal_length_x = 1313.36340#1.4065844e+03#1313.36340  # fx from the calibrated camera matrix
+        # focal_length_y = 1313.36340#1.4065844e+03#1316.59196  # fy from the calibrated camera matrix
+        # cx = 955.924592             # cx from the calibrated camera matrix
+        # cy = 583.905916             # cy from the calibrated camera matrix
+
+        # distCoeffs = np.array(
+        #     [2.33571678e-01, -1.63149722e+00, 8.52446663e-03, 2.40400897e-04, 2.83400276e+00],
+        #     dtype=np.float32
+        # )
+
+        # #distCoeffs = None
+
+
+
+        # ## 982 514 guess
+
+        # focal_length_x = 4049.6#2686.0
+        # focal_length_y = 4037.6#2686.0
+        # cx = 740.0#491.0              # cx from the calibrated camera matrix
+        # cy = 415.0#257.0                 # cy from the calibrated camera matrix
+
+        # # distCoeffs = np.array(
+        # #     [2.33571678e-01, -1.63149722e+00, 8.52446663e-03, 2.40400897e-04, 2.83400276e+00],
+        # #     dtype=np.float32
+        # # )
+
+        # distCoeffs = None
+
+########################################
 
 
 

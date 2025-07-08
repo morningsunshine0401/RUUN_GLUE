@@ -15,7 +15,7 @@ useRawData = false;  % If true, use 'object_*' fields; if false, use 'kf_*' fiel
 % jsonPath = 'pose_estimation.json';
 
 bagFile = '/media/runbk0401/Storage5/RUUN_GLUE_DATABASE/db3-IMMPORTANT/20250128_test2.db3';
-jsonPath = 'results_20250706_ICUAS_6.json';
+jsonPath = 'results_20250706_ICUAS_10.json';
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -120,9 +120,15 @@ if useRawData
     dataTypeTag = 'raw';
     fprintf("Using raw data fields: object_rotation_in_cam, object_translation_in_cam\n");
 else
-    % Use refined or KF fields
-    rotField = 'kf_rotation_matrix';
-    transField = 'kf_translation_vector';
+    % % Use refined or KF fields
+    % rotField = 'kf_rotation_matrix';
+    % transField = 'kf_translation_vector';
+    % dataTypeTag = 'kf';
+    % fprintf("Using KF data fields: kf_rotation_matrix, kf_translation_vector\n");
+
+    % This is for jsons from VAPE_MK43_JSON
+    rotField = 'rotation_matrix';        
+    transField = 'position';
     dataTypeTag = 'kf';
     fprintf("Using KF data fields: kf_rotation_matrix, kf_translation_vector\n");
 end
@@ -201,6 +207,7 @@ for i = 1:N_json
     matched_t_opt(i,:)  = t_rel_array(idxClosest,:);
     matched_R_opt{i}    = R_rel_array(:,:,idxClosest);
 end
+
 % For naming saved figures
 [~, bagBase, ~] = fileparts(bagFile);
 [~, jsonBase, ~] = fileparts(jsonPath);

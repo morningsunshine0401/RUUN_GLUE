@@ -7,7 +7,7 @@ clear all; close all; clc;
 %% (1) Preparations
 
 % Edit this path to match your data:
-jsonPath = '20250512_yaw.json';
+jsonPath = 'VAPE_outdoor.json';
 
 %jsonPath = 'pose_estimation_MEKF_20250320_6.json';
 
@@ -43,7 +43,7 @@ fprintf("Loaded %d frames from JSON file\n", N_json);
 
 %% (3) Frame selection for plotting
 % Specify the desired number of frames to plot
-desiredFrameCount = 350;
+desiredFrameCount = 560;
 % Automatically select frames from 1 up to the lesser of desiredFrameCount or the available JSON frames
 selectedFrames = 1:min(desiredFrameCount, N_json);
 if max(selectedFrames) > N_json
