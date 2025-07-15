@@ -901,6 +901,25 @@ python3 AnchorTool.py --reference assets/Ruun_images/viewpoint/anchor/20241226/A
 python3 AnchorTool.py --reference assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --new_anchor SE.png --reference_viewpoint SE
 
 
+# 20250714
+
+python3 main_ORB_ICUAS.py --anchor assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --resize 1280 720 --save_pose ORB_dark.json --input assets/Ruun_images/ICUAS/20250122/extracted_images_20250122_test8/ --output_dir dump_match_pairs/20250714/orb/
+
+
+python3 ablation.py --image_dir assets/Ruun_images/ICUAS/20250210/extracted_images_test5/ --output_dir dump_match_pairs/20250714/2/ --csv_file assets/Ruun_images/ICUAS/20250210/extracted_images_test5/image_index.csv 
+
+
+
+# 20250715 
+
+python3 ablation2.py --video_file 20250715_outdoor.mp4 --output_dir dump_match_pairs/20250715/outdoor/5/ --vis_match
+
+python3 VAPE_Journal.py --video_file 20250715_outdoor.mp4 
+
+python3 VAPE_MK48.py --video_file 20250715_outdoor.mp4 
+
+python3 VAPE_MK49.py --video_file 20250715_outdoor.mp4 # BEST?
+
 
 ######### CAMERA INTRINSICS ###########
 
