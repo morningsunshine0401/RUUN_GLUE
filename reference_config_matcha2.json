@@ -1,0 +1,1656 @@
+{
+    "created_at": "2025-07-22T16:41:53.302419",
+    "num_keypoints_per_object": 8,
+    "references": [
+        {
+            "id": "reference_0",
+            "image_path": "references/matcha/ref2/117.png",
+            "viewpoint": "viewpoint_0",
+            "description": "Reference image 1",
+            "keypoints": {
+                "keypoint_1": [
+                    662.0,
+                    823.0
+                ],
+                "keypoint_2": [
+                    1812.0,
+                    817.0
+                ],
+                "keypoint_3": [
+                    697.0,
+                    1059.0
+                ],
+                "keypoint_4": [
+                    1625.0,
+                    1049.0
+                ],
+                "keypoint_5": [
+                    678.0,
+                    653.0
+                ],
+                "keypoint_6": [
+                    1734.0,
+                    645.0
+                ],
+                "keypoint_7": [
+                    0.0,
+                    0.0
+                ],
+                "keypoint_8": [
+                    0.0,
+                    0.0
+                ]
+            },
+            "bbox": [
+                549.12,
+                547.1999999999999,
+                1898.8799999999999,
+                1163.52
+            ],
+            "original_size": [
+                1920,
+                1440
+            ],
+            "display_size": [
+                1000,
+                750
+            ],
+            "scale_factor": 0.5208333333333334
+        },
+        {
+            "id": "reference_1",
+            "image_path": "references/matcha/ref2/128.png",
+            "viewpoint": "viewpoint_1",
+            "description": "Reference image 2",
+            "keypoints": {
+                "keypoint_1": [
+                    708.0,
+                    852.0
+                ],
+                "keypoint_2": [
+                    1646.0,
+                    614.0
+                ],
+                "keypoint_3": [
+                    728.0,
+                    1089.0
+                ],
+                "keypoint_4": [
+                    1518.0,
+                    862.0
+                ],
+                "keypoint_5": [
+                    647.0,
+                    700.0
+                ],
+                "keypoint_6": [
+                    1536.0,
+                    490.0
+                ],
+                "keypoint_7": [
+                    0.0,
+                    0.0
+                ],
+                "keypoint_8": [
+                    0.0,
+                    0.0
+                ]
+            },
+            "bbox": [
+                608.64,
+                455.03999999999996,
+                1672.32,
+                1146.24
+            ],
+            "original_size": [
+                1920,
+                1440
+            ],
+            "display_size": [
+                1000,
+                750
+            ],
+            "scale_factor": 0.5208333333333334
+        },
+        {
+            "id": "reference_2",
+            "image_path": "references/matcha/ref2/148.png",
+            "viewpoint": "viewpoint_2",
+            "description": "Reference image 3",
+            "keypoints": {
+                "keypoint_1": [
+                    1027.0,
+                    743.0
+                ],
+                "keypoint_2": [
+                    1636.0,
+                    463.0
+                ],
+                "keypoint_3": [
+                    952.0,
+                    987.0
+                ],
+                "keypoint_4": [
+                    1490.0,
+                    699.0
+                ],
+                "keypoint_5": [
+                    903.0,
+                    613.0
+                ],
+                "keypoint_6": [
+                    1513.0,
+                    374.0
+                ],
+                "keypoint_7": [
+                    848.0,
+                    878.0
+                ],
+                "keypoint_8": [
+                    0.0,
+                    0.0
+                ]
+            },
+            "bbox": [
+                808.3199999999999,
+                299.52,
+                1710.7199999999998,
+                1038.72
+            ],
+            "original_size": [
+                1920,
+                1440
+            ],
+            "display_size": [
+                1000,
+                750
+            ],
+            "scale_factor": 0.5208333333333334
+        },
+        {
+            "id": "reference_3",
+            "image_path": "references/matcha/ref2/181.png",
+            "viewpoint": "viewpoint_3",
+            "description": "Reference image 4",
+            "keypoints": {
+                "keypoint_1": [
+                    1031.0,
+                    767.0
+                ],
+                "keypoint_2": [
+                    1556.0,
+                    339.0
+                ],
+                "keypoint_3": [
+                    907.0,
+                    1007.0
+                ],
+                "keypoint_4": [
+                    1387.0,
+                    586.0
+                ],
+                "keypoint_5": [
+                    861.0,
+                    606.0
+                ],
+                "keypoint_6": [
+                    1425.0,
+                    247.0
+                ],
+                "keypoint_7": [
+                    772.0,
+                    879.0
+                ],
+                "keypoint_8": [
+                    0.0,
+                    0.0
+                ]
+            },
+            "bbox": [
+                723.8399999999999,
+                190.07999999999998,
+                1589.76,
+                1040.6399999999999
+            ],
+            "original_size": [
+                1920,
+                1440
+            ],
+            "display_size": [
+                1000,
+                750
+            ],
+            "scale_factor": 0.5208333333333334
+        },
+        {
+            "id": "reference_4",
+            "image_path": "references/matcha/ref2/234.png",
+            "viewpoint": "viewpoint_4",
+            "description": "Reference image 5",
+            "keypoints": {
+                "keypoint_1": [
+                    167.0,
+                    459.0
+                ],
+                "keypoint_2": [
+                    1090.0,
+                    709.0
+                ],
+                "keypoint_3": [
+                    297.0,
+                    713.0
+                ],
+                "keypoint_4": [
+                    1062.0,
+                    954.0
+                ],
+                "keypoint_5": [
+                    279.0,
+                    344.0
+                ],
+                "keypoint_6": [
+                    1146.0,
+                    565.0
+                ],
+                "keypoint_7": [
+                    0.0,
+                    0.0
+                ],
+                "keypoint_8": [
+                    1115.0,
+                    836.0
+                ]
+            },
+            "bbox": [
+                138.23999999999998,
+                301.44,
+                1190.3999999999999,
+                1007.9999999999999
+            ],
+            "original_size": [
+                1920,
+                1440
+            ],
+            "display_size": [
+                1000,
+                750
+            ],
+            "scale_factor": 0.5208333333333334
+        },
+        {
+            "id": "reference_5",
+            "image_path": "references/matcha/ref2/264.png",
+            "viewpoint": "viewpoint_5",
+            "description": "Reference image 6",
+            "keypoints": {
+                "keypoint_1": [
+                    607.0,
+                    56.0
+                ],
+                "keypoint_2": [
+                    810.0,
+                    573.0
+                ],
+                "keypoint_3": [
+                    626.0,
+                    308.0
+                ],
+                "keypoint_4": [
+                    812.0,
+                    840.0
+                ],
+                "keypoint_5": [
+                    747.0,
+                    9.0
+                ],
+                "keypoint_6": [
+                    1015.0,
+                    527.0
+                ],
+                "keypoint_7": [
+                    0.0,
+                    0.0
+                ],
+                "keypoint_8": [
+                    979.0,
+                    809.0
+                ]
+            },
+            "bbox": [
+                512.64,
+                -19.2,
+                1052.1599999999999,
+                858.2399999999999
+            ],
+            "original_size": [
+                1920,
+                1440
+            ],
+            "display_size": [
+                1000,
+                750
+            ],
+            "scale_factor": 0.5208333333333334
+        },
+        {
+            "id": "reference_6",
+            "image_path": "references/matcha/ref2/274.png",
+            "viewpoint": "viewpoint_6",
+            "description": "Reference image 7",
+            "keypoints": {
+                "keypoint_1": [
+                    607.0,
+                    84.0
+                ],
+                "keypoint_2": [
+                    737.0,
+                    590.0
+                ],
+                "keypoint_3": [
+                    0.0,
+                    0.0
+                ],
+                "keypoint_4": [
+                    758.0,
+                    874.0
+                ],
+                "keypoint_5": [
+                    753.0,
+                    70.0
+                ],
+                "keypoint_6": [
+                    938.0,
+                    563.0
+                ],
+                "keypoint_7": [
+                    0.0,
+                    0.0
+                ],
+                "keypoint_8": [
+                    923.0,
+                    858.0
+                ]
+            },
+            "bbox": [
+                537.5999999999999,
+                30.72,
+                981.1199999999999,
+                898.56
+            ],
+            "original_size": [
+                1920,
+                1440
+            ],
+            "display_size": [
+                1000,
+                750
+            ],
+            "scale_factor": 0.5208333333333334
+        },
+        {
+            "id": "reference_7",
+            "image_path": "references/matcha/ref2/292.png",
+            "viewpoint": "viewpoint_7",
+            "description": "Reference image 8",
+            "keypoints": {
+                "keypoint_1": [
+                    849.0,
+                    19.0
+                ],
+                "keypoint_2": [
+                    882.0,
+                    519.0
+                ],
+                "keypoint_3": [
+                    0.0,
+                    0.0
+                ],
+                "keypoint_4": [
+                    874.0,
+                    825.0
+                ],
+                "keypoint_5": [
+                    0.0,
+                    0.0
+                ],
+                "keypoint_6": [
+                    1112.0,
+                    513.0
+                ],
+                "keypoint_7": [
+                    0.0,
+                    0.0
+                ],
+                "keypoint_8": [
+                    1048.0,
+                    826.0
+                ]
+            },
+            "bbox": [
+                785.28,
+                -15.36,
+                1134.72,
+                883.1999999999999
+            ],
+            "original_size": [
+                1920,
+                1440
+            ],
+            "display_size": [
+                1000,
+                750
+            ],
+            "scale_factor": 0.5208333333333334
+        },
+        {
+            "id": "reference_8",
+            "image_path": "references/matcha/ref2/322.png",
+            "viewpoint": "viewpoint_8",
+            "description": "Reference image 9",
+            "keypoints": {
+                "keypoint_1": [
+                    456.0,
+                    194.0
+                ],
+                "keypoint_2": [
+                    935.0,
+                    864.0
+                ],
+                "keypoint_3": [
+                    512.0,
+                    468.0
+                ],
+                "keypoint_4": [
+                    904.0,
+                    1071.0
+                ],
+                "keypoint_5": [
+                    619.0,
+                    145.0
+                ],
+                "keypoint_6": [
+                    1122.0,
+                    764.0
+                ],
+                "keypoint_7": [
+                    0.0,
+                    0.0
+                ],
+                "keypoint_8": [
+                    1054.0,
+                    991.0
+                ]
+            },
+            "bbox": [
+                412.79999999999995,
+                128.64,
+                1146.24,
+                1128.9599999999998
+            ],
+            "original_size": [
+                1920,
+                1440
+            ],
+            "display_size": [
+                1000,
+                750
+            ],
+            "scale_factor": 0.5208333333333334
+        },
+        {
+            "id": "reference_9",
+            "image_path": "references/matcha/ref2/329.png",
+            "viewpoint": "viewpoint_9",
+            "description": "Reference image 10",
+            "keypoints": {
+                "keypoint_1": [
+                    235.0,
+                    225.0
+                ],
+                "keypoint_2": [
+                    962.0,
+                    891.0
+                ],
+                "keypoint_3": [
+                    315.0,
+                    510.0
+                ],
+                "keypoint_4": [
+                    895.0,
+                    1084.0
+                ],
+                "keypoint_5": [
+                    403.0,
+                    149.0
+                ],
+                "keypoint_6": [
+                    1114.0,
+                    752.0
+                ],
+                "keypoint_7": [
+                    0.0,
+                    0.0
+                ],
+                "keypoint_8": [
+                    1018.0,
+                    978.0
+                ]
+            },
+            "bbox": [
+                168.95999999999998,
+                109.44,
+                1142.3999999999999,
+                1109.76
+            ],
+            "original_size": [
+                1920,
+                1440
+            ],
+            "display_size": [
+                1000,
+                750
+            ],
+            "scale_factor": 0.5208333333333334
+        },
+        {
+            "id": "reference_10",
+            "image_path": "references/matcha/ref2/33.png",
+            "viewpoint": "viewpoint_10",
+            "description": "Reference image 11",
+            "keypoints": {
+                "keypoint_1": [
+                    923.0,
+                    656.0
+                ],
+                "keypoint_2": [
+                    1838.0,
+                    737.0
+                ],
+                "keypoint_3": [
+                    910.0,
+                    935.0
+                ],
+                "keypoint_4": [
+                    1710.0,
+                    1010.0
+                ],
+                "keypoint_5": [
+                    939.0,
+                    565.0
+                ],
+                "keypoint_6": [
+                    1775.0,
+                    631.0
+                ],
+                "keypoint_7": [
+                    0.0,
+                    0.0
+                ],
+                "keypoint_8": [
+                    0.0,
+                    0.0
+                ]
+            },
+            "bbox": [
+                860.16,
+                543.36,
+                1858.56,
+                1040.6399999999999
+            ],
+            "original_size": [
+                1920,
+                1440
+            ],
+            "display_size": [
+                1000,
+                750
+            ],
+            "scale_factor": 0.5208333333333334
+        },
+        {
+            "id": "reference_11",
+            "image_path": "references/matcha/ref2/351.png",
+            "viewpoint": "viewpoint_11",
+            "description": "Reference image 12",
+            "keypoints": {
+                "keypoint_1": [
+                    237.0,
+                    982.0
+                ],
+                "keypoint_2": [
+                    1457.0,
+                    1223.0
+                ],
+                "keypoint_3": [
+                    343.0,
+                    1193.0
+                ],
+                "keypoint_4": [
+                    1316.0,
+                    1391.0
+                ],
+                "keypoint_5": [
+                    336.0,
+                    785.0
+                ],
+                "keypoint_6": [
+                    1454.0,
+                    1003.0
+                ],
+                "keypoint_7": [
+                    0.0,
+                    0.0
+                ],
+                "keypoint_8": [
+                    0.0,
+                    0.0
+                ]
+            },
+            "bbox": [
+                190.07999999999998,
+                721.92,
+                1520.6399999999999,
+                1416.9599999999998
+            ],
+            "original_size": [
+                1920,
+                1440
+            ],
+            "display_size": [
+                1000,
+                750
+            ],
+            "scale_factor": 0.5208333333333334
+        },
+        {
+            "id": "reference_12",
+            "image_path": "references/matcha/ref2/363.png",
+            "viewpoint": "viewpoint_12",
+            "description": "Reference image 13",
+            "keypoints": {
+                "keypoint_1": [
+                    599.0,
+                    816.0
+                ],
+                "keypoint_2": [
+                    1614.0,
+                    923.0
+                ],
+                "keypoint_3": [
+                    628.0,
+                    1079.0
+                ],
+                "keypoint_4": [
+                    1482.0,
+                    1167.0
+                ],
+                "keypoint_5": [
+                    639.0,
+                    685.0
+                ],
+                "keypoint_6": [
+                    1574.0,
+                    779.0
+                ],
+                "keypoint_7": [
+                    0.0,
+                    0.0
+                ],
+                "keypoint_8": [
+                    0.0,
+                    0.0
+                ]
+            },
+            "bbox": [
+                539.52,
+                647.04,
+                1679.9999999999998,
+                1209.6
+            ],
+            "original_size": [
+                1920,
+                1440
+            ],
+            "display_size": [
+                1000,
+                750
+            ],
+            "scale_factor": 0.5208333333333334
+        },
+        {
+            "id": "reference_13",
+            "image_path": "references/matcha/ref2/387.png",
+            "viewpoint": "viewpoint_13",
+            "description": "Reference image 14",
+            "keypoints": {
+                "keypoint_1": [
+                    799.0,
+                    765.0
+                ],
+                "keypoint_2": [
+                    1444.0,
+                    616.0
+                ],
+                "keypoint_3": [
+                    793.0,
+                    983.0
+                ],
+                "keypoint_4": [
+                    1370.0,
+                    831.0
+                ],
+                "keypoint_5": [
+                    748.0,
+                    663.0
+                ],
+                "keypoint_6": [
+                    1371.0,
+                    542.0
+                ],
+                "keypoint_7": [
+                    735.0,
+                    895.0
+                ],
+                "keypoint_8": [
+                    0.0,
+                    0.0
+                ]
+            },
+            "bbox": [
+                658.56,
+                476.15999999999997,
+                1497.6,
+                1038.72
+            ],
+            "original_size": [
+                1920,
+                1440
+            ],
+            "display_size": [
+                1000,
+                750
+            ],
+            "scale_factor": 0.5208333333333334
+        },
+        {
+            "id": "reference_14",
+            "image_path": "references/matcha/ref2/416.png",
+            "viewpoint": "viewpoint_14",
+            "description": "Reference image 15",
+            "keypoints": {
+                "keypoint_1": [
+                    686.0,
+                    1105.0
+                ],
+                "keypoint_2": [
+                    829.0,
+                    678.0
+                ],
+                "keypoint_3": [
+                    667.0,
+                    1286.0
+                ],
+                "keypoint_4": [
+                    806.0,
+                    854.0
+                ],
+                "keypoint_5": [
+                    539.0,
+                    1079.0
+                ],
+                "keypoint_6": [
+                    727.0,
+                    656.0
+                ],
+                "keypoint_7": [
+                    544.0,
+                    1266.0
+                ],
+                "keypoint_8": [
+                    0.0,
+                    0.0
+                ]
+            },
+            "bbox": [
+                495.35999999999996,
+                600.9599999999999,
+                906.2399999999999,
+                1324.8
+            ],
+            "original_size": [
+                1920,
+                1440
+            ],
+            "display_size": [
+                1000,
+                750
+            ],
+            "scale_factor": 0.5208333333333334
+        },
+        {
+            "id": "reference_15",
+            "image_path": "references/matcha/ref2/441.png",
+            "viewpoint": "viewpoint_15",
+            "description": "Reference image 16",
+            "keypoints": {
+                "keypoint_1": [
+                    1175.0,
+                    800.0
+                ],
+                "keypoint_2": [
+                    1045.0,
+                    358.0
+                ],
+                "keypoint_3": [
+                    1127.0,
+                    968.0
+                ],
+                "keypoint_4": [
+                    0.0,
+                    0.0
+                ],
+                "keypoint_5": [
+                    1035.0,
+                    802.0
+                ],
+                "keypoint_6": [
+                    936.0,
+                    356.0
+                ],
+                "keypoint_7": [
+                    993.0,
+                    978.0
+                ],
+                "keypoint_8": [
+                    914.0,
+                    542.0
+                ]
+            },
+            "bbox": [
+                867.8399999999999,
+                301.44,
+                1198.08,
+                1019.52
+            ],
+            "original_size": [
+                1920,
+                1440
+            ],
+            "display_size": [
+                1000,
+                750
+            ],
+            "scale_factor": 0.5208333333333334
+        },
+        {
+            "id": "reference_16",
+            "image_path": "references/matcha/ref2/464.png",
+            "viewpoint": "viewpoint_16",
+            "description": "Reference image 17",
+            "keypoints": {
+                "keypoint_1": [
+                    1173.0,
+                    941.0
+                ],
+                "keypoint_2": [
+                    844.0,
+                    477.0
+                ],
+                "keypoint_3": [
+                    1120.0,
+                    1112.0
+                ],
+                "keypoint_4": [
+                    0.0,
+                    0.0
+                ],
+                "keypoint_5": [
+                    1029.0,
+                    990.0
+                ],
+                "keypoint_6": [
+                    731.0,
+                    501.0
+                ],
+                "keypoint_7": [
+                    1001.0,
+                    1170.0
+                ],
+                "keypoint_8": [
+                    731.0,
+                    696.0
+                ]
+            },
+            "bbox": [
+                648.9599999999999,
+                435.84,
+                1207.6799999999998,
+                1211.52
+            ],
+            "original_size": [
+                1920,
+                1440
+            ],
+            "display_size": [
+                1000,
+                750
+            ],
+            "scale_factor": 0.5208333333333334
+        },
+        {
+            "id": "reference_17",
+            "image_path": "references/matcha/ref2/489.png",
+            "viewpoint": "viewpoint_17",
+            "description": "Reference image 18",
+            "keypoints": {
+                "keypoint_1": [
+                    1383.0,
+                    767.0
+                ],
+                "keypoint_2": [
+                    832.0,
+                    450.0
+                ],
+                "keypoint_3": [
+                    1328.0,
+                    971.0
+                ],
+                "keypoint_4": [
+                    0.0,
+                    0.0
+                ],
+                "keypoint_5": [
+                    1296.0,
+                    848.0
+                ],
+                "keypoint_6": [
+                    737.0,
+                    502.0
+                ],
+                "keypoint_7": [
+                    1239.0,
+                    1053.0
+                ],
+                "keypoint_8": [
+                    761.0,
+                    707.0
+                ]
+            },
+            "bbox": [
+                687.3599999999999,
+                420.47999999999996,
+                1426.56,
+                1090.56
+            ],
+            "original_size": [
+                1920,
+                1440
+            ],
+            "display_size": [
+                1000,
+                750
+            ],
+            "scale_factor": 0.5208333333333334
+        },
+        {
+            "id": "reference_18",
+            "image_path": "references/matcha/ref2/514.png",
+            "viewpoint": "viewpoint_18",
+            "description": "Reference image 19",
+            "keypoints": {
+                "keypoint_1": [
+                    1710.0,
+                    633.0
+                ],
+                "keypoint_2": [
+                    1062.0,
+                    403.0
+                ],
+                "keypoint_3": [
+                    0.0,
+                    0.0
+                ],
+                "keypoint_4": [
+                    0.0,
+                    0.0
+                ],
+                "keypoint_5": [
+                    1662.0,
+                    727.0
+                ],
+                "keypoint_6": [
+                    996.0,
+                    463.0
+                ],
+                "keypoint_7": [
+                    1573.0,
+                    936.0
+                ],
+                "keypoint_8": [
+                    991.0,
+                    664.0
+                ]
+            },
+            "bbox": [
+                936.9599999999999,
+                357.11999999999995,
+                1752.9599999999998,
+                969.5999999999999
+            ],
+            "original_size": [
+                1920,
+                1440
+            ],
+            "display_size": [
+                1000,
+                750
+            ],
+            "scale_factor": 0.5208333333333334
+        },
+        {
+            "id": "reference_19",
+            "image_path": "references/matcha/ref2/55.png",
+            "viewpoint": "viewpoint_19",
+            "description": "Reference image 20",
+            "keypoints": {
+                "keypoint_1": [
+                    344.0,
+                    556.0
+                ],
+                "keypoint_2": [
+                    1264.0,
+                    584.0
+                ],
+                "keypoint_3": [
+                    423.0,
+                    855.0
+                ],
+                "keypoint_4": [
+                    1217.0,
+                    890.0
+                ],
+                "keypoint_5": [
+                    407.0,
+                    469.0
+                ],
+                "keypoint_6": [
+                    1245.0,
+                    502.0
+                ],
+                "keypoint_7": [
+                    0.0,
+                    0.0
+                ],
+                "keypoint_8": [
+                    0.0,
+                    0.0
+                ]
+            },
+            "bbox": [
+                303.35999999999996,
+                437.76,
+                1342.08,
+                913.92
+            ],
+            "original_size": [
+                1920,
+                1440
+            ],
+            "display_size": [
+                1000,
+                750
+            ],
+            "scale_factor": 0.5208333333333334
+        },
+        {
+            "id": "reference_20",
+            "image_path": "references/matcha/ref2/559.png",
+            "viewpoint": "viewpoint_20",
+            "description": "Reference image 21",
+            "keypoints": {
+                "keypoint_1": [
+                    1165.0,
+                    569.0
+                ],
+                "keypoint_2": [
+                    651.0,
+                    238.0
+                ],
+                "keypoint_3": [
+                    1126.0,
+                    775.0
+                ],
+                "keypoint_4": [
+                    0.0,
+                    0.0
+                ],
+                "keypoint_5": [
+                    1075.0,
+                    656.0
+                ],
+                "keypoint_6": [
+                    547.0,
+                    287.0
+                ],
+                "keypoint_7": [
+                    1043.0,
+                    859.0
+                ],
+                "keypoint_8": [
+                    582.0,
+                    509.0
+                ]
+            },
+            "bbox": [
+                478.08,
+                213.11999999999998,
+                1211.52,
+                894.7199999999999
+            ],
+            "original_size": [
+                1920,
+                1440
+            ],
+            "display_size": [
+                1000,
+                750
+            ],
+            "scale_factor": 0.5208333333333334
+        },
+        {
+            "id": "reference_21",
+            "image_path": "references/matcha/ref2/585.png",
+            "viewpoint": "viewpoint_21",
+            "description": "Reference image 22",
+            "keypoints": {
+                "keypoint_1": [
+                    1575.0,
+                    657.0
+                ],
+                "keypoint_2": [
+                    848.0,
+                    351.0
+                ],
+                "keypoint_3": [
+                    0.0,
+                    0.0
+                ],
+                "keypoint_4": [
+                    0.0,
+                    0.0
+                ],
+                "keypoint_5": [
+                    1524.0,
+                    763.0
+                ],
+                "keypoint_6": [
+                    769.0,
+                    416.0
+                ],
+                "keypoint_7": [
+                    1401.0,
+                    984.0
+                ],
+                "keypoint_8": [
+                    766.0,
+                    662.0
+                ]
+            },
+            "bbox": [
+                704.64,
+                311.03999999999996,
+                1622.3999999999999,
+                1036.8
+            ],
+            "original_size": [
+                1920,
+                1440
+            ],
+            "display_size": [
+                1000,
+                750
+            ],
+            "scale_factor": 0.5208333333333334
+        },
+        {
+            "id": "reference_22",
+            "image_path": "references/matcha/ref2/634.png",
+            "viewpoint": "viewpoint_22",
+            "description": "Reference image 23",
+            "keypoints": {
+                "keypoint_1": [
+                    1454.0,
+                    547.0
+                ],
+                "keypoint_2": [
+                    702.0,
+                    102.0
+                ],
+                "keypoint_3": [
+                    0.0,
+                    0.0
+                ],
+                "keypoint_4": [
+                    0.0,
+                    0.0
+                ],
+                "keypoint_5": [
+                    1366.0,
+                    648.0
+                ],
+                "keypoint_6": [
+                    598.0,
+                    160.0
+                ],
+                "keypoint_7": [
+                    1226.0,
+                    884.0
+                ],
+                "keypoint_8": [
+                    586.0,
+                    451.0
+                ]
+            },
+            "bbox": [
+                533.76,
+                59.519999999999996,
+                1489.9199999999998,
+                919.68
+            ],
+            "original_size": [
+                1920,
+                1440
+            ],
+            "display_size": [
+                1000,
+                750
+            ],
+            "scale_factor": 0.5208333333333334
+        },
+        {
+            "id": "reference_23",
+            "image_path": "references/matcha/ref2/655.png",
+            "viewpoint": "viewpoint_23",
+            "description": "Reference image 24",
+            "keypoints": {
+                "keypoint_1": [
+                    1504.0,
+                    591.0
+                ],
+                "keypoint_2": [
+                    1063.0,
+                    41.0
+                ],
+                "keypoint_3": [
+                    1354.0,
+                    786.0
+                ],
+                "keypoint_4": [
+                    0.0,
+                    0.0
+                ],
+                "keypoint_5": [
+                    1382.0,
+                    650.0
+                ],
+                "keypoint_6": [
+                    947.0,
+                    63.0
+                ],
+                "keypoint_7": [
+                    1245.0,
+                    832.0
+                ],
+                "keypoint_8": [
+                    887.0,
+                    312.0
+                ]
+            },
+            "bbox": [
+                833.28,
+                7.68,
+                1551.36,
+                908.16
+            ],
+            "original_size": [
+                1920,
+                1440
+            ],
+            "display_size": [
+                1000,
+                750
+            ],
+            "scale_factor": 0.5208333333333334
+        },
+        {
+            "id": "reference_24",
+            "image_path": "references/matcha/ref2/681.png",
+            "viewpoint": "viewpoint_24",
+            "description": "Reference image 25",
+            "keypoints": {
+                "keypoint_1": [
+                    1217.0,
+                    748.0
+                ],
+                "keypoint_2": [
+                    1185.0,
+                    172.0
+                ],
+                "keypoint_3": [
+                    1117.0,
+                    887.0
+                ],
+                "keypoint_4": [
+                    0.0,
+                    0.0
+                ],
+                "keypoint_5": [
+                    1066.0,
+                    721.0
+                ],
+                "keypoint_6": [
+                    1063.0,
+                    146.0
+                ],
+                "keypoint_7": [
+                    987.0,
+                    879.0
+                ],
+                "keypoint_8": [
+                    997.0,
+                    341.0
+                ]
+            },
+            "bbox": [
+                931.1999999999999,
+                94.08,
+                1248.0,
+                931.1999999999999
+            ],
+            "original_size": [
+                1920,
+                1440
+            ],
+            "display_size": [
+                1000,
+                750
+            ],
+            "scale_factor": 0.5208333333333334
+        },
+        {
+            "id": "reference_25",
+            "image_path": "references/matcha/ref2/702.png",
+            "viewpoint": "viewpoint_25",
+            "description": "Reference image 26",
+            "keypoints": {
+                "keypoint_1": [
+                    1094.0,
+                    870.0
+                ],
+                "keypoint_2": [
+                    1433.0,
+                    353.0
+                ],
+                "keypoint_3": [
+                    1056.0,
+                    987.0
+                ],
+                "keypoint_4": [
+                    0.0,
+                    0.0
+                ],
+                "keypoint_5": [
+                    963.0,
+                    796.0
+                ],
+                "keypoint_6": [
+                    1316.0,
+                    294.0
+                ],
+                "keypoint_7": [
+                    936.0,
+                    914.0
+                ],
+                "keypoint_8": [
+                    0.0,
+                    0.0
+                ]
+            },
+            "bbox": [
+                867.8399999999999,
+                251.51999999999998,
+                1495.6799999999998,
+                1038.72
+            ],
+            "original_size": [
+                1920,
+                1440
+            ],
+            "display_size": [
+                1000,
+                750
+            ],
+            "scale_factor": 0.5208333333333334
+        },
+        {
+            "id": "reference_26",
+            "image_path": "references/matcha/ref2/725.png",
+            "viewpoint": "viewpoint_26",
+            "description": "Reference image 27",
+            "keypoints": {
+                "keypoint_1": [
+                    479.0,
+                    948.0
+                ],
+                "keypoint_2": [
+                    1267.0,
+                    648.0
+                ],
+                "keypoint_3": [
+                    556.0,
+                    1055.0
+                ],
+                "keypoint_4": [
+                    1208.0,
+                    781.0
+                ],
+                "keypoint_5": [
+                    418.0,
+                    799.0
+                ],
+                "keypoint_6": [
+                    1197.0,
+                    517.0
+                ],
+                "keypoint_7": [
+                    0.0,
+                    0.0
+                ],
+                "keypoint_8": [
+                    0.0,
+                    0.0
+                ]
+            },
+            "bbox": [
+                374.4,
+                451.2,
+                1286.3999999999999,
+                1123.1999999999998
+            ],
+            "original_size": [
+                1920,
+                1440
+            ],
+            "display_size": [
+                1000,
+                750
+            ],
+            "scale_factor": 0.5208333333333334
+        },
+        {
+            "id": "reference_27",
+            "image_path": "references/matcha/ref2/752.png",
+            "viewpoint": "viewpoint_27",
+            "description": "Reference image 28",
+            "keypoints": {
+                "keypoint_1": [
+                    313.0,
+                    646.0
+                ],
+                "keypoint_2": [
+                    1157.0,
+                    702.0
+                ],
+                "keypoint_3": [
+                    418.0,
+                    774.0
+                ],
+                "keypoint_4": [
+                    1113.0,
+                    825.0
+                ],
+                "keypoint_5": [
+                    348.0,
+                    499.0
+                ],
+                "keypoint_6": [
+                    1158.0,
+                    558.0
+                ],
+                "keypoint_7": [
+                    0.0,
+                    0.0
+                ],
+                "keypoint_8": [
+                    0.0,
+                    0.0
+                ]
+            },
+            "bbox": [
+                263.03999999999996,
+                453.11999999999995,
+                1238.3999999999999,
+                871.68
+            ],
+            "original_size": [
+                1920,
+                1440
+            ],
+            "display_size": [
+                1000,
+                750
+            ],
+            "scale_factor": 0.5208333333333334
+        },
+        {
+            "id": "reference_28",
+            "image_path": "references/matcha/ref2/8.png",
+            "viewpoint": "viewpoint_28",
+            "description": "Reference image 29",
+            "keypoints": {
+                "keypoint_1": [
+                    696.0,
+                    579.0
+                ],
+                "keypoint_2": [
+                    1377.0,
+                    612.0
+                ],
+                "keypoint_3": [
+                    716.0,
+                    799.0
+                ],
+                "keypoint_4": [
+                    1327.0,
+                    832.0
+                ],
+                "keypoint_5": [
+                    720.0,
+                    510.0
+                ],
+                "keypoint_6": [
+                    1362.0,
+                    543.0
+                ],
+                "keypoint_7": [
+                    0.0,
+                    0.0
+                ],
+                "keypoint_8": [
+                    0.0,
+                    0.0
+                ]
+            },
+            "bbox": [
+                645.12,
+                491.52,
+                1432.32,
+                850.56
+            ],
+            "original_size": [
+                1920,
+                1440
+            ],
+            "display_size": [
+                1000,
+                750
+            ],
+            "scale_factor": 0.5208333333333334
+        },
+        {
+            "id": "reference_29",
+            "image_path": "references/matcha/ref2/88.png",
+            "viewpoint": "viewpoint_29",
+            "description": "Reference image 30",
+            "keypoints": {
+                "keypoint_1": [
+                    302.0,
+                    652.0
+                ],
+                "keypoint_2": [
+                    1429.0,
+                    957.0
+                ],
+                "keypoint_3": [
+                    429.0,
+                    908.0
+                ],
+                "keypoint_4": [
+                    1326.0,
+                    1183.0
+                ],
+                "keypoint_5": [
+                    416.0,
+                    498.0
+                ],
+                "keypoint_6": [
+                    1455.0,
+                    760.0
+                ],
+                "keypoint_7": [
+                    0.0,
+                    0.0
+                ],
+                "keypoint_8": [
+                    0.0,
+                    0.0
+                ]
+            },
+            "bbox": [
+                257.28,
+                451.2,
+                1518.7199999999998,
+                1219.1999999999998
+            ],
+            "original_size": [
+                1920,
+                1440
+            ],
+            "display_size": [
+                1000,
+                750
+            ],
+            "scale_factor": 0.5208333333333334
+        }
+    ]
+}

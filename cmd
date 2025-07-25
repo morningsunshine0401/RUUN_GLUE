@@ -1,3 +1,79 @@
+
+######### CAMERA INTRINSICS ###########
+
+# # Calib_Phone_Opti
+        # focal_length_x = 1078.06451
+        # focal_length_y = 1081.77221
+        # cx = 628.078538
+        # cy = 362.156441
+
+        # distCoeffs = np.array(
+        #     [5.63748710e-02, -7.51721332e-01, -6.97952865e-04, -3.84299642e-03,6.18234012e+00],
+        #     dtype=np.float32
+        # )
+
+
+
+	# # Camera calibration parameters - DEFAULT
+        # focal_length_x = 1430.10150
+        # focal_length_y = 1430.48915
+        # cx = 640.85462
+        # cy = 480.64800
+
+        # distCoeffs = np.array([0.3393, 2.0351, 0.0295, -0.0029, -10.9093], dtype=np.float32)
+
+
+        ## Calib_webcam ICUAS LAB 20250124
+        focal_length_x = 1460.10150  # fx from the calibrated camera matrix
+        focal_length_y = 1456.48915  # fy from the calibrated camera matrix
+        cx = 604.85462               # cx from the calibrated camera matrix
+        cy = 328.64800               # cy from the calibrated camera matrix
+
+        distCoeffs = np.array(
+            [3.56447550e-01, -1.09206851e+01, 1.40564820e-03, -1.10856449e-02, 1.20471120e+02],
+            dtype=np.float32
+        )
+
+        distCoeffs = None
+
+
+        # ## DJI calibration
+        # ## Calib_camera 20250414
+
+        # focal_length_x = 1313.36340#1.4065844e+03#1313.36340  # fx from the calibrated camera matrix
+        # focal_length_y = 1313.36340#1.4065844e+03#1316.59196  # fy from the calibrated camera matrix
+        # cx = 955.924592             # cx from the calibrated camera matrix
+        # cy = 583.905916             # cy from the calibrated camera matrix
+
+        # distCoeffs = np.array(
+        #     [2.33571678e-01, -1.63149722e+00, 8.52446663e-03, 2.40400897e-04, 2.83400276e+00],
+        #     dtype=np.float32
+        # )
+
+        # #distCoeffs = None
+
+
+
+        # ## 982 514 guess
+
+        # focal_length_x = 4049.6#2686.0
+        # focal_length_y = 4037.6#2686.0
+        # cx = 740.0#491.0              # cx from the calibrated camera matrix
+        # cy = 415.0#257.0                 # cy from the calibrated camera matrix
+
+        # # distCoeffs = np.array(
+        # #     [2.33571678e-01, -1.63149722e+00, 8.52446663e-03, 2.40400897e-04, 2.83400276e+00],
+        # #     dtype=np.float32
+        # # )
+
+        # distCoeffs = None
+
+########################################
+
+
+
+
+
 -moving pnp cmd
 	 python3 RuunPose-3D.py --anchor assets/Ruun_images/boxcraft/frame_00001.png --resize 640 480 --superglue outdoor 
 
@@ -918,79 +994,77 @@ python3 VAPE_Journal.py --video_file 20250715_outdoor.mp4
 
 python3 VAPE_MK48.py --video_file 20250715_outdoor.mp4 
 
-python3 VAPE_MK49.py --video_file 20250715_outdoor.mp4 # BEST?
+python3 VAPE_MK49.py --video_file 20250715_outdoor.mp4 # BEST? 
 
 
-######### CAMERA INTRINSICS ###########
-
-# # Calib_Phone_Opti
-        # focal_length_x = 1078.06451
-        # focal_length_y = 1081.77221
-        # cx = 628.078538
-        # cy = 362.156441
-
-        # distCoeffs = np.array(
-        #     [5.63748710e-02, -7.51721332e-01, -6.97952865e-04, -3.84299642e-03,6.18234012e+00],
-        #     dtype=np.float32
-        # )
+# This was done before but I don't know when(20250715)
+python3 AutoMK7.py     --reference-config interactive_reference_config.json     --input-folder /media/runbk0401/Storage5/RUUN_GLUE_DATABASE/assets/Ruun_images/ICUAS/20250210/     --ransac-threshold 10 --distance-threshold 10 --min-matches-for-ransac 8 --debug --crop-padding-ratio 0.16
 
 
 
-	# # Camera calibration parameters - DEFAULT
-        # focal_length_x = 1430.10150
-        # focal_length_y = 1430.48915
-        # cx = 640.85462
-        # cy = 480.64800
+# 20250716
+python3 AutoMK7.py     --reference-config reference_config.json     --input-folder /media/runbk0401/Storage5/T-LESS_test_imgs/02/rgb/     --ransac-threshold 10 --distance-threshold 10 --min-matches-for-ransac 6 --debug --crop-padding-ratio 0.16
 
-        # distCoeffs = np.array([0.3393, 2.0351, 0.0295, -0.0029, -10.9093], dtype=np.float32)
+#python3 AutoMK9.py     --reference-config reference_config.json     --input-folder /media/runbk0401/Storage5/T-LESS_test_imgs/02/rgb/     --ransac-threshold 10 --min-matches-for-ransac 6 --crop-padding-ratio 0.16 --matcher-pipeline loftr --min-required-keypoints-ratio 0.75 --visualize
 
+#python3 AutoMK9.py     --reference-config reference_config.json     --input-folder /media/runbk0401/Storage5/T-LESS_test_imgs/02/rgb/     --ransac-threshold 10 --min-matches-for-ransac 6 --crop-padding-ratio 0.16 --matcher-pipeline disk_lightglue  --min-required-keypoints-ratio 0.75 --visualize 
 
-        ## Calib_webcam ICUAS LAB 20250124
-        focal_length_x = 1460.10150  # fx from the calibrated camera matrix
-        focal_length_y = 1456.48915  # fy from the calibrated camera matrix
-        cx = 604.85462               # cx from the calibrated camera matrix
-        cy = 328.64800               # cy from the calibrated camera matrix
-
-        distCoeffs = np.array(
-            [3.56447550e-01, -1.09206851e+01, 1.40564820e-03, -1.10856449e-02, 1.20471120e+02],
-            dtype=np.float32
-        )
-
-        distCoeffs = None
+python3 AutoMK7.py     --reference-config reference_config.json     --input-folder /media/runbk0401/Storage5/T-LESS_test_imgs/02/rgb/     --ransac-threshold 6 --distance-threshold 6 --min-matches-for-ransac 6 --debug --crop-padding-ratio 0.16 -visualize
 
 
-        # ## DJI calibration
-        # ## Calib_camera 20250414
+# 20250717
 
-        # focal_length_x = 1313.36340#1.4065844e+03#1313.36340  # fx from the calibrated camera matrix
-        # focal_length_y = 1313.36340#1.4065844e+03#1316.59196  # fy from the calibrated camera matrix
-        # cx = 955.924592             # cx from the calibrated camera matrix
-        # cy = 583.905916             # cy from the calibrated camera matrix
-
-        # distCoeffs = np.array(
-        #     [2.33571678e-01, -1.63149722e+00, 8.52446663e-03, 2.40400897e-04, 2.83400276e+00],
-        #     dtype=np.float32
-        # )
-
-        # #distCoeffs = None
+python3 AutoMK9.py     --reference-config reference_config.json     --input-folder /media/runbk0401/Storage5/T-LESS_test_imgs/02/rgb/ --visualize --debug
 
 
+python3 Annotator_Setup.py --reference-folder references/T-LESS/07/ --num-keypoints 14
 
-        # ## 982 514 guess
 
-        # focal_length_x = 4049.6#2686.0
-        # focal_length_y = 4037.6#2686.0
-        # cx = 740.0#491.0              # cx from the calibrated camera matrix
-        # cy = 415.0#257.0                 # cy from the calibrated camera matrix
+python3 AutoMK9.py --reference-config reference_config.json --input-folder /media/runbk0401/Storage5/RUUN_GLUE_DATABASE/YOLO/20250715/train/images/ --visualize --debug
 
-        # # distCoeffs = np.array(
-        # #     [2.33571678e-01, -1.63149722e+00, 8.52446663e-03, 2.40400897e-04, 2.83400276e+00],
-        # #     dtype=np.float32
-        # # )
 
-        # distCoeffs = None
+python3 AutoMK11.py --reference-config reference_config.json --input-folder /media/runbk0401/Storage5/RUUN_GLUE_DATABASE/YOLO/20250715/train/images/ --visualize --debug 
 
-########################################
+
+# 20250718
+
+python3 AutoMK13_hybrid.py --reference-config reference_config.json --input-folder     /media/runbk0401/Storage5/RUUN_GLUE_DATABASE/YOLO/20250715/train/images/ --visualize     --enable-sift-fallback --debug --device cuda
+
+
+# 20250721
+
+python3 AutoMK14_ultimate.py --reference-config   reference_config_T-LESS_2.json --input-folder     /media/runbk0401/Storage5/T-LESS_test_imgs/02/rgb/ --visualize     --enable-image-enhancement-fallback --image-enhancement-type both --enable-patch-fallback
+
+python3 AutoMK14_ultimate.py --reference-config   reference_config_matcha.json --input-folder     /media/runbk0401/Storage5/ONEPOSE_DATASET/sample_data/0501-matchafranzzi-box/matchafranzzi-3/color_full/ --visualize     --enable-image-enhancement-fallback --image-enhancement-type both --enable-patch-fallback --output-dir /media/runbk0401/Storage5/ONEPOSE_DATASET/sample_data/0501-matchafranzzi-box/matchafranzzi-3/anno
+
+python3 AutoMK14_ultimate.py --reference-config   reference_config_matcha.json --input-folder     /media/runbk0401/Storage5/ONEPOSE_DATASET/sample_data/0501-matchafranzzi-box/matchafranzzi-3/color_full/ --visualize     --enable-image-enhancement-fallback --image-enhancement-type both --enable-patch-fallback --output-dir /media/runbk0401/Storage5/ONEPOSE_DATASET/sample_data/0501-matchafranzzi-box/matchafranzzi-3/anno
+
+
+# 20250722
+
+python3 AutoMK15.py --reference-config   reference_config_matcha.json --input-folder     /media/runbk0401/Storage5/ONEPOSE_DATASET/sample_data/0501-matchafranzzi-box/matchafranzzi-3/color_full/ --visualize     --enable-image-enhancement-fallback --image-enhancement-type both --enable-patch-fallback --output-dir /media/runbk0401/Storage5/ONEPOSE_DATASET/sample_data/0501-matchafranzzi-box/matchafranzzi-3/anno --device cuda --enable-sift-fallback --tolerance-radius 8 --enable-orb-fallback --debug
+
+# 20250723
+
+python3 AutoMK16.py --reference-config   reference_config_matcha3.json --input-folder     /media/runbk0401/Storage5/ONEPOSE_DATASET/sample_data/0501-matchafranzzi-box/matchafranzzi-3/color_full/ --visualize     --enable-image-enhancement-fallback --image-enhancement-type both --enable-patch-fallback --output-dir /media/runbk0401/Storage5/ONEPOSE_DATASET/sample_data/0501-matchafranzzi-box/matchafranzzi-3/anno --device cuda --enable-sift-fallback --tolerance-radius 6 --enable-orb-fallback --debug
+
+
+python3 AutoMK16.py --reference-config   reference_config_matcha3.json --input-folder     /media/runbk0401/Storage5/ONEPOSE_DATASET/sample_data/0501-matchafranzzi-box/matchafranzzi-3/color_full/ --visualize     --enable-image-enhancement-fallback --image-enhancement-type both --enable-patch-fallback --output-dir /media/runbk0401/Storage5/ONEPOSE_DATASET/sample_data/0501-matchafranzzi-box/matchafranzzi-3/anno --device cuda --enable-sift-fallback --tolerance-radius 6 --enable-orb-fallback --debug
+
+
+
+
+# 20250724
+
+python3 AutoMK17.py --reference-config   reference_config_matcha3.json --input-folder     /media/runbk0401/Storage5/ONEPOSE_DATASET/sample_data/0501-matchafranzzi-box/matchafranzzi-3/color_full/     --enable-image-enhancement-fallback --image-enhancement-type both --enable-patch-fallback --output-dir /media/runbk0401/Storage5/ONEPOSE_DATASET/sample_data/0501-matchafranzzi-box/matchafranzzi-3/anno --device cuda --enable-sift-fallback --tolerance-radius 6 --enable-orb-fallback --bbox-padding-mode ratio --bbox-padding-ratio 0.1 
+ --coco-bbox-strategy total_matches --visualize --debug
+
+
+
+python3 AutoMK17_V2.py --reference-config   reference_config_matcha3.json --input-folder    /media/runbk0401/Storage5/ONEPOSE_DATASET/sample_data/0501-matchafranzzi-box/matchafranzzi-3/color_full/     --enable-image-enhancement-fallback --image-enhancement-type both --enable-patch-fallback --output-dir /media/runbk0401/Storage5/ONEPOSE_DATASET/sample_data/0501-matchafranzzi-box/matchafranzzi-3/anno --device cuda --enable-sift-fallback --tolerance-radius 8 --enable-orb-fallback --bbox-padding-mode ratio --bbox-padding-ratio 0.1  --coco-bbox-strategy total_matches
+
+
+
 
 
 
