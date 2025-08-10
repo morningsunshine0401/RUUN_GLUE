@@ -1060,11 +1060,81 @@ python3 AutoMK17.py --reference-config   reference_config_matcha3.json --input-f
  --coco-bbox-strategy total_matches --visualize --debug
 
 
-
+#### SOMETHING wrong with the code
 python3 AutoMK17_V2.py --reference-config   reference_config_matcha3.json --input-folder    /media/runbk0401/Storage5/ONEPOSE_DATASET/sample_data/0501-matchafranzzi-box/matchafranzzi-3/color_full/     --enable-image-enhancement-fallback --image-enhancement-type both --enable-patch-fallback --output-dir /media/runbk0401/Storage5/ONEPOSE_DATASET/sample_data/0501-matchafranzzi-box/matchafranzzi-3/anno --device cuda --enable-sift-fallback --tolerance-radius 8 --enable-orb-fallback --bbox-padding-mode ratio --bbox-padding-ratio 0.1  --coco-bbox-strategy total_matches
 
 
+#20250729
+
+python3 AutoMK17.py --reference-config   reference_config_AIR.json --input-folder     /media/runbk0401/Storage5/AutoAnnotate/20250729/in+out_for_training/     --enable-image-enhancement-fallback --image-enhancement-type both --enable-patch-fallback --output-dir /media/runbk0401/Storage5/AutoAnnotate/20250729/results/ --device cuda --enable-sift-fallback --tolerance-radius 6 --enable-orb-fallback --bbox-padding-mode ratio --bbox-padding-ratio 0.15  --coco-bbox-strategy total_matches
 
 
+python3 AutoMK17.py --reference-config   reference_config_AIR3.json --input-folder     /media/runbk0401/Storage5/AutoAnnotate/20250729/in+out_for_training/     --enable-image-enhancement-fallback --image-enhancement-type both --enable-patch-fallback --output-dir /media/runbk0401/Storage5/AutoAnnotate/20250729/results/ --device cuda --enable-sift-fallback --tolerance-radius 6 --enable-orb-fallback --bbox-padding-mode ratio --bbox-padding-ratio 0.15  --coco-bbox-strategy total_matches --debug --visualize
+
+
+python3 AutoMK17.py --reference-config   reference_config_AIR3.json --input-folder     /media/runbk0401/Storage5/AutoAnnotate/20250729/in+out_for_training/     --enable-image-enhancement-fallback --image-enhancement-type both --enable-patch-fallback --output-dir /media/runbk0401/Storage5/AutoAnnotate/20250729/results/ --device cuda --enable-sift-fallback --tolerance-radius 5 --enable-orb-fallback --bbox-padding-mode ratio --bbox-padding-ratio 0.3  --coco-bbox-strategy total_matches --debug --visualize --bbox-strategy total_matches
+
+
+#20250801
+
+python3 AutoMK18.py --reference-config reference_config_AIR3.json --input-folder     /media/runbk0401/Storage5/AutoAnnotate/20250729/in+out_for_training/     --enable-image-enhancement-fallback --image-enhancement-type both --enable-patch-fallback --output-dir /media/runbk0401/Storage5/AutoAnnotate/20250801/ --device cuda --enable-sift-fallback --tolerance-radius 5 --enable-orb-fallback --bbox-padding-mode ratio --bbox-padding-ratio 0.3  --coco-bbox-strategy total_matches --debug --visualize --bbox-strategy total_matches
+
+python3 AutoMK17.py --reference-config   reference_config_AIR3.json --input-folder     /media/runbk0401/Storage5/AutoAnnotate/20250729/in+out_for_training/     --enable-image-enhancement-fallback --image-enhancement-type both --enable-patch-fallback --output-dir /media/runbk0401/Storage5/AutoAnnotate/20250801/ --device cuda --enable-sift-fallback --tolerance-radius 5 --enable-orb-fallback --bbox-padding-mode ratio --bbox-padding-ratio 0.3  --coco-bbox-strategy total_matches --debug --visualize --bbox-strategy total_matches
+
+
+python3 AutoMK19.py --reference-config   reference_config_AIR3.json --input-folder     /media/runbk0401/Storage5/AutoAnnotate/20250729/in+out_for_training/     --enable-image-enhancement-fallback --image-enhancement-type both --enable-patch-fallback --output-dir /media/runbk0401/Storage5/AutoAnnotate/20250801/ --device cuda --enable-sift-fallback --tolerance-radius 5 --enable-orb-fallback --bbox-padding-mode ratio --bbox-padding-ratio 0.3  --coco-bbox-strategy total_matches --debug --visualize --bbox-strategy total_matches
+
+python3 AutoMK19.py --reference-config   reference_config_AIR3.json --input-folder     /media/runbk0401/Storage5/AutoAnnotate/20250729/in+out_for_training/     --enable-image-enhancement-fallback --image-enhancement-type both --enable-patch-fallback --output-dir /media/runbk0401/Storage5/AutoAnnotate/20250801/test/ --device cuda --enable-sift-fallback --tolerance-radius 15 --enable-orb-fallback --bbox-padding-mode ratio --bbox-padding-ratio 0.3  --coco-bbox-strategy total_matches --debug --visualize --bbox-strategy total_matches --sift-edge-threshold 12 --patch-size 64
+
+
+
+python3 AutoMK17.py --reference-config   reference_config_AIR3.json --input-folder     /media/runbk0401/Storage5/AutoAnnotate/20250729/in+out_for_training/     --enable-image-enhancement-fallback --image-enhancement-type both --enable-patch-fallback --output-dir /media/runbk0401/Storage5/AutoAnnotate/20250801/gemini/ --device cuda --enable-sift-fallback --tolerance-radius 15 --enable-orb-fallback --bbox-padding-mode ratio --bbox-padding-ratio 0.3  --coco-bbox-strategy total_matches --debug --visualize --bbox-strategy total_matches --sift-edge-threshold 12 --patch-size 64
+
+# Testing, I think this is best?
+python3 AutoMK18.py --reference-config   reference_config_AIR3.json --input-folder     /media/runbk0401/Storage5/AutoAnnotate/20250729/in+out_for_training/     --enable-image-enhancement-fallback --image-enhancement-type both --enable-patch-fallback --output-dir /media/runbk0401/Storage5/AutoAnnotate/20250801/best/ --device cuda --enable-sift-fallback --tolerance-radius 15 --enable-orb-fallback --bbox-padding-mode ratio --bbox-padding-ratio 0.3  --coco-bbox-strategy total_matches --debug --visualize --bbox-strategy total_matches --sift-edge-threshold 12 --patch-size 64
+
+
+
+# Testing, I think this is best! not the one above
+python3 AutoMK18_V2.py --reference-config   reference_config_AIR3.json --input-folder     /media/runbk0401/Storage5/AutoAnnotate/20250729/in+out_for_training/     --enable-image-enhancement-fallback --image-enhancement-type both --enable-patch-fallback --output-dir /media/runbk0401/Storage5/AutoAnnotate/20250801/best/ --device cuda --enable-sift-fallback --tolerance-radius 15 --enable-orb-fallback --bbox-padding-mode ratio --bbox-padding-ratio 0.3  --coco-bbox-strategy total_matches --debug --visualize --bbox-strategy total_matches --sift-edge-threshold 12 --patch-size 64
+
+
+python3 AutoMK18_V3.py --reference-config   reference_config_AIR3.json --input-folder     /media/runbk0401/Storage5/AutoAnnotate/20250729/in+out_for_training/     --enable-image-enhancement-fallback --image-enhancement-type both --enable-patch-fallback --output-dir /media/runbk0401/Storage5/AutoAnnotate/20250804/ --device cuda --enable-sift-fallback --tolerance-radius 15 --enable-orb-fallback --bbox-padding-mode ratio --bbox-padding-ratio 0.3  --coco-bbox-strategy total_matches --debug --visualize --bbox-strategy total_matches --sift-edge-threshold 12 --patch-size 64 
+
+
+python3 BR_tool.py
+
+
+python3 Annotator_Setup.py --reference-folder /media/runbk0401/Storage5/AutoAnnotate/20250729/ref_results/ --num-keypoints 6
+
+
+python3 AutoMK18_V3.py --reference-config   reference_config_20250804.json --input-folder     /media/runbk0401/Storage5/AutoAnnotate/20250729/in+out_for_training/     --enable-image-enhancement-fallback --image-enhancement-type both --enable-patch-fallback --output-dir /media/runbk0401/Storage5/AutoAnnotate/20250804/test/ --device cuda --enable-sift-fallback --tolerance-radius 15 --enable-orb-fallback --bbox-padding-mode ratio --bbox-padding-ratio 0.3  --coco-bbox-strategy total_matches --debug --visualize --bbox-strategy total_matches --sift-edge-threshold 12 --patch-size 64
+
+
+
+#20250805 This one is try outs with not using the MobileViT
+
+python3 VAPE_MK50.py --video_file 20250715_outdoor.mp4 # Success!
+
+
+
+
+
+python3 AutoMK18_V3.py --reference-config   reference_config_20250804.json --input-folder     /media/runbk0401/Storage5/AutoAnnotate/20250729/in+out_for_training/     --enable-image-enhancement-fallback --image-enhancement-type both --enable-patch-fallback --output-dir /media/runbk0401/Storage5/AutoAnnotate/20250806/ --device cuda --tolerance-radius 12 --bbox-padding-mode ratio --bbox-padding-ratio 0.25  --coco-bbox-strategy total_matches --debug --visualize --bbox-strategy total_matches --patch-size 24
+
+
+python3 VAPE_MK50_V2.py --video_file 20250715_outdoor.mp4 # Good when tried with video webcam. Not bad for realtime webcam as well. This is a constant vel
+
+python3 VAPE_MK50_V3.py --webcam # Good when tried with realtime webcam. Not bad for video. This is a jerk model
+
+python3 VAPE_MK50_V4.py --video_file 20250715_outdoor.mp4 # UKF
+
+
+python3 AnchorTool.py --reference assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --new_anchor W.png --reference_viewpoint W
+
+
+python3 AnchorTool.py --reference assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --new_anchor S.png --reference_viewpoint S
+
+python3 VAPE_MK50_V4_c.py --video_file 20250617_yffgjj.mp4 
 
 

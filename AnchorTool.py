@@ -377,7 +377,7 @@ class AnchorCorrespondenceTool:
         return self._export_anchor_data()
 
     def _export_anchor_data(self):
-        """Export the new anchor 2D and 3D data"""
+        """Export the new anchor 2D and 3D data with proper naming"""
         if not self.correspondences:
             print("⚠️ No correspondences created!")
             return None
@@ -385,53 +385,52 @@ class AnchorCorrespondenceTool:
         # Extract 2D and 3D points
         new_2d = np.array([corr[2] for corr in self.correspondences], dtype=np.float32)
         new_3d = np.array([corr[1] for corr in self.correspondences], dtype=np.float32)
-        
+
+        ref_name = self.reference_viewpoint.lower()  # e.g. 'SE2' -> 'se2'
+
         print(f"📊 Created {len(self.correspondences)} correspondences")
         print("\n🎯 New Anchor Data:")
         print("=" * 50)
-        
-        # Format for code insertion
-        print("# New anchor 2D points:")
-        print("new_anchor_2d = np.array([")
+
+        # Dynamically named variables for printing
+        print(f"# {ref_name}_anchor_2d:")
+        print(f"{ref_name}_anchor_2d = np.array([")
         for i, pt in enumerate(new_2d):
             print(f"    [{pt[0]:.0f}, {pt[1]:.0f}]{',' if i < len(new_2d)-1 else ''}")
         print("], dtype=np.float32)")
         
-        print("\n# New anchor 3D points:")
-        print("new_anchor_3d = np.array([")
+        print(f"\n# {ref_name}_anchor_3d:")
+        print(f"{ref_name}_anchor_3d = np.array([")
         for i, pt in enumerate(new_3d):
             print(f"    [{pt[0]:.3f}, {pt[1]:.3f}, {pt[2]:.3f}]{',' if i < len(new_3d)-1 else ''}")
         print("], dtype=np.float32)")
         
-        # Save to JSON file
+        # Save JSON
         output_data = {
             'reference_anchor': self.reference_anchor_path,
             'new_anchor': self.new_anchor_path,
             'reference_viewpoint': self.reference_viewpoint,
             'correspondences_count': len(self.correspondences),
-            'new_anchor_2d': new_2d.tolist(),
-            'new_anchor_3d': new_3d.tolist(),
+            f'{ref_name}_anchor_2d': new_2d.tolist(),
+            f'{ref_name}_anchor_3d': new_3d.tolist(),
             'correspondences': [
-                {
-                    'ref_2d': corr[0].tolist(),
-                    'ref_3d': corr[1].tolist(), 
-                    'new_2d': corr[2].tolist()
-                }
-                for corr in self.correspondences
+                {'ref_2d': c[0].tolist(), 'ref_3d': c[1].tolist(), 'new_2d': c[2].tolist()}
+                for c in self.correspondences
             ]
         }
-        
-        output_file = f"new_anchor_data_{Path(self.new_anchor_path).stem}.json"
+
+        output_file = f"{ref_name}_anchor_data.json"
         with open(output_file, 'w') as f:
             json.dump(output_data, f, indent=4)
-        
-        print(f"\n💾 Saved detailed data to: {output_file}")
-        
+
+        print(f"\n💾 Saved JSON with dynamic keys to: {output_file}")
+
         return {
-            'anchor_2d': new_2d,
-            'anchor_3d': new_3d,
+            f'{ref_name}_anchor_2d': new_2d,
+            f'{ref_name}_anchor_3d': new_3d,
             'correspondences': self.correspondences
         }
+
 
 
 def main():
@@ -444,7 +443,7 @@ def main():
     parser.add_argument('--new_anchor', type=str, required=True,
                        help='Path to new anchor image')
     parser.add_argument('--reference_viewpoint', type=str, default='SW',
-                       choices=['SW', 'NE', 'NW', 'SE'],
+                       choices=['SW', 'NE', 'NW', 'SE','N','W','S','E','SW2','SE2','SU','NU','NW2','NE2'],
                        help='Reference viewpoint for 3D data')
     
     args = parser.parse_args()
