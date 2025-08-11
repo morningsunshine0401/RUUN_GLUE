@@ -1138,3 +1138,14 @@ python3 AnchorTool.py --reference assets/Ruun_images/viewpoint/anchor/20241226/A
 python3 VAPE_MK50_V4_c.py --video_file 20250617_yffgjj.mp4 
 
 
+
+
+
+python3 AutoMK18_V3.py --reference-config   reference_config_20250804.json --input-folder     /media/runbk0401/Storage5/AutoAnnotate/20250729/in+out_for_training/     --enable-image-enhancement-fallback --image-enhancement-type both --enable-patch-fallback --output-dir /media/runbk0401/Storage5/AutoAnnotate/20250810/ --device cuda --tolerance-radius 8 --bbox-padding-mode ratio --bbox-padding-ratio 0.15  --coco-bbox-strategy total_matches --bbox-strategy total_matches --patch-size 24 --debug
+
+
+python3 VAPE_MK52.py --webcam --show
+
+
+
+
