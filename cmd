@@ -1146,6 +1146,52 @@ python3 AutoMK18_V3.py --reference-config   reference_config_20250804.json --inp
 
 python3 VAPE_MK52.py --webcam --show
 
+python3 AnchorTool.py --reference assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png --new_anchor Anchor_mini.png --reference_viewpoint NW
+
+
+# 20250815
+
+python3 VAPE_KF_Evaluator.py --video 20250815_outdoor2.mp4 --calibration calibration/tag_to_object_ground_truth.json
+
+python3 VAPE_MK52.py --video_file 20250815_outdoor2.mp4 --show
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+python3 VAPE_KF_Evaluator_fixed.py --video 20250815_outdoor1.mp4 --calibration calibration/tag_to_object_ground_truth.json 
+
+
+
+python3 VAPE_MK53.py --video_file 20250815_outdoor4.mp4 --show
+
+
+
+# 20250816
+
+python3 VAPE_MK53_ori.py --video_file 20250815_outdoor4.mp4 --show
+
+python3 VAPE_MK53_2.py --video_file 20250815_outdoor4.mp4 --show # HAS bug in it
+
+python3 VAPE_MK53_3.py --video_file 20250815_outdoor4.mp4 --show # Fixed thee bug from _2 version
+
+
+
+
+
 
 
 

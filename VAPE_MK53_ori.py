@@ -62,6 +62,105 @@ def normalize_quaternion(q: np.ndarray) -> np.ndarray:
     norm = np.linalg.norm(q)
     return q / norm if norm > 1e-10 else np.array([0, 0, 0, 1])
 
+def quat_mul(a, b):
+    """Multiply two quaternions"""
+    x1, y1, z1, w1 = a
+    x2, y2, z2, w2 = b
+    return np.array([
+        w1*x2 + x1*w2 + y1*z2 - z1*y2,
+        w1*y2 - x1*z2 + y1*w2 + z1*x2,
+        w1*z2 + x1*y2 - y1*x2 + z1*w2,
+        w1*w2 - x1*x2 - y1*y2 - z1*z2
+    ])
+
+def quat_conj(q):
+    """Quaternion conjugate"""
+    return np.array([-q[0], -q[1], -q[2], q[3]])
+
+def quat_inv(q):
+    """Quaternion inverse"""
+    qn = normalize_quaternion(q)
+    return quat_conj(qn)
+
+def quat_to_axis_angle(q):
+    """Convert quaternion to axis-angle representation"""
+    qn = normalize_quaternion(q)
+    w = float(np.clip(qn[3], -1.0, 1.0))
+    angle = 2.0 * np.arccos(w)
+    s = np.sqrt(max(1.0 - w*w, 0.0))
+    axis = np.array([1.0, 0.0, 0.0]) if s < 1e-8 else qn[:3]/s
+    return axis, angle
+
+def axis_angle_to_quat(axis, angle):
+    """Convert axis-angle to quaternion"""
+    ax = axis / (np.linalg.norm(axis) + 1e-12)
+    s = np.sin(angle/2.0)
+    return normalize_quaternion(np.array([ax[0]*s, ax[1]*s, ax[2]*s, np.cos(angle/2.0)]))
+
+def clamp_quaternion_towards(q_from, q_to, max_deg_per_s, dt):
+    """
+    Rate-limit quaternion rotation to prevent sudden orientation jumps.
+    
+    Args:
+        q_from: Current quaternion (predicted state)
+        q_to: Target quaternion (measurement)
+        max_deg_per_s: Maximum rotation rate in degrees per second
+        dt: Time step in seconds
+    
+    Returns:
+        Clamped quaternion that doesn't exceed the rotation rate limit
+    """
+    # Keep quaternions in same hemisphere to avoid 180° sign jump
+    if np.dot(q_from, q_to) < 0.0:
+        q_to = -q_to
+    
+    # Calculate delta quaternion to go from predicted -> measured
+    dq = quat_mul(quat_inv(q_from), q_to)
+    axis, ang = quat_to_axis_angle(dq)  # ang in [0, pi]
+    
+    # Calculate maximum allowed angle for this time step
+    ang_limit = np.deg2rad(max_deg_per_s) * max(dt, 1e-6)
+    
+    if ang > ang_limit:
+        # Clamp the rotation to the maximum allowed
+        dq = axis_angle_to_quat(axis, ang_limit)
+        q_out = quat_mul(q_from, dq)
+    else:
+        q_out = q_to
+    
+    return normalize_quaternion(q_out)
+
+def clamp_position_towards(pos_from, pos_to, max_speed_m_per_s, dt):
+    """
+    Rate-limit position movement to prevent sudden position jumps.
+    
+    Args:
+        pos_from: Current position (predicted state) [x, y, z] in meters
+        pos_to: Target position (measurement) [x, y, z] in meters
+        max_speed_m_per_s: Maximum movement speed in meters per second
+        dt: Time step in seconds
+    
+    Returns:
+        Clamped position that doesn't exceed the speed limit
+    """
+    # Calculate the movement vector
+    delta_pos = pos_to - pos_from
+    distance = np.linalg.norm(delta_pos)
+    
+    # Calculate maximum allowed movement for this time step
+    max_distance = max_speed_m_per_s * max(dt, 1e-6)
+    
+    if distance > max_distance:
+        # Clamp the movement to the maximum allowed
+        direction = delta_pos / distance  # Unit vector
+        pos_out = pos_from + direction * max_distance
+    else:
+        pos_out = pos_to
+    
+    return pos_out
+
+
+
 # --------------------------------------------------------------------------------------------------
 #  3. DATA STRUCTURES
 # --------------------------------------------------------------------------------------------------
@@ -97,15 +196,17 @@ class PoseData:
 # --------------------------------------------------------------------------------------------------
 class UnscentedKalmanFilter:
     """
-    An Unscented Kalman Filter for 6-DOF pose estimation.
-    The UKF is used because our system's motion (especially rotation with quaternions) is non-linear,
-    and the UKF handles non-linearity more accurately than a standard Extended Kalman Filter (EKF).
-    It uses a constant acceleration motion model.
+    Enhanced UKF with quaternion rate limiting for smooth orientation tracking
     """
-    #def __init__(self, dt=1/30.0):
     def __init__(self, dt=1/15.0):
-        self.dt = dt  # Time step between filter updates
+        self.dt = dt
         self.initialized = False
+        
+        # Add both rotation and position rate limiting parameters
+        # For handheld video of walking around target: 30-60°/s rotation
+        # For position: typical handheld movement is 0.1-0.5 m/s
+        self.max_rot_rate_dps = 30#45.0  # Start conservative for smooth handheld video
+        self.max_pos_speed_mps = 1.5#2#0.8#0.3  # Conservative for handheld walking around object
 
         # State vector [pos(3), vel(3), acc(3), quat(4), ang_vel(3)]
         self.n = 16  # State size
@@ -132,8 +233,8 @@ class UnscentedKalmanFilter:
         self.wc[0] = self.lambda_ / (self.n + self.lambda_) + (1.0 - self.alpha**2 + self.beta)
 
         # Noise matrices
-        self.Q = np.eye(self.n) * 1e-2## Process noise: uncertainty in our motion model.
-        self.R = np.eye(self.m) * 1e-4  # Measurement noise: uncertainty in our sensor (PnP) readings.
+        self.Q = np.eye(self.n) * 1e-2  # Process noise
+        self.R = np.eye(self.m) * 1e-4  # Measurement noise
 
     def _generate_sigma_points(self, x, P):
         """Generates sigma points, which are representative points of the state distribution."""
@@ -201,18 +302,39 @@ class UnscentedKalmanFilter:
         return z
 
     def update(self, position: np.ndarray, quaternion: np.ndarray):
-        """UKF Update Step: Corrects the predicted state with a new measurement."""
-        # On subsequent updates (once initialized), ensure the measurement quaternion is
-        # in the same hemisphere as the filter's state to prevent large, erroneous jumps
-        # due to the q vs -q ambiguity of quaternions.
+        """
+        Enhanced UKF Update Step with both position and quaternion rate limiting.
+        This prevents sudden jumps in both position and orientation while maintaining continuity.
+        """
+        # Get the predicted state for rate limiting
+        pos_pred = self.x[0:3] if self.initialized else position
+        q_pred = self.x[9:13] if self.initialized else quaternion
+        
+        # Apply hemisphere consistency for quaternion (existing logic)
         if self.initialized and np.dot(self.x[9:13], quaternion) < 0.0:
             quaternion = -quaternion
 
-        measurement = np.concatenate([position, normalize_quaternion(quaternion)])
+        # NEW: Apply rate limiting to both position and quaternion measurements
+        pos_meas_clamped = clamp_position_towards(
+            pos_pred,
+            position,
+            self.max_pos_speed_mps,
+            self.dt
+        )
+        
+        q_meas_clamped = clamp_quaternion_towards(
+            q_pred, 
+            normalize_quaternion(quaternion),
+            self.max_rot_rate_dps, 
+            self.dt
+        )
+
+        # Use the rate-limited measurements
+        measurement = np.concatenate([pos_meas_clamped, q_meas_clamped])
 
         if not self.initialized:
-            self.x[0:3] = position
-            self.x[9:13] = normalize_quaternion(quaternion)
+            self.x[0:3] = pos_meas_clamped
+            self.x[9:13] = normalize_quaternion(q_meas_clamped)
             self.initialized = True
             return self.x[0:3], self.x[9:13]
 
@@ -239,8 +361,46 @@ class UnscentedKalmanFilter:
         # 5. Compute the Kalman Gain and update the state and covariance.
         K = P_xz @ np.linalg.inv(S)
         self.x += K @ (measurement - z_pred)
+        
+        # IMPORTANT: Normalize quaternion after update to keep it on unit sphere
+        self.x[9:13] = normalize_quaternion(self.x[9:13])
+        
         self.P -= K @ S @ K.T
         return self.x[0:3], self.x[9:13]
+
+    def set_rate_limits(self, max_rotation_dps: float = None, max_position_mps: float = None):
+        """
+        Adjust the maximum allowed rotation and/or position rates.
+        
+        Args:
+            max_rotation_dps: Maximum rotation rate in degrees per second
+            max_position_mps: Maximum position speed in meters per second
+        
+        Tuning guidelines:
+        Rotation:
+        - Slow handheld video (walking around target): 30-60°/s
+        - Normal motion: 60-90°/s  
+        - Fast motion: 90-180°/s
+        
+        Position:
+        - Handheld walking around object: 0.2-0.5 m/s
+        - Normal movement: 0.5-1.0 m/s
+        - Fast movement: 1.0-2.0 m/s
+        """
+        if max_rotation_dps is not None:
+            self.max_rot_rate_dps = max_rotation_dps
+            print(f"📐 Rotation rate limit set to {max_rotation_dps}°/s")
+            
+        if max_position_mps is not None:
+            self.max_pos_speed_mps = max_position_mps
+            print(f"🎯 Position speed limit set to {max_position_mps} m/s")
+
+    def set_rotation_rate_limit(self, max_degrees_per_second: float):
+        """
+        Legacy method for backward compatibility.
+        Use set_rate_limits() for more control.
+        """
+        self.set_rate_limits(max_rotation_dps=max_degrees_per_second)
 
 
 # --------------------------------------------------------------------------------------------------
