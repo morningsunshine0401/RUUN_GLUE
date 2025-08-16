@@ -397,6 +397,7 @@ class UnscentedKalmanFilter:
             self.P += (1e-9 - min_eigenval) * np.eye(self.n)
 
     def update_with_timestamp(self, z_pos, z_quat, t_meas, R=None, t_now=None):
+        #breakpoint()
         #import pdb; pdb.set_trace()
         """
         Time-aware update following canonical VIO/SLAM approach
@@ -616,6 +617,7 @@ class MainThread(threading.Thread):
 
     def run(self):
         """Updated main loop with timestamp capture and time-aware prediction"""
+        #breakpoint()
         window_name = "VAPE MK53 - Real-time Pose Estimation"
         cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
         cv2.resizeWindow(window_name, self.camera_width, self.camera_height)
@@ -777,6 +779,7 @@ class ProcessingThread(threading.Thread):
         print("   ...models loaded.")
 
     def _initialize_anchor_data(self):
+        #breakpoint()
         """Pre-processes anchor data for each viewpoint."""
         print("🛠️ Initializing anchor data...")
         
@@ -882,6 +885,7 @@ class ProcessingThread(threading.Thread):
 
     def _process_frame(self, frame: np.ndarray, frame_id: int, t_capture: float) -> ProcessingResult:
         #import pdb; pdb.set_trace()
+        #breakpoint()
         """Updated processing with timestamp-aware UKF updates"""
         result = ProcessingResult(frame_id=frame_id, frame=frame.copy(), pose_success=False, capture_time=t_capture)
 
@@ -892,17 +896,41 @@ class ProcessingThread(threading.Thread):
         # 2. Feature Matching and Pose Estimation
         best_pose = self._estimate_pose_with_temporal_consistency(frame, bbox)
 
-        # 3. Pre-filtering: Check if the new pose measurement is valid
+        ## 3. Pre-filtering: Check if the new pose measurement is valid
+        #is_valid = False
+        #if best_pose:
+        #    if self.last_orientation is not None:
+        #        angle_diff = math.degrees(self.quaternion_angle_diff(self.last_orientation, best_pose.quaternion))
+        #        if angle_diff <= self.ORI_MAX_DIFF_DEG:
+        #            is_valid = True
+        #        else:
+        #            print(f"🚫 Frame {frame_id}: Rejected (Orientation Jump: {angle_diff:.1f}° > {self.ORI_MAX_DIFF_DEG}°)")
+       #     else:
+        #        is_valid = True
+
+        # 3. Pre-filtering: Check if the new pose measurement is valid   ADDed the 20250816
         is_valid = False
         if best_pose:
+            # Check orientation jump (existing logic)
+            orientation_valid = True
             if self.last_orientation is not None:
                 angle_diff = math.degrees(self.quaternion_angle_diff(self.last_orientation, best_pose.quaternion))
-                if angle_diff <= self.ORI_MAX_DIFF_DEG:
-                    is_valid = True
-                else:
+                if angle_diff > self.ORI_MAX_DIFF_DEG:
+                    orientation_valid = False
                     print(f"🚫 Frame {frame_id}: Rejected (Orientation Jump: {angle_diff:.1f}° > {self.ORI_MAX_DIFF_DEG}°)")
-            else:
-                is_valid = True
+            
+            # NEW: Check matching ratio
+            matching_ratio = best_pose.inliers / best_pose.total_matches
+            ratio_valid = matching_ratio >= 0.75#0.65
+            
+            if not ratio_valid:
+                print(f"🚫 Frame {frame_id}: Rejected (Matching Ratio: {matching_ratio:.2f} < 0.65)")
+            
+            # Combined validation: either orientation is stable OR matching is very good
+            is_valid = orientation_valid or ratio_valid
+            
+            if is_valid:
+                print(f"✅ Frame {frame_id}: Accepted (Orientation: {orientation_valid}, Ratio: {ratio_valid}, Ratio: {matching_ratio:.2f})")
 
         # 4. UPDATED: Kalman Filter Update with timestamp
         if is_valid and best_pose:
@@ -1083,7 +1111,7 @@ class ProcessingThread(threading.Thread):
                 frame,
                 imgsz=640,
                 conf=conf_thresh,
-                iou=0.5,
+                iou=0.5, # decrease to 0.3 for more detections and increase to 0.7 for less detections
                 max_det=5,
                 classes=[target_id],
                 verbose=False
