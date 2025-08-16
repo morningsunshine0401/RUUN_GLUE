@@ -418,13 +418,28 @@ If you use this work in your research, please cite:
 }
 ```
 
-**Original SuperGlue Citation:**
+**Core Deep Learning Components:**
+
 ```bibtex
 @inproceedings{sarlin20superglue,
   title={SuperGlue: Learning Feature Matching with Graph Neural Networks},
   author={Sarlin, Paul-Edouard and DeTone, Daniel and Malisiewicz, Tomasz and Rabinovich, Andrew},
   booktitle={CVPR},
   year={2020}
+}
+
+@inproceedings{detone2018superpoint,
+  title={SuperPoint: Self-Supervised Interest Point Detection and Description},
+  author={DeTone, Daniel and Malisiewicz, Tomasz and Rabinovich, Andrew},
+  booktitle={CVPR Deep Learning for Visual SLAM Workshop},
+  year={2018}
+}
+
+@inproceedings{lindenberger2023lightglue,
+  title={LightGlue: Local Feature Matching at Light Speed},
+  author={Lindenberger, Philipp and Sarlin, Paul-Edouard and Pollefeys, Marc},
+  booktitle={ICCV},
+  year={2023}
 }
 ```
 
