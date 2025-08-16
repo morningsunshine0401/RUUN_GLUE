@@ -4,6 +4,8 @@
 
 <img src="assets/demo_pose_estimation.gif" width="960" height="480">
 
+## 20250816 update: The recent code is VAPE_MK53_3.py
+
 ## Overview
 
 VAPE MK53 is a state-of-the-art real-time 6-DOF (6 Degrees of Freedom) pose estimation system designed specifically for aircraft tracking. It combines classical robotics techniques with modern deep learning to achieve robust, low-latency pose estimation with proper handling of vision processing delays.
