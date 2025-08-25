@@ -1157,21 +1157,6 @@ python3 VAPE_MK52.py --video_file 20250815_outdoor2.mp4 --show
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 python3 VAPE_KF_Evaluator_fixed.py --video 20250815_outdoor1.mp4 --calibration calibration/tag_to_object_ground_truth.json 
 
 
@@ -1190,8 +1175,38 @@ python3 VAPE_MK53_3.py --video_file 20250815_outdoor4.mp4 --show # Fixed thee bu
 
 
 
+# 20250820
+python3 VAPE_MK53_GT_Evaluator.py --video 20250815_outdoor1.mp4 --calibration calibration0/tag_to_object_ground_truth.json 
+
+python3 VAPE_MK54_Tracker.py --webcam --show
+
+
+python3 VAPE_MK53_Ablation_Study.py --video 20250815_outdoor1.mp4 --calibration calibration0/tag_to_object_ground_truth.json # 미완, 아직 작동 안됨, 오류 수정해야됨
+
+python3 VAPE_MK54_Tracker_ori.py --webcam --show # 이건 좀 무식하게 점 개수로 threshold
+
+python3 VAPE_MK54_Tracker.py --webcam --show # threshold with ration but not good. The tracking quality is good but the tracking is not stable and drifts.
+
+python3 VAPE_MK53_3.py --video_file 20250815_outdoor4.mp4 --show # This is a bit more jiggly than the one above but more better when tested with webcam.
+
+
+python3 VAPE_MK55_Reprojection_cccc.py --webcam # Webcam best? But MK53_3 seems to be logically best for non linear. 
+
+#Lets try out the SLAM and VIO methods dhortly, and just go on with coding test and journal
 
 
 
 
+python3 VAPE_MK53_Ablation_Study_c.py --video 20250815_outdoor1.mp4 --calibration calibration0/tag_to_object_ground_truth.json 
 
+python3 VAPE_MK53_Ablation_Study_cc.py --video_file 20250815_outdoor1.mp4 --mode ablation --ablation_set all --show
+
+
+python3 ChAruco.py --video 20250825_cali4.mp4 --visualize
+
+python3 VAPE_MK53_GT_Evaluator.py --video 20250825_cali3.mp4 --calibration calibration2/tag_to_object_ground_truth.json 
+
+# 성공!? 성공같은데 검토는 필요
+python3 ablation_runner.py --script VAPE_MK53_Core_GT.py --video 20250825_test.mp4 --out run_out_test --show --calibration calibration2/tag_to_object_ground_truth.json 
+
+python3 ablation_metrics.py run_out_test/
