@@ -1203,10 +1203,88 @@ python3 VAPE_MK53_Ablation_Study_cc.py --video_file 20250815_outdoor1.mp4 --mode
 
 
 python3 ChAruco.py --video 20250825_cali4.mp4 --visualize
-
+ 
 python3 VAPE_MK53_GT_Evaluator.py --video 20250825_cali3.mp4 --calibration calibration2/tag_to_object_ground_truth.json 
 
 # 성공!? 성공같은데 검토는 필요
 python3 ablation_runner.py --script VAPE_MK53_Core_GT.py --video 20250825_test.mp4 --out run_out_test --show --calibration calibration2/tag_to_object_ground_truth.json 
 
 python3 ablation_metrics.py run_out_test/
+
+
+#20250826
+
+python3 AutoMK18_V3.py --reference-config   reference_config_20250804.json --input-folder     /media/runbk0401/Storage5/AutoAnnotate/20250729/in+out_for_training/     --enable-image-enhancement-fallback --image-enhancement-type both --enable-patch-fallback --output-dir /media/runbk0401/Storage5/AutoAnnotate/20250826/ --device cuda --tolerance-radius 6 --bbox-padding-mode ratio --bbox-padding-ratio 0.2  --coco-bbox-strategy total_matches --bbox-strategy total_matches --patch-size 24 --enable-orb-fallback --enable-sift-fallback
+
+python3 ablation_runner.py --script VAPE_MK53_Core_GT_V2.py --video 20250825_test.mp4 --out run_out_test2 --show --calibration calibration2/tag_to_object_ground_truth.json 
+
+python3 ablation_metrics.py run_out_test2/
+
+python3 ablation_runner.py --script VAPE_MK53_Core_GT_V2.py --video JINT_indoor_test1.mp4 --out run_out_test3 --show --calibration calibration2/tag_to_object_ground_truth.json 
+
+
+#20250829 
+
+# ### 이놈 참고! 
+# python3 RuunPose-3D-viewpoint-blender.py --input assets/Ruun_images/viewpoint/test/rotated/ --ground_truth assets/Ruun_images/viewpoint/test/rotated/viewpoint_GT_rotate.json --resize 1280 960 --superglue outdoor --show_keypoints --viewpoint_model_path viewpoint_model_more_data.pth --output_dir dump_match_pairs/match_output/viewpoint/result/rotate/ --show_keypoints
+
+# # Blender Plug in 돌리고, 그거 'data_json_rotate.py'이런 내가 예전에 해본 폴더 안에있는걸로 json으로 변환해서 json얻고 위 코드에서 사용하는법 끌고와서 어찌저찌 ?
+
+
+
+python3 ablation_runner.py --script VAPE_MK53_Core_GT_V2.py --video 20250901_cali2.mp4 --out run_out_20250901 --show --calibration calibration/tag_to_object_ground_truth_A1.json
+
+
+python3 ablation_runner.py --script VAPE_MK53_Core_GT_V2.py --video 20250901_cali2.mp4 --out run_out_20250901 --show --calibration calibration/tag_to_object_ground_truth_A1.json
+
+python3 ablation_metrics.py run_out_20250901/
+
+# VAPE_MK53_Core_GT_V2_ori is small ChAruco and VAPE_MK53_Core_GT_V3 is the Big ChAruco
+
+
+python3 ablation_runner.py --script VAPE_MK53_Core_GT_V3.py --video 20250901_cali2.mp4 --out run_out_20250901 --show --calibration calibration/tag_to_object_ground_truth_A1.json
+
+python3 ablation_metrics.py run_out_20250901/
+
+python3 VAPE_MK53_3_Opti.py --image_dir /media/runbk0401/Storage5/RUUN_GLUE_DATABASE/assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test2/ --csv_file /media/runbk0401/Storage5/RUUN_GLUE_DATABASE/assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test2/image_index.csv 
+
+# 이거 두개는 세트
+python3 VAPE_MK53_3_Opti.py --image_dir /media/runbk0401/Storage5/RUUN_GLUE_DATABASE/assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test2/ --csv_file /media/runbk0401/Storage5/RUUN_GLUE_DATABASE/assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test2/image_index.csv --save_output --show --output_dir 20250902_test_result/
+journal_20250902.m # This is used for testing the VAPE_MK53_3.py with the optitrack
+
+# This is for comparison with RTMpose because RTMpose sucks with the large calib board But I need to make a 
+python3 ablation_runner.py --script VAPE_MK53_Core_GT_V2_ori.py --video JINT_indoor_test1.mp4 --out run_out_20250902_compare --show --calibration calibration2/tag_to_object_ground_truth.json 
+
+# Tests for journal 
+## Indoor: Use the '20250128/extracted_images_20250128_test2/' with the optitrack. And also try out 20250128/other tests which is for cases with vibration and blur
+## About 2 cases: One just normal case with realistic viewpoint changes and the other is the case with vibration and blur.
+### Use these two codes for testing the VAPE_MK53_3.py with the optitrack
+python3 VAPE_MK53_3_Opti.py --image_dir /media/runbk0401/Storage5/RUUN_GLUE_DATABASE/assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test2/ --csv_file /media/runbk0401/Storage5/RUUN_GLUE_DATABASE/assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test2/image_index.csv --save_output --show --output_dir 20250902_test_result/
+journal_20250902.m # This is used for testing the VAPE_MK53_3.py with the optitrack
+### At mmpose, Use the 
+python GlobalPose.py --image_dir /media/runbk0401/Storage5/RUUN_GLUE_DATABASE/assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test2/ --csv_file /media/runbk0401/Storage5/RUUN_GLUE_DATABASE/assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test2/image_index.csv --rtmpose_config configs/my_aircraft/rtmpose.py --rtmpose_checkpoint work_dirs/rtmpose-l_aircraft-384x288_20250901/epoch_580.pth
+journal_20250902.m
+
+
+## Outdoor: use the big ChAruco board and use the video made with camera. And I have to think about this because the RtmPose is weak with the large calib board.
+## Have to think of cases
+### Use this code
+#####################
+# This code is to see if I can start with the calib to find the coordinate transformation and then use that to find the pose of the object.
+python3 ChAruco3.py --test-detection --live-test
+# Then this code to get the coordinate transformation
+python3 ChAruco3.py --video 20250901_cali3.mp4 --visualize --debug
+#####################
+python3 ablation_runner.py --script VAPE_MK53_Core_GT_V3.py --video 20250901_cali2.mp4 --out run_out_20250901 --show --calibration calibration/tag_to_object_ground_truth_A1.json
+python3 ablation_metrics.py run_out_20250901/
+
+# Or like this? For testing?
+python3 VAPE_MK53_Core_GT_V3.py --webcam --calibration calibration/tag_to_object_ground_truth_A1.json --show
+#or
+python3 VAPE_MK53_Core_GT_V3.py --video_file 20250901_cali2.mp4 --calibration calibration/tag_to_object_ground_truth_A1.json --show
+
+
+
+
+
+
