@@ -1,0 +1,52 @@
+export PATH="/home/runbk0401/miniconda3/envs/openmmlab/bin:$PATH"
+
+
+
+
+python tools/train.py configs/my_aircraft/rtmpose.py 
+
+
+
+
+python tools/train.py configs/my_aircraft/td-hm_hrnet-w32_myaircraft-512x384.py
+
+
+
+
+python GlobalPose.py --image_dir /media/runbk0401/Storage5/RUUN_GLUE_DATABASE/assets/Ruun_images/ICUAS/20250210/extracted_images_test5 --csv_file /media/runbk0401/Storage5/RUUN_GLUE_DATABASE/assets/Ruun_images/ICUAS/20250210/image_index.csv --rtmpose_config configs/my_aircraft/rtmpose.py --rtmpose_checkpoint work_dirs/rtmpose-l_aircraft-384x288-optimized_20250705/best_coco_AP_epoch_200.pth 
+
+
+
+python GlobalPose.py --image_dir /media/runbk0401/Storage5/RUUN_GLUE_DATABASE/assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test2/ --csv_file /media/runbk0401/Storage5/RUUN_GLUE_DATABASE/assets/Ruun_images/ICUAS/20250128/extracted_images_20250128_test2/image_index.csv --rtmpose_config configs/my_aircraft/rtmpose.py --rtmpose_checkpoint work_dirs/rtmpose-l_aircraft-384x288-optimized_20250705/best_coco_AP_epoch_200.pth --save_pose 20250706_ICUAS.json
+
+
+python GlobalPose_video.py simple_outdoor.mp4
+
+
+python GlobalPose_video.py simple_outdoor2.mp4
+
+
+python GlobalPose_video.py 20250715_outdoor.mp4 
+
+
+# 20250810
+
+python GlobalPose_video.py --video_file 20250617_2.mp4
+
+
+python GlobalPose_video.py --video_file 20250617_2.mp4
+
+
+python GlobalPose_video.py simple_outdoor.mp4
+
+python GlobalPose.py --image_dir /media/runbk0401/Storage5/RUUN_GLUE_DATABASE/assets/Ruun_images/ICUAS/20250210/extracted_images_test5 --csv_file /media/runbk0401/Storage5/RUUN_GLUE_DATABASE/assets/Ruun_images/ICUAS/20250210/image_index.csv --rtmpose_config configs/my_aircraft/rtmpose.py --rtmpose_checkpoint work_dirs/rtmpose-l_aircraft-384x288-optimized_20250705/best_coco_AP_epoch_200.pth 
+
+
+
+python GlobalPose.py --image_dir /media/runbk0401/Storage5/RUUN_GLUE_DATABASE/assets/Ruun_images/ICUAS/20250210/extracted_images_test5 --csv_file /media/runbk0401/Storage5/RUUN_GLUE_DATABASE/assets/Ruun_images/ICUAS/20250210/image_index.csv --rtmpose_config configs/my_aircraft/rtmpose.py --rtmpose_checkpoint work_dirs/rtmpose-l_aircraft-384x288_20250901/epoch_580.pth
+
+
+# JINT 
+python GlobalPose_video.py --video_file 20250901_cali2.mp4 --calibration calibration/tag_to_object_ground_truth_A1.json --show
+
+
