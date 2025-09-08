@@ -1,0 +1,8 @@
+Experiment,"Accuracy (cm, deg)",Tracking Uptime (%),"Stability (m/s, deg/s)",Match Efficiency (%),Recovery Time (frames),Perf. Breakdown (ms)
+A_Baseline,45.61%,24.97%,"0.262, 9.17",37.81%,1.33,D:5.8 F+M:36.6 PnP:1.5 KF:1.0
+B_NoDetector,36.36%,27.74%,"0.347, 11.46",31.09%,1.40,D:0.0 F+M:26.2 PnP:1.4 KF:0.9
+F_ORB,0.00%,0.53%,N/A,N/A,5.00,D:21.8 F+M:5.7 PnP:94.9 KF:0.0
+G_SIFT,0.00%,0.11%,N/A,N/A,6.00,D:42.4 F+M:19.7 PnP:44.9 KF:0.0
+I_LegacyFilter,17.57%,24.97%,"0.000, 0.00",37.72%,1.33,D:5.8 F+M:36.5 PnP:2.1 KF:0.4
+L_FixedViewpoint,30.97%,18.17%,"0.265, 8.99",38.60%,6.50,D:5.8 F+M:31.0 PnP:4.1 KF:0.7
+N_Coarse4Viewpoints,40.16%,24.65%,"1.083, 12.79",38.23%,1.50,D:5.7 F+M:36.4 PnP:2.1 KF:0.9

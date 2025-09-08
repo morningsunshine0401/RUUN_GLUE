@@ -1275,16 +1275,68 @@ python3 ChAruco3.py --test-detection --live-test
 # Then this code to get the coordinate transformation
 python3 ChAruco3.py --video 20250901_cali3.mp4 --visualize --debug
 #####################
-python3 ablation_runner.py --script VAPE_MK53_Core_GT_V3.py --video 20250901_cali2.mp4 --out run_out_20250901 --show --calibration calibration/tag_to_object_ground_truth_A1.json
+python3 ablation_runner.py --script VAPE_MK53_Core_GT_V3.py --video 20250904_cali2.mp4 --out run_out_20250901 --show --calibration calibration/tag_to_object_ground_truth_A1.json
 python3 ablation_metrics.py run_out_20250901/
 
 # Or like this? For testing?
 python3 VAPE_MK53_Core_GT_V3.py --webcam --calibration calibration/tag_to_object_ground_truth_A1.json --show
 #or
-python3 VAPE_MK53_Core_GT_V3.py --video_file 20250901_cali2.mp4 --calibration calibration/tag_to_object_ground_truth_A1.json --show
+python3 VAPE_MK53_Core_GT_V3.py --video_file 20250904_cali2.mp4 --calibration calibration/tag_to_object_ground_truth_A1.json --show
+
+
+python3 VAPE_MK53_3.py --video_file 20250815_outdoor4.mp4 --show # This is a bit more jiggly than the one above but more better when tested with webcam.
+
+
+# This is an old VAPE! But will be used in the comparison process
+python3 VAPE_MK48.py --video_file 20250904_cali2.mp4 --calibration calibration/tag_to_object_ground_truth_A1.json
+
+
+# 20250904 Comparison tryout 1 ### This needs work out!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1 20250905에 다시!! 일단 욜로가 맛탱이감
+
+python3 VAPE_MK48_comparison.py --video_file /home/runbk0401/SuperGluePretrainedNetwork/20250901_cali2.mp4 --calibration /home/runbk0401/SuperGluePretrainedNetwork/calibration/tag_to_object_ground_truth_A1.json --save_output
+
+
+python3 VAPE_MK53_Core_GT_V3_comparison.py --video_file /home/runbk0401/SuperGluePretrainedNetwork/20250901_cali2.mp4 --calibration /home/runbk0401/SuperGluePretrainedNetwork/calibration/tag_to_object_ground_truth_A1.json --log_jsonl --output_dir run_out_mk53_comparison
+
+
+python3 run_comparison.py
 
 
 
 
+python3 VAPE_MK53_3.py --video_file 20250904_cali2.mp4 --show
 
 
+
+
+# 20250908 JINT tryouts!!!
+
+python3 ChAruco3.py --video 20250908_cali1.mp4 --visualize --debug
+# Got a json named 'tag_to_object_ground_truth_A1_20250908.json'
+
+
+python3 VAPE_MK53_3.py --video_file 20250908_JINT_outdoor/normal/20250908_slow_view_change.mp4 --show
+
+####### comparison with the now and old
+python3 VAPE_MK53_Core_GT_V3_comparison.py --video_file 20250908_JINT_outdoor/normal/20250908_slow_view_change.mp4 --calibration calibration/tag_to_object_ground_truth_A1_20250908.json --log_jsonl --output_dir run_out_20250908_slow_view_change --show
+
+python3 VAPE_MK48_comparison.py --video_file 20250908_JINT_outdoor/normal/20250908_slow_view_change.mp4 --calibration calibration/tag_to_object_ground_truth_A1_20250908.json --save_output
+
+python3 run_comparison.py
+###################
+
+
+python3 ablation_runner.py --script VAPE_MK53_Core_GT_V3.py --video 20250908_JINT_outdoor/normal/20250908_slow_view_change.mp4 --out 20250908_out --show --calibration calibration/tag_to_object_ground_truth_A1_20250908.json
+
+python3 ablation_metrics.py 20250908_out/
+
+
+python3 VAPE_MK53_3.py --video_file 20250908_JINT_outdoor/normal/20250908_slow_view_change.mp4 --show
+
+####### comparison with the now and old IT WORKED YEAHHHH!!
+python3 VAPE_MK53_Core_GT_V3_comparison.py --video_file 20250908_JINT_outdoor/normal/20250908_slow_view_change.mp4 --calibration calibration/tag_to_object_ground_truth_A1_20250908.json --log_jsonl --output_dir run_out_20250908_slow_view_change --show
+
+python3 VAPE_MK48_comparison.py --video_file 20250908_JINT_outdoor/normal/20250908_slow_view_change.mp4 --calibration calibration/tag_to_object_ground_truth_A1_20250908.json --save_output
+
+python3 run_comparison.py
+###################

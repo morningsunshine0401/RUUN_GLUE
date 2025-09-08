@@ -177,7 +177,19 @@ class UnscentedKalmanFilter:
         self.wm[0] = self.lambda_ / (self.n + self.lambda_)
         self.wc[0] = self.lambda_ / (self.n + self.lambda_) + (1.0 - self.alpha**2 + self.beta)
         
-        self.Q = np.eye(self.n) * 1e-1 # Process noise
+        # This is the original
+        #self.Q = np.eye(self.n) * 1e-2
+        
+        # --- MODIFICATION: Lower Process Noise for Smoother Prediction ---
+        self.Q = np.eye(self.n)
+        self.Q[0:3, 0:3] *= 1e-3 # Position noise
+        self.Q[3:6, 3:6] *= 1e-2 # Velocity noise
+        self.Q[6:9, 6:9] *= 1e-2 # Acceleration noise
+        self.Q[9:13, 9:13] *= 1e-3 # Quaternion noise
+        self.Q[13:16, 13:16] *= 1e-2 # Angular velocity noise
+        # ----------------------------------------------------------------
+
+
         self.R = np.eye(self.m) * 1e-4
         
         self.t_state = None
@@ -755,7 +767,6 @@ class ProcessingThread(threading.Thread):
         ne2_anchor_2d = np.array([[1035, 95],[740, 93],[599, 16],[486, 168],[301, 305],[719, 225],[425, 349],[950, 204],[794, 248],[844, 203],[833, 175],[601, 275],[515, 301],[584, 244],[503, 266]], dtype=np.float32)
         ne2_anchor_3d = np.array([[-0.000, -0.025, -0.240],[0.230, -0.000, -0.113],[0.243, -0.104, 0.000],[0.230, -0.000, 0.113],[-0.000, -0.025, 0.240],[-0.100, -0.030, 0.000],[-0.080, -0.000, 0.156],[-0.080, -0.000, -0.156],[-0.090, -0.000, -0.042],[-0.052, -0.000, -0.097],[-0.017, -0.000, -0.092],[-0.074, -0.000, 0.074],[-0.074, -0.000, 0.128],[-0.019, -0.000, 0.074],[-0.019, -0.000, 0.128]], dtype=np.float32)
 
-        
         anchor_definitions = {
             'NE': {'path': 'NE.png', '2d': ne_anchor_2d, '3d': ne_anchor_3d},
             'NW': {'path': 'assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png', '2d': nw_anchor_2d, '3d': nw_anchor_3d},
@@ -1079,6 +1090,9 @@ class ProcessingThread(threading.Thread):
             self.frames_since_last_success += 1 # 실패 시 카운터 증가
             self.prev_successful_pose = None
             self.rejected_consecutive_frames_count += 1
+            
+            with self.pose_data_lock:
+                self.kf.apply_damping()
 
             if self.rejected_consecutive_frames_count >= self.MAX_REJECTED_FRAMES:
                 with self.pose_data_lock:
@@ -1119,49 +1133,36 @@ class ProcessingThread(threading.Thread):
 
     def _estimate_pose_with_temporal_consistency(self, frame, bbox):
         pose_metrics = {}
-        
-        # First, try the last known good viewpoint
+        if self.args.vp_mode == "coarse4": candidate_viewpoints = self.coarse_4_views
+        elif self.args.vp_mode == "fixed": candidate_viewpoints = [self.all_view_ids[self.args.fixed_view]] if self.all_view_ids else []
+        else: candidate_viewpoints = self.all_view_ids
+
         if self.current_best_viewpoint:
             pose_data, metrics = self._solve_for_viewpoint(frame, self.current_best_viewpoint, bbox)
             pose_metrics.update(metrics)
-            # This logic is from VAPE_MK53_3.py, using total_matches
-            if pose_data and pose_data.total_matches >= 5: # 5 is viewpoint_quality_threshold in VAPE_MK53_3
+            if pose_data and pose_data.inliers >= 5:
                 self.consecutive_failures = 0
                 return pose_data, pose_metrics
-            else:
-                self.consecutive_failures += 1
+            else: self.consecutive_failures += 1
 
-        # If the current viewpoint fails, or we don't have one, start a search
         if self.current_best_viewpoint is None or self.consecutive_failures >= self.args.vp_failures:
-            if self.args.vp_mode == "coarse4": candidate_viewpoints = self.coarse_4_views
-            elif self.args.vp_mode == "fixed": candidate_viewpoints = [self.all_view_ids[self.args.fixed_view]] if self.all_view_ids else []
-            else: candidate_viewpoints = self.all_view_ids
-            
-            print("🔍 Searching for best viewpoint...")
             ordered_viewpoints, assessment_metrics = self._quick_viewpoint_assessment(frame, bbox, candidate_viewpoints)
             pose_metrics.update(assessment_metrics)
-            
             successful_poses = []
-            # This is the exhaustive search from VAPE_MK53_3.py
-            viewpoint_quality_threshold = 5 # from VAPE_MK53_3.py
-            for viewpoint in ordered_viewpoints:
+            for viewpoint in ordered_viewpoints[:5]:
                 pose_data, metrics = self._solve_for_viewpoint(frame, viewpoint, bbox)
-                if pose_data:
-                    successful_poses.append(pose_data)
-                    # Early exit if a very good match is found
-                    if pose_data.total_matches >= viewpoint_quality_threshold * 2:
-                        break
+                if pose_data: successful_poses.append(pose_data)
             
             if successful_poses:
-                # VAPE_MK53_3.py's selection criteria
-                best_pose = max(successful_poses, key=lambda p: (p.total_matches, p.inliers, -p.reprojection_error))
-                
-                # VAPE_MK53_3.py's direct update logic (no hysteresis)
-                self.current_best_viewpoint = best_pose.viewpoint
+                best_pose = max(successful_poses, key=lambda p: (p.inliers, -p.reprojection_error))
+                if best_pose.viewpoint != self.current_best_viewpoint:
+                    self.viewpoint_switch_votes += 1
+                    if self.viewpoint_switch_votes >= self.args.vp_switch_hysteresis:
+                        self.current_best_viewpoint = best_pose.viewpoint
+                        self.viewpoint_switch_votes = 0
+                else: self.viewpoint_switch_votes = 0
                 self.consecutive_failures = 0
-                print(f"🎯 Selected viewpoint: {best_pose.viewpoint} ({best_pose.total_matches} matches, {best_pose.inliers} inliers)")
                 return best_pose, pose_metrics
-
         return None, pose_metrics
 
     def _quick_viewpoint_assessment(self, frame, bbox, candidates):
@@ -1364,8 +1365,8 @@ class ProcessingThread(threading.Thread):
         R = np.eye(7); base_pos_noise, base_quat_noise = 1e-4, 1e-4
         mode = self.args.kf_adaptiveR
         if mode == 'none': return R * base_pos_noise
-        inlier_factor = max(0.5, min(2.0, 10.0 / max(1, inliers)))
-        error_factor = max(0.5, min(3.0, reproj_err / 2.0)) if reproj_err else 1.0
+        inlier_factor = max(0.5, min(3.0, 10.0 / max(1, inliers)))
+        error_factor = max(0.5, min(4.0, reproj_err / 2.0)) if reproj_err else 1.0
         latency_factor = 1.0 + self.args.kf_latency_gamma * max(0.0, latency_ms)
         pos_scale, quat_scale = 1.0, 1.0
         if mode == 'inliers': pos_scale = quat_scale = inlier_factor
@@ -1430,26 +1431,25 @@ def main():
     parser.add_argument("--no_det", action="store_true")
     parser.add_argument("--det_every_n", type=int, default=1)
     parser.add_argument("--det_margin_px", type=int, default=20)
-    parser.add_argument("--sp_kpts", type=int, default=2048)
+    parser.add_argument("--sp_kpts", type=int, default=1024)
     parser.add_argument("--matcher", type=str, default="lightglue", choices=["lightglue", "nnrt", "orb", "sift"])
     parser.add_argument("--nn_ratio", type=float, default=0.75)
     parser.add_argument("--orb_nfeatures", type=int, default=1000)
     parser.add_argument("--sift_nfeatures", type=int, default=1000)
     parser.add_argument("--pnp_solver", type=str, default="epnp", choices=["epnp", "iterative"])
     parser.add_argument("--pnp_refine", type=int, default=1, choices=[0, 1])
-    parser.add_argument("--pnp_reproj", type=float, default=8.0)#8.0)
+    parser.add_argument("--pnp_reproj", type=float, default=6.0)#8.0)
     parser.add_argument("--pnp_iters", type=int, default=7000)
     parser.add_argument("--pnp_conf", type=float, default=0.95)
     parser.add_argument("--gate_logic", type=str, default="or", choices=["or", "and"])
-    #parser.add_argument("--gate_ratio", type=float, default=0.75)
-    parser.add_argument("--gate_ratio", type=float, default=0.55)
-    parser.add_argument("--gate_ori_deg", type=float, default=30.0)
-    #parser.add_argument("--gate_ori_deg", type=float, default=50.0)
+    parser.add_argument("--gate_ratio", type=float, default=0.75)
+    #parser.add_argument("--gate_ori_deg", type=float, default=30.0)
+    parser.add_argument("--gate_ori_deg", type=float, default=50.0)
     parser.add_argument("--kf_timeaware", type=int, default=1, choices=[0, 1])
     parser.add_argument("--kf_adaptiveR", type=str, default="full", choices=["none", "inliers", "inliers_reproj", "full"])
     parser.add_argument("--kf_latency_gamma", type=float, default=1e-3)
     #parser.add_argument("--rate_limits", type=str, default="30,1.5")
-    parser.add_argument("--rate_limits", type=str, default="30,1.5")
+    parser.add_argument("--rate_limits", type=str, default="30,1")
     parser.add_argument("--vp_mode", type=str, default="dynamic", choices=["dynamic", "fixed", "coarse4"])
     parser.add_argument("--fixed_view", type=int, default=1)
     parser.add_argument("--vp_switch_hysteresis", type=int, default=2)

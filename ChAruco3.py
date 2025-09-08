@@ -270,9 +270,22 @@ class CharucoGroundTruthCalibrator:
         
         # Camera parameters (from your VAPE code)
         self.camera_width, self.camera_height = 1280, 720
-        fx, fy, cx, cy = 1460.10150, 1456.48915, 604.85462, 328.64800
-        self.K = np.array([[fx, 0, cx], [0, fy, cy], [0, 0, 1]], dtype=np.float32)
-        self.dist_coeffs = None
+        
+        # Previous cali
+        # fx, fy, cx, cy = 1460.10150, 1456.48915, 604.85462, 328.64800
+        # self.K = np.array([[fx, 0, cx], [0, fy, cy], [0, 0, 1]], dtype=np.float32)
+        # self.dist_coeffs = None
+        
+        #20250908 cali outdoor
+        fx, fy, cx, cy = 1078.86998, 1074.77105, 640.626268, 377.596433
+        self.K = np.array([[fx, 0.0, cx],
+                        [0.0, fy, cy],
+                        [0.0, 0.0, 1.0]], dtype=np.float32)
+
+        # Distortion Coeffs (k1, k2, p1, p2, k3)
+        self.dist_coeffs = np.array([
+            0.02692405, -0.03433880, 0.01104186, 0.00124234, -0.12498783
+        ], dtype=np.float32)
         
         # ChArUco setup - UPDATED FOR A1 BOARD
         print("Initializing A1 ChArUco board configuration:")

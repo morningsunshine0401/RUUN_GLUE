@@ -1,4 +1,5 @@
-# 파일 이름: VAPE_MK53_Core.py (최종 안정화 버전 - 범용 매칭 시각화 기능 추가)
+# -*- coding: utf-8 -*- 
+# 파일 이름: VAPE_MK53_Core.py (최종 안정화 버전 - 범용 매칭 시각화 기능 추가) 
 
 import cv2
 import numpy as np
@@ -10,7 +11,7 @@ import json
 import threading
 import os
 from pathlib import Path
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional, Tuple, Dict, List, Any
 import queue
 import math
@@ -85,46 +86,16 @@ def quaternion_angle_diff_deg(q1: np.ndarray, q2: np.ndarray) -> float:
 
 def make_charuco_board(cols, rows, square_len_m, marker_len_m,
                        dict_id=cv2.aruco.DICT_6X6_250):
-    """
-    Returns (aruco_dict, board, chessboard_corners) and supports both old/new OpenCV APIs.
-    """
     aruco_dict = cv2.aruco.getPredefinedDictionary(dict_id)
-    
     if hasattr(cv2.aruco, "CharucoBoard_create"):
-        # Older OpenCV API (< 4.7)
         board = cv2.aruco.CharucoBoard_create(cols, rows, square_len_m, marker_len_m, aruco_dict)
-        chessboard_corners = board.chessboardCorners
     else:
-        # Newer OpenCV API (>= 4.7)
         board = cv2.aruco.CharucoBoard((cols, rows), square_len_m, marker_len_m, aruco_dict)
-        chessboard_corners = board.getChessboardCorners()
-    
-    return aruco_dict, board, chessboard_corners
+    return aruco_dict, board
 
 def make_detectors(aruco_dict, board):
-    """
-    Returns a tuple describing the detector setup, with robust parameters.
-    """
-    has_new = hasattr(cv2.aruco, "ArucoDetector") and hasattr(cv2.aruco, "CharucoDetector")
-    
-    try:
-        aruco_params = cv2.aruco.DetectorParameters()
-    except AttributeError:
-        aruco_params = cv2.aruco.DetectorParameters_create()
-
-    # Enhanced detection parameters from ChAruco3.py
-    aruco_params.adaptiveThreshWinSizeMin = 5
-    aruco_params.adaptiveThreshWinSizeMax = 25
-    aruco_params.adaptiveThreshWinSizeStep = 4
-    aruco_params.minMarkerPerimeterRate = 0.03
-    aruco_params.maxMarkerPerimeterRate = 0.4
-    aruco_params.minMarkerDistanceRate = 0.05
-    aruco_params.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_SUBPIX
-    aruco_params.cornerRefinementWinSize = 5
-    aruco_params.cornerRefinementMaxIterations = 30
-    aruco_params.cornerRefinementMinAccuracy = 0.1
-
-    if has_new:
+    aruco_params = cv2.aruco.DetectorParameters()
+    if hasattr(cv2.aruco, "ArucoDetector"):
         aruco_det = cv2.aruco.ArucoDetector(aruco_dict, aruco_params)
         charuco_det = cv2.aruco.CharucoDetector(board)
         return ("new", aruco_det, charuco_det)
@@ -157,6 +128,7 @@ class ProcessingResult:
     filt_rot_err_deg: Optional[float] = None
     jitter_lin_vel_mps: Optional[float] = None
     jitter_ang_vel_dps: Optional[float] = None
+    recovery_frames: int = 0
 
 class UnscentedKalmanFilter:
     def __init__(self, dt=1/15.0):
@@ -176,10 +148,13 @@ class UnscentedKalmanFilter:
         self.wc = self.wm.copy()
         self.wm[0] = self.lambda_ / (self.n + self.lambda_)
         self.wc[0] = self.lambda_ / (self.n + self.lambda_) + (1.0 - self.alpha**2 + self.beta)
-        
-        self.Q = np.eye(self.n) * 1e-1 # Process noise
+        self.Q = np.eye(self.n)
+        self.Q[0:3, 0:3] *= 1e-3
+        self.Q[3:6, 3:6] *= 1e-2
+        self.Q[6:9, 6:9] *= 1e-2
+        self.Q[9:13, 9:13] *= 1e-3
+        self.Q[13:16, 13:16] *= 1e-2
         self.R = np.eye(self.m) * 1e-4
-        
         self.t_state = None
         self.history = deque(maxlen=200)
 
@@ -195,7 +170,6 @@ class UnscentedKalmanFilter:
             P_jitter = P_sym + 1e-9 * np.eye(self.n)
             try: U = np.linalg.cholesky((self.n + self.lambda_) * P_jitter)
             except np.linalg.LinAlgError:
-                print("⚠️ Cholesky failed, using SVD fallback")
                 U_svd, s, _ = np.linalg.svd(P_jitter)
                 U = U_svd @ np.diag(np.sqrt(np.maximum(s, 1e-12))) @ U_svd.T
                 U = U * np.sqrt(self.n + self.lambda_)
@@ -314,299 +288,33 @@ class UnscentedKalmanFilter:
         rate_limited_rot_deg = quaternion_angle_diff_deg(self.x[9:13], pre_update_quat)
         return self.x[0:3], self.x[9:13], (rate_limited_rot_deg, rate_limited_pos_m), oos_replay_triggered
 
-    def predict_to_time(self, t_target):
-        if self.t_state is None or not self.initialized: return self.x[0:3], self.x[9:13]
-        dt = t_target - self.t_state
-        if dt <= 0: return self.x[0:3], self.x[9:13]
-        x_temp, P_temp = self.x.copy(), self.P.copy()
-        sigmas = self._generate_sigma_points(x_temp, P_temp)
-        sigmas_f = np.array([self.motion_model(s, dt) for s in sigmas])
-        x_pred = np.sum(self.wm[:, np.newaxis] * sigmas_f, axis=0)
-        x_pred[9:13] = normalize_quaternion(x_pred[9:13])
-        return x_pred[0:3], x_pred[9:13]
-
-    def update(self, position: np.ndarray, quaternion: np.ndarray, R: Optional[np.ndarray] = None):
-        t_now = time.monotonic()
-        if R is None: R = self.R.copy()
-        if not self.initialized:
-            self.x[0:3] = position
-            self.x[9:13] = normalize_quaternion(quaternion)
-            self.P[:] = self.P0
-            self.t_state = t_now
-            self.initialized = True
-            return self.x[0:3], self.x[9:13], (0,0), False
-
-        self._measurement_update(position, quaternion, R)
-        return self.x[0:3], self.x[9:13], (0,0), False
-
     def set_rate_limits(self, max_rotation_dps: float = None, max_position_mps: float = None):
         if max_rotation_dps is not None: self.max_rot_rate_dps = max_rotation_dps
         if max_position_mps is not None: self.max_pos_speed_mps = max_position_mps
 
-    # --- ADD THIS NEW METHOD ---
     def reset(self):
-        """Resets the filter to its initial, uninitialized state."""
-        print("⚠️ Kalman Filter Reset!")
         self.initialized = False
         self.x = np.zeros(self.n)
-        self.x[12] = 1.0  # Reset quaternion to identity
+        self.x[12] = 1.0
         self.P = self.P0.copy()
         self.t_state = None
         self.history.clear()
-    # --------------------------
 
-    # --- ADD THIS NEW METHOD ---
     def apply_damping(self, damping_factor=0.9):
-        """
-        Applies damping to the velocity and acceleration states to prevent drift
-        when no new measurements are available.
-        """
         if self.initialized:
-            # Dampen linear velocity and acceleration
             self.x[3:9] *= damping_factor 
-            # Dampen angular velocity
             self.x[13:16] *= damping_factor
-    # --------------------------
 
-class MainThread(threading.Thread):
-    def __init__(self, processing_queue, visualization_queue, pose_data_lock, kf, args):
-        super().__init__()
-        self.running = True
-        self.processing_queue = processing_queue
-        self.visualization_queue = visualization_queue
-        self.pose_data_lock = pose_data_lock
-        self.kf = kf
+class VAPE53_Estimator:
+    def __init__(self, args):
         self.args = args
-        self.camera_width, self.camera_height = 1280, 720
-        self.is_video_stream = False
-        self.video_capture = None
-        self.image_files = []
-        self.frame_idx = 0
-        self.frame_count = 0
-        self.start_time = time.time()
-        self._initialize_input_source()
-        self.K, self.dist_coeffs = self._get_camera_intrinsics()
-        # --- ADD THESE LINES ---
-        self.last_gt_position = None
-        self.last_gt_quaternion = None
-
-    def _initialize_input_source(self):
-        if self.args.webcam:
-            self.video_capture = cv2.VideoCapture(0)
-            if not self.video_capture.isOpened(): raise IOError("Cannot open webcam.")
-            self.video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, self.camera_width)
-            self.video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self.camera_height)
-            self.is_video_stream = True; print("📹 Using webcam input.")
-        elif self.args.video_file:
-            if not os.path.exists(self.args.video_file): raise FileNotFoundError(f"Video file not found: {self.args.video_file}")
-            self.video_capture = cv2.VideoCapture(self.args.video_file)
-            self.is_video_stream = True; print(f"📹 Using video file input: {self.args.video_file}")
-        elif self.args.image_dir:
-            if not os.path.exists(self.args.image_dir): raise FileNotFoundError(f"Image directory not found: {self.args.image_dir}")
-            self.image_files = sorted([os.path.join(self.args.image_dir, f) for f in os.listdir(self.args.image_dir) if f.lower().endswith(('.jpg', '.jpeg', '.png'))])
-            if not self.image_files: raise IOError(f"No images found in directory: {self.args.image_dir}")
-            print(f"🖼️ Found {len(self.image_files)} images for processing.")
-        else:
-            raise ValueError("No input source specified. Use --webcam, --video_file, or --image_dir.")
-
-    def _get_next_frame(self):
-        if self.is_video_stream:
-            ret, frame = self.video_capture.read()
-            return frame if ret else None
-        else:
-            if self.frame_idx < len(self.image_files):
-                frame = cv2.imread(self.image_files[self.frame_idx])
-                self.frame_idx += 1
-                return frame
-            return None
-
-    # def run(self):
-    #     window_name = "VAPE MK53 - Pose Estimation (Ablation)"
-    #     if self.args.show:
-    #         cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
-    #         cv2.resizeWindow(window_name, self.camera_width, self.camera_height)
-    #         # =================== DEBUG VISUALIZATION CHANGE ===================
-    #         # Create a dedicated, resizable window for feature match visualization
-    #         cv2.namedWindow("Feature Matches", cv2.WINDOW_NORMAL)
-    #         # =================================================================
-
-    #     while self.running:
-    #         loop_start_time = time.time()
-    #         frame = self._get_next_frame()
-    #         if frame is None: break
-    #         t_capture = time.monotonic()
-
-    #         t_now = time.monotonic()
-    #         with self.pose_data_lock:
-    #             predicted_pose_tvec, predicted_pose_quat = self.kf.predict_to_time(t_now)
-            
-    #         if self.processing_queue.qsize() < 2:
-    #             self.processing_queue.put((frame.copy(), t_capture, self.frame_count))
-            
-    #         self.frame_count += 1
-
-    #         if self.args.show:
-    #             vis_frame = frame.copy()
-    #             if predicted_pose_tvec is not None and predicted_pose_quat is not None:
-    #                 self._draw_axes(vis_frame, predicted_pose_tvec, predicted_pose_quat)
-    #             elapsed_time = time.time() - self.start_time
-    #             fps = self.frame_count / elapsed_time if elapsed_time > 0 else 0
-    #             cv2.putText(vis_frame, f"FPS: {fps:.1f}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
-    #             cv2.putText(vis_frame, "STATUS: PREDICTING", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 165, 0), 2)
-    #             if self.kf.t_state is not None:
-    #                 age_ms = (t_now - self.kf.t_state) * 1000
-    #                 cv2.putText(vis_frame, f"Filter Age: {age_ms:.1f}ms", (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (200, 200, 200), 2)
-                
-    #             # =================== DEBUG VISUALIZATION CHANGE ===================
-    #             # Check the queue for any visualization data from the processing thread
-    #             try:
-    #                 vis_data = self.visualization_queue.get_nowait()
-    #                 # If it's a match image, show it in the dedicated window
-    #                 if 'match_image' in vis_data:
-    #                     cv2.imshow("Feature Matches", vis_data['match_image'])
-    #                 # Handle the original SuperPoint keypoint visualization
-    #                 elif 'kpts' in vis_data:
-    #                     kpts, vis_crop = vis_data['kpts'], vis_data['crop']
-    #                     for kpt in kpts: cv2.circle(vis_crop, (int(kpt[0]), int(kpt[1])), 2, (0, 255, 0), -1)
-    #                     cv2.imshow("Features", vis_crop)
-    #             except queue.Empty: 
-    #                 pass
-    #             # =================================================================
-
-    #             cv2.imshow(window_name, vis_frame)
-    #             if cv2.waitKey(1) & 0xFF == ord('q'): self.running = False; break
-            
-    #         frame_rate_cap = 30.0
-    #         time_to_wait = (1.0 / frame_rate_cap) - (time.time() - loop_start_time)
-    #         if time_to_wait > 0: time.sleep(time_to_wait)
-
-    #     self.cleanup()
-
-    def run(self):
-        window_name = "VAPE MK53 - Pose Estimation (Ablation)"
-        if self.args.show:
-            cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
-            cv2.resizeWindow(window_name, self.camera_width, self.camera_height)
-            cv2.namedWindow("Feature Matches", cv2.WINDOW_NORMAL)
-
-        while self.running:
-            loop_start_time = time.time()
-            frame = self._get_next_frame()
-            if frame is None: break
-            t_capture = time.monotonic()
-
-            t_now = time.monotonic()
-            with self.pose_data_lock:
-                predicted_pose_tvec, predicted_pose_quat = self.kf.predict_to_time(t_now)
-            
-            if self.processing_queue.qsize() < 2:
-                self.processing_queue.put((frame.copy(), t_capture, self.frame_count))
-            
-            self.frame_count += 1
-
-            if self.args.show:
-                vis_frame = frame.copy()
-
-                # Draw the Kalman Filter's predicted pose (default Red, Green, Blue)
-                if predicted_pose_tvec is not None and predicted_pose_quat is not None:
-                    self._draw_axes(vis_frame, predicted_pose_tvec, predicted_pose_quat)
-
-                # Check the visualization queue for new data
-                try:
-                    vis_data = self.visualization_queue.get_nowait()
-                    if 'match_image' in vis_data:
-                        cv2.imshow("Feature Matches", vis_data['match_image'])
-                    # --- ADD THIS BLOCK ---
-                    # Check for ground truth data and store it
-                    if 'gt_position' in vis_data:
-                        self.last_gt_position = vis_data['gt_position']
-                        self.last_gt_quaternion = vis_data['gt_quaternion']
-                    # ----------------------
-                except queue.Empty: 
-                    pass
-                
-                # --- ADD THIS BLOCK ---
-                # Draw the last known ground truth pose if we have one
-                if self.last_gt_position is not None and self.last_gt_quaternion is not None:
-                    # Draw with bright, distinct colors (Cyan, Magenta, Yellow)
-                    gt_colors = ((255, 255, 0), (255, 0, 255), (0, 255, 255))
-                    self._draw_axes(vis_frame, self.last_gt_position, self.last_gt_quaternion, color_override=gt_colors)
-                # ----------------------
-
-                # Add text overlays
-                elapsed_time = time.time() - self.start_time
-                fps = self.frame_count / elapsed_time if elapsed_time > 0 else 0
-                cv2.putText(vis_frame, f"FPS: {fps:.1f}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
-                cv2.putText(vis_frame, "STATUS: PREDICTING", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 165, 0), 2)
-                if self.kf.t_state is not None:
-                    age_ms = (t_now - self.kf.t_state) * 1000
-                    cv2.putText(vis_frame, f"Filter Age: {age_ms:.1f}ms", (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (200, 200, 200), 2)
-
-                cv2.imshow(window_name, vis_frame)
-                if cv2.waitKey(1) & 0xFF == ord('q'): self.running = False; break
-            
-            frame_rate_cap = 30.0
-            time_to_wait = (1.0 / frame_rate_cap) - (time.time() - loop_start_time)
-            if time_to_wait > 0: time.sleep(time_to_wait)
-
-        self.cleanup()
-
-    def _get_camera_intrinsics(self):
-        fx, fy, cx, cy = 1460.10150, 1456.48915, 604.85462, 328.64800
-        K = np.array([[fx, 0, cx], [0, fy, cy], [0, 0, 1]], dtype=np.float32)
-        return K, None
-
-    def _quaternion_to_rotation_matrix(self, q):
-        x, y, z, w = normalize_quaternion(q)
-        return np.array([ [1-2*(y*y+z*z), 2*(x*y-z*w), 2*(x*z+y*w)], [2*(x*y+z*w), 1-2*(x*x+z*z), 2*(y*z-x*w)], [2*(x*z-y*w), 2*(y*z+x*w), 1-2*(x*x+y*y)] ])
-
-    # def _draw_axes(self, frame, position, quaternion):
-    #     try:
-    #         R = self._quaternion_to_rotation_matrix(quaternion)
-    #         rvec, _ = cv2.Rodrigues(R)
-    #         tvec = position.reshape(3, 1)
-    #         axis_pts = np.float32([[0,0,0], [0.1,0,0], [0,0.1,0], [0,0,0.1]]).reshape(-1,3)
-    #         img_pts, _ = cv2.projectPoints(axis_pts, rvec, tvec, self.K, self.dist_coeffs)
-    #         img_pts = img_pts.reshape(-1, 2).astype(int)
-    #         origin = tuple(img_pts[0])
-    #         cv2.line(frame, origin, tuple(img_pts[1]), (0,0,255), 3) # X-axis (Red)
-    #         cv2.line(frame, origin, tuple(img_pts[2]), (0,255,0), 3) # Y-axis (Green)
-    #         cv2.line(frame, origin, tuple(img_pts[3]), (255,0,0), 3) # Z-axis (Blue)
-    #     except (cv2.error, AttributeError, ValueError): pass
-    def _draw_axes(self, frame, position, quaternion, color_override=None):
-        try:
-            # Use override colors if provided, otherwise use default Red, Green, Blue
-            colors = color_override if color_override else ((0, 0, 255), (0, 255, 0), (255, 0, 0))
-            
-            R = self._quaternion_to_rotation_matrix(quaternion)
-            rvec, _ = cv2.Rodrigues(R)
-            tvec = position.reshape(3, 1)
-            axis_pts = np.float32([[0,0,0], [0.1,0,0], [0,0.1,0], [0,0,0.1]]).reshape(-1,3)
-            img_pts, _ = cv2.projectPoints(axis_pts, rvec, tvec, self.K, self.dist_coeffs)
-            img_pts = img_pts.reshape(-1, 2).astype(int)
-            origin = tuple(img_pts[0])
-            
-            # Draw axes with the specified colors
-            cv2.line(frame, origin, tuple(img_pts[1]), colors[0], 3) # X-axis
-            cv2.line(frame, origin, tuple(img_pts[2]), colors[1], 3) # Y-axis
-            cv2.line(frame, origin, tuple(img_pts[3]), colors[2], 3) # Z-axis
-        except (cv2.error, AttributeError, ValueError): 
-            pass
-
-    def cleanup(self):
-        self.running = False
-        if self.is_video_stream and self.video_capture: self.video_capture.release()
-        if self.args.show: cv2.destroyAllWindows()
-
-class ProcessingThread(threading.Thread):
-    def __init__(self, processing_queue, visualization_queue, pose_data_lock, kf, args):
-        super().__init__()
         self.running = True
-        self.processing_queue = processing_queue
-        self.visualization_queue = visualization_queue
-        self.pose_data_lock = pose_data_lock
-        self.kf = kf
-        self.args = args
+        self.kf = UnscentedKalmanFilter()
+        if args.rate_limits.lower() != 'inf,inf':
+            rot, pos = [float(x) if x != 'inf' else float('inf') for x in args.rate_limits.split(',')]
+            self.kf.set_rate_limits(max_rotation_dps=rot, max_position_mps=pos)
+        else: self.kf.set_rate_limits(float('inf'), float('inf'))
+
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.camera_width, self.camera_height = 1280, 720
         
@@ -618,17 +326,10 @@ class ProcessingThread(threading.Thread):
         self.consecutive_failures = 0
         self.viewpoint_switch_votes = 0
         self.last_valid_orientation: Optional[np.ndarray] = None
-
         self.prev_successful_pose: Optional[Dict[str, Any]] = None
-
-        # --- ADD THESE TWO LINES ---
         self.rejected_consecutive_frames_count = 0
         self.MAX_REJECTED_FRAMES = 5
-        # ---------------------------
-
-        # --- ADD THIS LINE ---
         self.frames_since_last_success = 0
-        # ---------------------
         
         self.yolo_model, self.extractor, self.matcher = None, None, None
         self.viewpoint_anchors = {}
@@ -643,9 +344,8 @@ class ProcessingThread(threading.Thread):
 
         self.R_to, self.t_to = self._load_calibration(args.calibration)
         
-        # --- Initialize A1 ChArUco board for ground truth, using logic from ChAruco3.py ---
         print("Initializing A1 ChArUco board for ground truth...")
-        self.aruco_dict, self.board, _ = make_charuco_board(
+        self.aruco_dict, self.board = make_charuco_board(
             cols=7, rows=11,
             square_len_m=0.0765,
             marker_len_m=0.0573,
@@ -653,49 +353,89 @@ class ProcessingThread(threading.Thread):
         )
         self.detector_mode, self.aruco_det, self.charuco_det = make_detectors(self.aruco_dict, self.board)
         print(f"  - Ground truth detection mode: {self.detector_mode}")
-        # ------------------------------------------------------------------------------------
-        
+
+        self._initialize_input_source()
+        self.display_queue = queue.Queue(maxsize=2) if args.show else None
+        if self.args.show:
+            self.display_thread = threading.Thread(target=self._display_loop, daemon=True)
+            self.display_thread.start()
+
+    def _initialize_input_source(self):
+        if self.args.video_file or self.args.webcam:
+            self.video_capture = cv2.VideoCapture(0 if self.args.webcam else self.args.video_file)
+            if not self.video_capture.isOpened(): raise IOError("Cannot open input source.")
+            self.video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, self.camera_width)
+            self.video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self.camera_height)
+        elif self.args.image_dir:
+            if not os.path.exists(self.args.image_dir): raise FileNotFoundError(f"Image directory not found: {self.args.image_dir}")
+            self.image_files = sorted([os.path.join(self.args.image_dir, f) for f in os.listdir(self.args.image_dir) if f.lower().endswith(('.jpg', '.jpeg', '.png'))])
+            if not self.image_files: raise IOError(f"No images found in directory: {self.args.image_dir}")
+        else: raise ValueError("No input source specified.")
+
+    def _get_next_frame(self):
+        if self.args.video_file or self.args.webcam:
+            ret, frame = self.video_capture.read()
+            return frame if ret else None
+        else:
+            if self.frame_idx < len(self.image_files):
+                frame = cv2.imread(self.image_files[self.frame_idx])
+                self.frame_idx += 1
+                return frame
+            return None
+
     def _load_calibration(self, path):
         with open(path, 'r') as f: data = json.load(f)
         return np.array(data['R_to']), np.array(data['t_to'])
 
     def _detect_charuco_pose(self, frame):
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
-        # Use the new detector system from ChAruco3.py
         if self.detector_mode == "new":
             corners, ids, _ = self.aruco_det.detectMarkers(gray)
         else:
-            # Fallback for older OpenCV versions, using the configured parameters
             corners, ids, _ = cv2.aruco.detectMarkers(gray, self.aruco_dict, parameters=self.aruco_det)
-        
-        if ids is None or len(ids) == 0:
-            return False, None, None
-
-        # Interpolate corners
-        _, charuco_corners, charuco_ids = cv2.aruco.interpolateCornersCharuco(
-            corners, ids, gray, self.board)
-        
-        if charuco_corners is None or len(charuco_corners) < 4:
-            return False, None, None
-
-        # Estimate pose
-        pose_ok, rvec, tvec = cv2.aruco.estimatePoseCharucoBoard(
-            charuco_corners, charuco_ids, self.board, self.K, self.dist_coeffs, None, None
-        )
-        
-        if pose_ok:
-            return True, cv2.Rodrigues(rvec)[0], tvec
-        
+        if ids is None or len(ids) == 0: return False, None, None
+        _, charuco_corners, charuco_ids = cv2.aruco.interpolateCornersCharuco(corners, ids, gray, self.board)
+        if charuco_corners is None or len(charuco_corners) < 4: return False, None, None
+        pose_ok, rvec, tvec = cv2.aruco.estimatePoseCharucoBoard(charuco_corners, charuco_ids, self.board, self.K, self.dist_coeffs, None, None)
+        if pose_ok: return True, cv2.Rodrigues(rvec)[0], tvec
         return False, None, None
         
+    # def _calculate_pose_error(self, pose_tvec, pose_quat, gt_tvec, gt_rmat):
+    #     pos_err = np.linalg.norm(pose_tvec - gt_tvec.flatten()) * 100
+    #     pose_rmat = R_scipy.from_quat(pose_quat).as_matrix()
+    #     R_err_mat = gt_rmat.T @ pose_rmat
+    #     r_err_vec, _ = cv2.Rodrigues(R_err_mat)
+    #     rot_err = np.linalg.norm(r_err_vec) * 180 / np.pi
+    #     return pos_err, rot_err
+    
     def _calculate_pose_error(self, pose_tvec, pose_quat, gt_tvec, gt_rmat):
-        pos_err = np.linalg.norm(pose_tvec - gt_tvec.flatten()) * 100 # cm
-        pose_rmat = R_scipy.from_quat(pose_quat).as_matrix()
+        """Calculates the position and rotation error between an estimated pose and ground truth."""
+        # Calculate the positional error in centimeters
+        pos_err = np.linalg.norm(pose_tvec - gt_tvec.flatten()) * 100
+        
+        # --- START OF FIX ---
+        # The root cause of the bug is an inconsistent quaternion format. 
+        # Scipy's from_quat function strictly expects the [x, y, z, w] (scalar-last) format.
+        # The enormous error indicates that `pose_quat` is being passed in the [w, x, y, z] (scalar-first) format.
+        # We must re-order it before creating the rotation matrix.
+        
+        # Ensure pose_quat is a numpy array for slicing
+        pq = np.asarray(pose_quat)
+        
+        # Re-order from assumed [w, x, y, z] to the required [x, y, z, w]
+        pose_quat_xyzw = np.array([pq[1], pq[2], pq[3], pq[0]])
+        
+        # Now, create the rotation matrix from the correctly ordered quaternion
+        pose_rmat = R_scipy.from_quat(pose_quat_xyzw).as_matrix()
+        # --- END OF FIX ---
+
+        # Calculate the rotational error in degrees
         R_err_mat = gt_rmat.T @ pose_rmat
         r_err_vec, _ = cv2.Rodrigues(R_err_mat)
-        rot_err = np.linalg.norm(r_err_vec) * 180 / np.pi # degrees
+        rot_err = np.linalg.norm(r_err_vec) * 180 / np.pi
+        
         return pos_err, rot_err
+
     
     def _initialize_logging(self):
         if self.args.log_jsonl:
@@ -704,15 +444,11 @@ class ProcessingThread(threading.Thread):
             self.jsonl_fp = (out_dir / "frames.jsonl").open("w")
             print(f"📝 Logging per-frame data to {out_dir / 'frames.jsonl'}")
 
-    def _log_frame(self, data: Dict[str, Any]):
-        if self.jsonl_fp:
-            self.jsonl_fp.write(json.dumps(data, ensure_ascii=False) + "\n")
-            self.jsonl_fp.flush()
+    
 
     def _initialize_models(self, YOLO, SuperPoint, LightGlue):
         print("📦 Loading models...")
         if not self.args.no_det: self.yolo_model = YOLO("best.pt").to(self.device)
-        
         if self.args.matcher in ['lightglue', 'nnrt']:
             self.extractor = SuperPoint(max_num_keypoints=self.args.sp_kpts).eval().to(self.device)
             if self.args.matcher == 'lightglue':
@@ -725,7 +461,7 @@ class ProcessingThread(threading.Thread):
 
     def _initialize_anchor_data(self):
         print("🛠️ Initializing anchor data...")
-        # ... [ Hardcoded anchor data (ne_anchor_2d, etc.) remains here ] ...
+        # Hardcoded anchor data (same as before)
         ne_anchor_2d = np.array([[928, 148],[570, 111],[401, 31],[544, 141],[530, 134],[351, 228],[338, 220],[294, 244],[230, 541],[401, 469],[414, 481],[464, 451],[521, 510],[610, 454],[544, 400],[589, 373],[575, 361],[486, 561],[739, 385],[826, 305],[791, 285],[773, 271],[845, 233],[826, 226],[699, 308],[790, 375]], dtype=np.float32)
         ne_anchor_3d = np.array([[-0.000, -0.025, -0.240],[0.230, -0.000, -0.113],[0.243, -0.104, 0.000],[0.217, -0.000, -0.070],[0.230, 0.000, -0.070],[0.217, 0.000, 0.070],[0.230, -0.000, 0.070],[0.230, -0.000, 0.113],[-0.000, -0.025, 0.240],[-0.000, -0.000, 0.156],[-0.014, 0.000, 0.156],[-0.019, -0.000, 0.128],[-0.074, -0.000, 0.128],[-0.074, -0.000, 0.074],[-0.019, -0.000, 0.074],[-0.014, 0.000, 0.042],[0.000, 0.000, 0.042],[-0.080, -0.000, 0.156],[-0.100, -0.030, 0.000],[-0.052, -0.000, -0.097],[-0.037, -0.000, -0.097],[-0.017, -0.000, -0.092],[-0.014, 0.000, -0.156],[0.000, 0.000, -0.156],[-0.014, 0.000, -0.042],[-0.090, -0.000, -0.042]], dtype=np.float32)
         nw_anchor_2d = np.array([[511, 293], [591, 284], [587, 330], [413, 249], [602, 348], [715, 384], [598, 298], [656, 171], [805, 213], [703, 392], [523, 286], [519, 327], [387, 289], [727, 126], [425, 243], [636, 358], [745, 202], [595, 388], [436, 260], [539, 313], [795, 220], [351, 291], [665, 165], [611, 353], [650, 377], [516, 389], [727, 143], [496, 378], [575, 312], [617, 368], [430, 312], [480, 281], [834, 225], [469, 339], [705, 223], [637, 156], [816, 414], [357, 195], [752, 77], [642, 451]], dtype=np.float32)
@@ -755,7 +491,6 @@ class ProcessingThread(threading.Thread):
         ne2_anchor_2d = np.array([[1035, 95],[740, 93],[599, 16],[486, 168],[301, 305],[719, 225],[425, 349],[950, 204],[794, 248],[844, 203],[833, 175],[601, 275],[515, 301],[584, 244],[503, 266]], dtype=np.float32)
         ne2_anchor_3d = np.array([[-0.000, -0.025, -0.240],[0.230, -0.000, -0.113],[0.243, -0.104, 0.000],[0.230, -0.000, 0.113],[-0.000, -0.025, 0.240],[-0.100, -0.030, 0.000],[-0.080, -0.000, 0.156],[-0.080, -0.000, -0.156],[-0.090, -0.000, -0.042],[-0.052, -0.000, -0.097],[-0.017, -0.000, -0.092],[-0.074, -0.000, 0.074],[-0.074, -0.000, 0.128],[-0.019, -0.000, 0.074],[-0.019, -0.000, 0.128]], dtype=np.float32)
 
-        
         anchor_definitions = {
             'NE': {'path': 'NE.png', '2d': ne_anchor_2d, '3d': ne_anchor_3d},
             'NW': {'path': 'assets/Ruun_images/viewpoint/anchor/20241226/Anchor2.png', '2d': nw_anchor_2d, '3d': nw_anchor_3d},
@@ -772,214 +507,112 @@ class ProcessingThread(threading.Thread):
             'NE2': {'path': 'NE2.png', '2d': ne2_anchor_2d, '3d': ne2_anchor_3d},
             'E': {'path': 'E.png', '2d': e_anchor_2d, '3d': e_anchor_3d},
         }
-
         self.viewpoint_anchors = {}
         for viewpoint, data in anchor_definitions.items():
-            if not os.path.exists(data['path']):
-                print(f"⚠️ Anchor image not found: {data['path']}. Skipping viewpoint '{viewpoint}'.")
-                continue
-            
+            if not os.path.exists(data['path']): continue
             anchor_image_bgr = cv2.resize(cv2.imread(data['path']), (self.camera_width, self.camera_height))
-            
-            # =================== UNIVERSAL VISUALIZATION CHANGE ===================
-            # Store the anchor image for all matcher types for later visualization
             base_anchor_data = {'image': anchor_image_bgr.copy()}
-            # =====================================================================
-
             if self.args.matcher in ['lightglue', 'nnrt']:
                 anchor_features = self._extract_features_sp(anchor_image_bgr)
                 anchor_keypoints_np = anchor_features['keypoints'][0].cpu().numpy()
                 base_anchor_data['features'] = anchor_features
-                
                 if anchor_keypoints_np.shape[0] > 0:
                     sp_tree = cKDTree(anchor_keypoints_np)
                     distances, indices = sp_tree.query(data['2d'], k=1, distance_upper_bound=5.0)
                     valid_mask = distances != np.inf
-                    base_anchor_data['map_3d'] = {
-                        idx: pt for idx, pt in zip(indices[valid_mask], data['3d'][valid_mask])
-                    }
-                else:
-                    base_anchor_data['map_3d'] = {}
+                    base_anchor_data['map_3d'] = {idx: pt for idx, pt in zip(indices[valid_mask], data['3d'][valid_mask])}
+                else: base_anchor_data['map_3d'] = {}
                 self.viewpoint_anchors[viewpoint] = base_anchor_data
-
-            elif self.args.matcher in ['orb', 'sift']:
-                gray_anchor = cv2.cvtColor(anchor_image_bgr, cv2.COLOR_BGR2GRAY)
-                extractor = self.orb if self.args.matcher == 'orb' else self.sift
-                kp_all, des_all = extractor.detectAndCompute(gray_anchor, None)
-                
-                if des_all is None:
-                    print(f"     -> No {self.args.matcher.upper()} features found for {viewpoint}. Skipping.")
-                    self.viewpoint_anchors[viewpoint] = {}
-                    continue
-                    
-                kpts_coords = np.array([kp.pt for kp in kp_all])
-                kptree = cKDTree(kpts_coords)
-                distances, indices = kptree.query(data['2d'], k=1, distance_upper_bound=8.0) 
-                valid_mask = distances != np.inf
-                
-                filtered_indices = indices[valid_mask]
-                base_anchor_data.update({
-                    'keypoints': [kp_all[i] for i in filtered_indices],
-                    'descriptors': des_all[filtered_indices],
-                    'points_3d': data['3d'][valid_mask]
-                })
-                self.viewpoint_anchors[viewpoint] = base_anchor_data
-
         print("   ...anchor data initialized.")
         self.all_view_ids = list(self.viewpoint_anchors.keys())
         self.coarse_4_views = [v for v in self.coarse_4_views if v in self.all_view_ids]
 
     def run(self):
+        frame_count = 0
         while self.running:
-            try:
-                frame, t_capture, frame_id = self.processing_queue.get(timeout=1.0)
-                self._process_frame(frame, frame_id, t_capture)
-            except queue.Empty:
-                if not self.processing_queue.empty(): continue
-                else: break
-            except Exception as e:
-                print(f"FATAL ERROR in ProcessingThread: {e}")
-                import traceback
-                traceback.print_exc()
-                self.running = False
-        
+            frame = self._get_next_frame()
+            if frame is None:
+                break
+
+            if frame_count % 100 == 0:
+                print(f"[INFO] Processing MK53 frame {frame_count}...")
+            
+            t_capture = time.monotonic()
+            result = self._process_frame(frame, frame_count, t_capture)
+            
+            if self.args.show:
+                vis_frame = self._update_display(result)
+                
+                # Display the main video frame
+                cv2.imshow("VAPE MK53 Comparison", vis_frame)
+                
+                # Display the latest feature match image if it exists
+                if self.vis_match_image is not None:
+                    cv2.imshow("Feature Matches", self.vis_match_image)
+
+                # Check for 'q' key press to exit
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    self.running = False
+            
+            frame_count += 1
+            
         self.cleanup()
 
-    # def _process_frame(self, frame: np.ndarray, frame_id: int, t_capture: float):
-    #     result = ProcessingResult(frame_id=frame_id, frame=frame.copy(), capture_time=t_capture)
-    #     t_start_process = time.monotonic()
 
-    #     # --- 1. Ground Truth Pose Calculation ---
-    #     gt_success, R_ct, t_ct = self._detect_charuco_pose(frame)
-    #     if gt_success:
-    #         R_co_gt = R_ct @ self.R_to
-    #         t_co_gt = (R_ct @ self.t_to) + t_ct
-    #         result.gt_available = True
-    #         result.gt_position = t_co_gt.flatten()
-    #         result.gt_quaternion = R_scipy.from_matrix(R_co_gt).as_quat()
-    #         if self.args.show and self.visualization_queue.qsize() < 2:
-    #             self.visualization_queue.put({
-    #                 'gt_position': result.gt_position,
-    #                 'gt_quaternion': result.gt_quaternion
-    #             })
 
-    #     # --- 2. VAPE Pose Estimation Pipeline ---
-    #     use_det = (not self.args.no_det) and (frame_id % max(1, self.args.det_every_n) == 0)
-    #     t_start_det = time.monotonic()
-    #     if use_det:
-    #         bbox_detected = self._yolo_detect(frame)
-    #         if bbox_detected:
-    #             self.last_bbox = bbox_detected
-    #             self.last_det_frame_id = frame_id
-    #         result.bbox = bbox_detected if bbox_detected else self.last_bbox
-    #     else:
-    #         result.bbox = self.last_bbox
+    def _sanitize_for_json(self, data: dict) -> dict:
+        """Creates a copy of the data dict and makes it JSON serializable."""
+        # Create a shallow copy to avoid modifying the original object
+        sanitized_data = data.copy()
         
-    #     if result.bbox is None and self.args.no_det:
-    #          result.bbox = (0, 0, frame.shape[1] - 1, frame.shape[0] - 1)
+        # Remove the raw image frame, as it's large and not serializable
+        if 'frame' in sanitized_data:
+            del sanitized_data['frame']
 
-    #     result.bbox = self._expand_bbox(result.bbox, self.args.det_margin_px, frame.shape[1], frame.shape[0])
-    #     result.detection_time_ms = (time.monotonic() - t_start_det) * 1000
-
-    #     best_pose, metrics = self._estimate_pose_with_temporal_consistency(frame, result.bbox)
-    #     result.feature_time_ms = metrics.get("feature_time_ms", 0.0)
-    #     result.matching_time_ms = metrics.get("matching_time_ms", 0.0)
-    #     result.pnp_time_ms = metrics.get("pnp_time_ms", 0.0)
-    #     result.raw_matches = metrics.get("raw_matches", 0)
-
-    #     if best_pose:
-    #         match_ratio = best_pose.inliers / best_pose.total_matches if best_pose.total_matches > 0 else 0.0
-    #         result.inlier_ratio = match_ratio
-    #         result.is_accepted_by_gate, result.gate_rejection_reason = self._passes_gates(
-    #             self.last_valid_orientation, best_pose.quaternion, match_ratio
-    #         )
-
-    #     # --- 3. Kalman Filter Update and Final Evaluation (with Reset Logic) ---
-    #     t_start_kf = time.monotonic()
-    #     if result.is_accepted_by_gate and best_pose:
-    #         self.rejected_consecutive_frames_count = 0 # Reset counter on success
-    #         result.pose_success = True
-    #         result.position, result.quaternion = best_pose.position, best_pose.quaternion
-    #         result.num_inliers, result.viewpoint_used = best_pose.inliers, best_pose.viewpoint
-    #         self.last_valid_orientation = best_pose.quaternion
-
-    #         R = None
-    #         if self.args.kf_adaptiveR != 'none':
-    #             latency_ms = (time.monotonic() - t_capture) * 1000
-    #             R = self._build_R(best_pose.inliers, best_pose.reprojection_error, latency_ms)
-
-    #         with self.pose_data_lock:
-    #             if self.args.kf_timeaware:
-    #                 kf_pos, kf_quat, limits, oos = self.kf.update_with_timestamp(
-    #                     best_pose.position, best_pose.quaternion, t_meas=t_capture, R=R, t_now=time.monotonic()
-    #                 )
-    #             else:
-    #                 kf_pos, kf_quat, _, _ = self.kf.update(best_pose.position, best_pose.quaternion, R=R)
-    #             result.kf_position, result.kf_quaternion = kf_pos, kf_quat
-
-    #         if result.gt_available:
-    #             pos_err, rot_err = self._calculate_pose_error(
-    #                 result.kf_position, result.kf_quaternion,
-    #                 result.gt_position, R_scipy.from_quat(result.gt_quaternion).as_matrix()
-    #             )
-    #             result.filt_pos_err_cm = pos_err
-    #             result.filt_rot_err_deg = rot_err
-
-    #         if self.prev_successful_pose:
-    #             dt = result.capture_time - self.prev_successful_pose['t_capture']
-    #             if dt > 1e-6:
-    #                 dist = np.linalg.norm(result.kf_position - self.prev_successful_pose['kf_pos'])
-    #                 ang_diff = quaternion_angle_diff_deg(result.kf_quaternion, self.prev_successful_pose['kf_quat'])
-    #                 result.jitter_lin_vel_mps = dist / dt
-    #                 result.jitter_ang_vel_dps = ang_diff / dt
-
-    #         self.prev_successful_pose = {
-    #             't_capture': result.capture_time,
-    #             'kf_pos': result.kf_position,
-    #             'kf_quat': result.kf_quaternion
-    #         }
-    #     else:
-    #         # --- THIS IS THE NEW FAILURE HANDLING BLOCK ---
-    #         self.prev_successful_pose = None
-    #         self.rejected_consecutive_frames_count += 1
-    #         if self.rejected_consecutive_frames_count >= self.MAX_REJECTED_FRAMES:
-    #             print(f"⚠️ Exceeded {self.MAX_REJECTED_FRAMES} consecutive failures. Re-initializing KF.")
-    #             with self.pose_data_lock:
-    #                 self.kf.reset()
-    #             self.last_valid_orientation = None
-    #             self.current_best_viewpoint = None
-    #             self.rejected_consecutive_frames_count = 0
-    #         # -----------------------------------------------
-
-    #     result.kf_time_ms = (time.monotonic() - t_start_kf) * 1000
-
-    #     # --- 4. Logging ---
-    #     self._log_frame({
-    #         "frame_idx": frame_id, "t_capture": t_capture,
-    #         "det_ms": result.detection_time_ms, "feature_ms": result.feature_time_ms,
-    #         "match_ms": result.matching_time_ms, "pnp_ms": result.pnp_time_ms, "kf_ms": result.kf_time_ms,
-    #         "vision_latency_ms": (t_start_process - t_capture) * 1000,
-    #         "accepted": result.is_accepted_by_gate, "reject_reason": result.gate_rejection_reason,
-    #         "num_matches": result.raw_matches, "num_inliers": result.num_inliers,
-    #         "inlier_ratio": result.inlier_ratio, "viewpoint": result.viewpoint_used,
-    #         "kf_pos_xyz": result.kf_position.tolist() if result.kf_position is not None else None,
-    #         "kf_q_xyzw": result.kf_quaternion.tolist() if result.kf_quaternion is not None else None,
-    #         "gt_available": result.gt_available,
-    #         "gt_pos_xyz": result.gt_position.tolist() if result.gt_position is not None else None,
-    #         "gt_q_xyzw": result.gt_quaternion.tolist() if result.gt_quaternion is not None else None,
-    #         "filt_pos_err_cm": result.filt_pos_err_cm,
-    #         "filt_rot_err_deg": result.filt_rot_err_deg,
-    #         "jitter_lin_vel_mps": result.jitter_lin_vel_mps,
-    #         "jitter_ang_vel_dps": result.jitter_ang_vel_dps,
-    #     })
+        # Iterate over the items and convert NumPy arrays to lists
+        for key, value in sanitized_data.items():
+            if isinstance(value, np.ndarray):
+                sanitized_data[key] = value.tolist()
         
-    #     return result
+        return sanitized_data
 
+    # Replace your existing _log_frame function with this corrected version.
+
+    def _log_frame(self, data: dict):
+        """Logs a sanitized, JSON-serializable version of the frame data."""
+        if self.jsonl_fp:
+            # Sanitize the data before attempting to serialize it
+            sanitized_dict = self._sanitize_for_json(data)
+            self.jsonl_fp.write(json.dumps(sanitized_dict, ensure_ascii=False) + "\n")
+            self.jsonl_fp.flush()
     
+    def _passes_gates(self, prev_q, new_q, match_ratio):
+        """
+        Checks if a new pose measurement is valid based on orientation jumps and match quality.
+        This is the "Hard Gate" that rejects bad measurements entirely.
+        """
+        gate_ori_ok, gate_ratio_ok, reason = True, True, ""
+        
+        if self.args.gate_ori_deg >= 0 and prev_q is not None and new_q is not None:
+            angle = quaternion_angle_diff_deg(prev_q, new_q)
+            if angle > self.args.gate_ori_deg:
+                gate_ori_ok = False
+                reason += f"ori_jump({angle:.1f}d) "
+                
+        if match_ratio < self.args.gate_ratio:
+            gate_ratio_ok = False
+            reason += f"low_ratio({match_ratio:.2f}) "
+            
+        # --- THIS IS THE FINAL, CRITICAL CHANGE ---
+        # The logic must be a strict "and" to prevent bad data from poisoning the filter.
+        passes = (gate_ori_ok and gate_ratio_ok)
+        # --- END OF CHANGE ---
+
+        return passes, reason.strip()
+
     def _process_frame(self, frame: np.ndarray, frame_id: int, t_capture: float):
         result = ProcessingResult(frame_id=frame_id, frame=frame.copy(), capture_time=t_capture)
-        t_start_process = time.monotonic()
-
+        
         # --- 1. Ground Truth Pose Calculation ---
         gt_success, R_ct, t_ct = self._detect_charuco_pose(frame)
         if gt_success:
@@ -988,28 +621,11 @@ class ProcessingThread(threading.Thread):
             result.gt_available = True
             result.gt_position = t_co_gt.flatten()
             result.gt_quaternion = R_scipy.from_matrix(R_co_gt).as_quat()
-            if self.args.show and self.visualization_queue.qsize() < 2:
-                self.visualization_queue.put({
-                    'gt_position': result.gt_position,
-                    'gt_quaternion': result.gt_quaternion
-                })
 
         # --- 2. VAPE Pose Estimation Pipeline ---
-        use_det = (not self.args.no_det) and (frame_id % max(1, self.args.det_every_n) == 0)
         t_start_det = time.monotonic()
-        if use_det:
-            bbox_detected = self._yolo_detect(frame)
-            if bbox_detected:
-                self.last_bbox = bbox_detected
-                self.last_det_frame_id = frame_id
-            result.bbox = bbox_detected if bbox_detected else self.last_bbox
-        else:
-            result.bbox = self.last_bbox
-        
-        if result.bbox is None and self.args.no_det:
-             result.bbox = (0, 0, frame.shape[1] - 1, frame.shape[0] - 1)
-
-        result.bbox = self._expand_bbox(result.bbox, self.args.det_margin_px, frame.shape[1], frame.shape[0])
+        bbox_detected = self._yolo_detect(frame)
+        result.bbox = bbox_detected
         result.detection_time_ms = (time.monotonic() - t_start_det) * 1000
 
         best_pose, metrics = self._estimate_pose_with_temporal_consistency(frame, result.bbox)
@@ -1018,234 +634,148 @@ class ProcessingThread(threading.Thread):
         result.pnp_time_ms = metrics.get("pnp_time_ms", 0.0)
         result.raw_matches = metrics.get("raw_matches", 0)
 
+        # --- 3. Gating Logic (The "Hard Gate") ---
+        is_accepted_by_gate = False
         if best_pose:
             match_ratio = best_pose.inliers / best_pose.total_matches if best_pose.total_matches > 0 else 0.0
             result.inlier_ratio = match_ratio
-            result.is_accepted_by_gate, result.gate_rejection_reason = self._passes_gates(
+            is_accepted_by_gate, result.gate_rejection_reason = self._passes_gates(
                 self.last_valid_orientation, best_pose.quaternion, match_ratio
             )
+        result.is_accepted_by_gate = is_accepted_by_gate
 
-        # --- 3. Kalman Filter Update and Final Evaluation (with Damping and Reset Logic) ---
+        # --- 4. Kalman Filter Update (with internal "Soft Gate") and Final Evaluation ---
         t_start_kf = time.monotonic()
-        recovery_frames = 0 # Recovery time 변수 초기화
-
-        if result.is_accepted_by_gate and best_pose:
+        
+        if is_accepted_by_gate and best_pose:
             if self.frames_since_last_success > 0:
-                recovery_frames = self.frames_since_last_success
-            self.frames_since_last_success = 0 # 성공 시 카운터 리셋
-
+                result.recovery_frames = self.frames_since_last_success
+            self.frames_since_last_success = 0
             self.rejected_consecutive_frames_count = 0
+            
             result.pose_success = True
-            result.position, result.quaternion = best_pose.position, best_pose.quaternion
-            result.num_inliers, result.viewpoint_used = best_pose.inliers, best_pose.viewpoint
+            result.position, result.quaternion, result.num_inliers, result.viewpoint_used = best_pose.position, best_pose.quaternion, best_pose.inliers, best_pose.viewpoint
             self.last_valid_orientation = best_pose.quaternion
-
-            R = None
-            if self.args.kf_adaptiveR != 'none':
-                latency_ms = (time.monotonic() - t_capture) * 1000
-                R = self._build_R(best_pose.inliers, best_pose.reprojection_error, latency_ms)
-
-            with self.pose_data_lock:
-                if self.args.kf_timeaware:
-                    kf_pos, kf_quat, _, _ = self.kf.update_with_timestamp(
-                        best_pose.position, best_pose.quaternion, t_meas=t_capture, R=R, t_now=time.monotonic()
-                    )
-                else:
-                    kf_pos, kf_quat, _, _ = self.kf.update(best_pose.position, best_pose.quaternion, R=R)
-                result.kf_position, result.kf_quaternion = kf_pos, kf_quat
-
+            
+            # RESTORED LOGIC: Use the time-aware update, which contains the "Soft Gate"
+            kf_pos, kf_quat, _, _ = self.kf.update_with_timestamp(
+                best_pose.position, best_pose.quaternion, t_meas=t_capture, R=None, t_now=time.monotonic()
+            )
+            
+            result.kf_position, result.kf_quaternion = kf_pos, kf_quat
+                
             if result.gt_available:
-                pos_err, rot_err = self._calculate_pose_error(
-                    result.kf_position, result.kf_quaternion,
-                    result.gt_position, R_scipy.from_quat(result.gt_quaternion).as_matrix()
-                )
-                result.filt_pos_err_cm = pos_err
-                result.filt_rot_err_deg = rot_err
+                # The quaternion from the KF is already in the correct [x,y,z,w] format for scipy
+                pos_err, rot_err = self._calculate_pose_error(result.kf_position, result.kf_quaternion, result.gt_position, R_scipy.from_quat(result.gt_quaternion).as_matrix())
+                result.filt_pos_err_cm, result.filt_rot_err_deg = pos_err, rot_err
 
             if self.prev_successful_pose:
                 dt = result.capture_time - self.prev_successful_pose['t_capture']
                 if dt > 1e-6:
                     dist = np.linalg.norm(result.kf_position - self.prev_successful_pose['kf_pos'])
                     ang_diff = quaternion_angle_diff_deg(result.kf_quaternion, self.prev_successful_pose['kf_quat'])
-                    result.jitter_lin_vel_mps = dist / dt
-                    result.jitter_ang_vel_dps = ang_diff / dt
-
-            self.prev_successful_pose = {
-                't_capture': result.capture_time,
-                'kf_pos': result.kf_position,
-                'kf_quat': result.kf_quaternion
-            }
+                    result.jitter_lin_vel_mps, result.jitter_ang_vel_dps = dist / dt, ang_diff / dt
+            self.prev_successful_pose = {'t_capture': result.capture_time, 'kf_pos': result.kf_position, 'kf_quat': result.kf_quaternion}
         else:
-            self.frames_since_last_success += 1 # 실패 시 카운터 증가
+            # If the pose is rejected, handle the failure
+            self.frames_since_last_success += 1
             self.prev_successful_pose = None
             self.rejected_consecutive_frames_count += 1
-
+            self.kf.apply_damping()
             if self.rejected_consecutive_frames_count >= self.MAX_REJECTED_FRAMES:
-                with self.pose_data_lock:
-                    self.kf.reset()
-                self.last_valid_orientation = None
-                self.current_best_viewpoint = None
-                self.rejected_consecutive_frames_count = 0
-
+                self.kf.reset()
+                self.last_valid_orientation, self.current_best_viewpoint, self.rejected_consecutive_frames_count = None, None, 0
+                
         result.kf_time_ms = (time.monotonic() - t_start_kf) * 1000
-
-        # --- 4. Logging ---
-        self._log_frame({
-            "frame_idx": frame_id, "t_capture": t_capture,
-            "det_ms": result.detection_time_ms, "feature_ms": result.feature_time_ms,
-            "match_ms": result.matching_time_ms, "pnp_ms": result.pnp_time_ms, "kf_ms": result.kf_time_ms,
-            "vision_latency_ms": (t_start_process - t_capture) * 1000,
-            "accepted": result.is_accepted_by_gate, "reject_reason": result.gate_rejection_reason,
-            "num_matches": result.raw_matches, "num_inliers": result.num_inliers,
-            "inlier_ratio": result.inlier_ratio, "viewpoint": result.viewpoint_used,
-            "kf_pos_xyz": result.kf_position.tolist() if result.kf_position is not None else None,
-            "kf_q_xyzw": result.kf_quaternion.tolist() if result.kf_quaternion is not None else None,
-            "gt_available": result.gt_available,
-            "gt_pos_xyz": result.gt_position.tolist() if result.gt_position is not None else None,
-            "gt_q_xyzw": result.gt_quaternion.tolist() if result.gt_quaternion is not None else None,
-            "filt_pos_err_cm": result.filt_pos_err_cm,
-            "filt_rot_err_deg": result.filt_rot_err_deg,
-            "jitter_lin_vel_mps": result.jitter_lin_vel_mps,
-            "jitter_ang_vel_dps": result.jitter_ang_vel_dps,
-            "recovery_frames": recovery_frames # 새로 추가된 로그
-        })
-        
-        return result
-
-
-
+        self._log_frame(result.__dict__)
 
 
 
     def _estimate_pose_with_temporal_consistency(self, frame, bbox):
         pose_metrics = {}
-        
-        # First, try the last known good viewpoint
+        if self.args.vp_mode == "coarse4": candidate_viewpoints = self.coarse_4_views
+        elif self.args.vp_mode == "fixed": candidate_viewpoints = [self.all_view_ids[self.args.fixed_view]] if self.all_view_ids else []
+        else: candidate_viewpoints = self.all_view_ids
         if self.current_best_viewpoint:
             pose_data, metrics = self._solve_for_viewpoint(frame, self.current_best_viewpoint, bbox)
             pose_metrics.update(metrics)
-            # This logic is from VAPE_MK53_3.py, using total_matches
-            if pose_data and pose_data.total_matches >= 5: # 5 is viewpoint_quality_threshold in VAPE_MK53_3
+            if pose_data and pose_data.inliers >= 5:
                 self.consecutive_failures = 0
                 return pose_data, pose_metrics
-            else:
-                self.consecutive_failures += 1
-
-        # If the current viewpoint fails, or we don't have one, start a search
+            else: self.consecutive_failures += 1
         if self.current_best_viewpoint is None or self.consecutive_failures >= self.args.vp_failures:
-            if self.args.vp_mode == "coarse4": candidate_viewpoints = self.coarse_4_views
-            elif self.args.vp_mode == "fixed": candidate_viewpoints = [self.all_view_ids[self.args.fixed_view]] if self.all_view_ids else []
-            else: candidate_viewpoints = self.all_view_ids
-            
-            print("🔍 Searching for best viewpoint...")
             ordered_viewpoints, assessment_metrics = self._quick_viewpoint_assessment(frame, bbox, candidate_viewpoints)
             pose_metrics.update(assessment_metrics)
-            
             successful_poses = []
-            # This is the exhaustive search from VAPE_MK53_3.py
-            viewpoint_quality_threshold = 5 # from VAPE_MK53_3.py
-            for viewpoint in ordered_viewpoints:
+            for viewpoint in ordered_viewpoints[:5]:
                 pose_data, metrics = self._solve_for_viewpoint(frame, viewpoint, bbox)
-                if pose_data:
-                    successful_poses.append(pose_data)
-                    # Early exit if a very good match is found
-                    if pose_data.total_matches >= viewpoint_quality_threshold * 2:
-                        break
-            
+                if pose_data: successful_poses.append(pose_data)
             if successful_poses:
-                # VAPE_MK53_3.py's selection criteria
-                best_pose = max(successful_poses, key=lambda p: (p.total_matches, p.inliers, -p.reprojection_error))
-                
-                # VAPE_MK53_3.py's direct update logic (no hysteresis)
-                self.current_best_viewpoint = best_pose.viewpoint
+                best_pose = max(successful_poses, key=lambda p: (p.inliers, -p.reprojection_error))
+                if best_pose.viewpoint != self.current_best_viewpoint:
+                    self.viewpoint_switch_votes += 1
+                    if self.viewpoint_switch_votes >= self.args.vp_switch_hysteresis:
+                        self.current_best_viewpoint, self.viewpoint_switch_votes = best_pose.viewpoint, 0
+                else: self.viewpoint_switch_votes = 0
                 self.consecutive_failures = 0
-                print(f"🎯 Selected viewpoint: {best_pose.viewpoint} ({best_pose.total_matches} matches, {best_pose.inliers} inliers)")
                 return best_pose, pose_metrics
-
         return None, pose_metrics
 
     def _quick_viewpoint_assessment(self, frame, bbox, candidates):
         from lightglue.utils import rbd
         crop = frame[bbox[1]:bbox[3], bbox[0]:bbox[2]] if bbox and bbox[2]>bbox[0] and bbox[3]>bbox[1] else frame
         if crop.size == 0: return self.all_view_ids, {}
-        t_start = time.monotonic()
-        viewpoint_scores = []
-
+        t_start, viewpoint_scores = time.monotonic(), []
         for viewpoint in candidates:
             anchor = self.viewpoint_anchors.get(viewpoint)
-            if not anchor: continue
-            
-            if self.args.matcher == 'lightglue':
-                if not anchor.get('features'): continue
-                with torch.no_grad():
-                    frame_features = self._extract_features_sp(crop)
-                    matches_dict = self.matcher({'image0': anchor['features'], 'image1': frame_features})
-                matches = rbd(matches_dict)['matches'].cpu().numpy()
-                valid_matches = sum(1 for anchor_idx, _ in matches if anchor_idx in anchor.get('map_3d', {}))
-                viewpoint_scores.append((viewpoint, valid_matches))
-            else:
-                _, raw_count, _, _ = self._get_features_and_matches(anchor, crop)
-                viewpoint_scores.append((viewpoint, raw_count))
-
+            if not anchor or not anchor.get('features'): continue
+            with torch.no_grad():
+                frame_features = self._extract_features_sp(crop)
+                matches_dict = self.matcher({'image0': anchor['features'], 'image1': frame_features})
+            matches = rbd(matches_dict)['matches'].cpu().numpy()
+            valid_matches = sum(1 for anchor_idx, _ in matches if anchor_idx in anchor.get('map_3d', {}))
+            viewpoint_scores.append((viewpoint, valid_matches))
         viewpoint_scores.sort(key=lambda x: x[1], reverse=True)
-        metrics = {"assessment_time_ms": (time.monotonic() - t_start) * 1000}
-        return [vp for vp, score in viewpoint_scores], metrics
+        return [vp for vp, score in viewpoint_scores], {"assessment_time_ms": (time.monotonic() - t_start) * 1000}
 
     def _solve_for_viewpoint(self, frame, viewpoint, bbox):
         anchor = self.viewpoint_anchors.get(viewpoint)
         if not anchor: return None, {}
         crop = frame[bbox[1]:bbox[3], bbox[0]:bbox[2]] if bbox and bbox[2]>bbox[0] and bbox[3]>bbox[1] else frame
         if crop.size == 0: return None, {}
-        
         t_start_feat = time.monotonic()
         matches, raw_count, frame_features, metrics = self._get_features_and_matches(anchor, crop)
         t_end_match = time.monotonic()
         metrics["feature_time_ms"] = metrics.get("feature_time_ms", (t_end_match - t_start_feat) * 1000)
         metrics["matching_time_ms"] = (t_end_match - t_start_feat) * 1000 - metrics["feature_time_ms"]
         metrics["raw_matches"] = raw_count
-
         if len(matches) < 6: return None, metrics
-
         points_3d, points_2d = [], []
         crop_offset = np.array([bbox[0], bbox[1]]) if bbox else np.array([0, 0])
-        
         if self.args.matcher in ['lightglue', 'nnrt']:
             kps_frame = frame_features['keypoints'][0].cpu().numpy()
             for anchor_idx, frame_idx in matches:
                 if anchor_idx in anchor.get('map_3d', {}):
                     points_3d.append(anchor['map_3d'][anchor_idx])
                     points_2d.append(kps_frame[frame_idx] + crop_offset)
-        else: # ORB/SIFT
-            kps_frame = np.array([kp.pt for kp in frame_features])
-            anchor_3d_pts = anchor['points_3d'] 
-            for anchor_idx, frame_idx in matches:
-                points_3d.append(anchor_3d_pts[anchor_idx])
-                points_2d.append(kps_frame[frame_idx] + crop_offset)
-        
         if len(points_3d) < 6: return None, metrics
-        
         t_start_pnp = time.monotonic()
         success, pnp_result = self._do_pnp(np.array(points_3d), np.array(points_2d), self.K, self.dist_coeffs)
         metrics["pnp_time_ms"] = (time.monotonic() - t_start_pnp) * 1000
-        
         if not success: return None, metrics
         rvec, tvec, inliers = pnp_result
         if inliers is None or len(inliers) < 4: return None, metrics
-
         R, _ = cv2.Rodrigues(rvec)
-        position = tvec.flatten()
-        quaternion = normalize_quaternion(quaternion_to_xyzw(self._rotation_matrix_to_quaternion(R)))
+        position, quaternion = tvec.flatten(), normalize_quaternion(quaternion_to_xyzw(self._rotation_matrix_to_quaternion(R)))
         inlier_pts_3d = np.array(points_3d)[inliers.flatten()]
         inlier_pts_2d = np.array(points_2d)[inliers.flatten()].reshape(-1, 1, 2)
         projected_points, _ = cv2.projectPoints(inlier_pts_3d, rvec, tvec, self.K, self.dist_coeffs)
         error = np.mean(np.linalg.norm(inlier_pts_2d - projected_points, axis=2))
-        pose_data = PoseData(position, quaternion, len(inliers), error, viewpoint, len(points_3d))
-        return pose_data, metrics
+        return PoseData(position, quaternion, len(inliers), error, viewpoint, len(points_3d)), metrics
         
     def _yolo_detect(self, frame):
         if self.yolo_model is None: return None
-        names = getattr(self.yolo_model, "names", {0: "iha"})
-        inv = {v: k for k, v in names.items()}; target_id = inv.get("iha", 0)
+        names = getattr(self.yolo_model, "names", {0: "iha"}); inv = {v: k for k, v in names.items()}; target_id = inv.get("iha", 0)
         for conf_thresh in (0.30, 0.20, 0.10):
             results = self.yolo_model(frame, imgsz=640, conf=conf_thresh, iou=0.5, max_det=5, classes=[target_id], verbose=False)
             if not results or len(results[0].boxes) == 0: continue
@@ -1261,15 +791,14 @@ class ProcessingThread(threading.Thread):
 
     def _get_camera_intrinsics(self):
         fx, fy, cx, cy = 1460.10150, 1456.48915, 604.85462, 328.64800
-        K = np.array([[fx, 0, cx], [0, fy, cy], [0, 0, 1]], dtype=np.float32)
-        return K, None
+        return np.array([[fx, 0, cx], [0, fy, cy], [0, 0, 1]], dtype=np.float32), None
 
     def _rotation_matrix_to_quaternion(self, R):
         tr = np.trace(R)
-        if tr > 0: S = np.sqrt(tr + 1.0) * 2; qw = 0.25 * S; qx = (R[2, 1] - R[1, 2]) / S; qy = (R[0, 2] - R[2, 0]) / S; qz = (R[1, 0] - R[0, 1]) / S
-        elif (R[0, 0] > R[1, 1]) and (R[0, 0] > R[2, 2]): S = np.sqrt(1.0 + R[0, 0] - R[1, 1] - R[2, 2]) * 2; qw = (R[2, 1] - R[1, 2]) / S; qx = 0.25 * S; qy = (R[0, 1] + R[1, 0]) / S; qz = (R[0, 2] + R[2, 0]) / S
-        elif R[1, 1] > R[2, 2]: S = np.sqrt(1.0 + R[1, 1] - R[0, 0] - R[2, 2]) * 2; qw = (R[0, 2] - R[2, 0]) / S; qx = (R[0, 1] + R[1, 0]) / S; qy = 0.25 * S; qz = (R[1, 2] + R[2, 1]) / S
-        else: S = np.sqrt(1.0 + R[2, 2] - R[0, 0] - R[1, 1]) * 2; qw = (R[1, 0] - R[0, 1]) / S; qx = (R[0, 2] + R[2, 0]) / S; qy = (R[1, 2] + R[2, 1]) / S; qz = 0.25 * S
+        if tr > 0: S = np.sqrt(tr + 1.0) * 2; qw=0.25*S; qx=(R[2,1]-R[1,2])/S; qy=(R[0,2]-R[2,0])/S; qz=(R[1,0]-R[0,1])/S
+        elif (R[0,0]>R[1,1])and(R[0,0]>R[2,2]): S=np.sqrt(1.+R[0,0]-R[1,1]-R[2,2])*2; qw=(R[2,1]-R[1,2])/S; qx=0.25*S; qy=(R[0,1]+R[1,0])/S; qz=(R[0,2]+R[2,0])/S
+        elif R[1,1]>R[2,2]: S=np.sqrt(1.+R[1,1]-R[0,0]-R[2,2])*2; qw=(R[0,2]-R[2,0])/S; qx=(R[0,1]+R[1,0])/S; qy=0.25*S; qz=(R[1,2]+R[2,1])/S
+        else: S=np.sqrt(1.+R[2,2]-R[0,0]-R[1,1])*2; qw=(R[1,0]-R[0,1])/S; qx=(R[0,2]+R[2,0])/S; qy=(R[1,2]+R[2,1])/S; qz=0.25*S
         return np.array([qx, qy, qz, qw])
     
     def _expand_bbox(self, b, margin, W, H):
@@ -1279,76 +808,86 @@ class ProcessingThread(threading.Thread):
 
     def _get_features_and_matches(self, anchor_data, crop_img):
         from lightglue.utils import rbd
-        metrics = {}; frame_features_out = None
+        metrics, frame_features_out = {}, None
         t_feat_start = time.monotonic()
-        
         if self.args.matcher in ['lightglue', 'nnrt']:
             frame_features = self._extract_features_sp(crop_img)
             metrics["feature_time_ms"] = (time.monotonic() - t_feat_start) * 1000
             if self.args.matcher == 'lightglue':
                 with torch.no_grad(): matches_dict = self.matcher({'image0': anchor_data['features'], 'image1': frame_features})
                 matches = rbd(matches_dict)['matches'].cpu().numpy()
-            else: # nnrt
-                des_crop = frame_features['descriptors'][0].cpu().numpy().T
-                des_anchor = anchor_data['features']['descriptors'][0].cpu().numpy().T
-                bf = cv2.BFMatcher(cv2.NORM_L2)
-                knn_matches = bf.knnMatch(des_anchor, des_crop, k=2)
-                good_matches = [m for m, n in knn_matches if m and n and m.distance < self.args.nn_ratio * n.distance]
-                matches = np.array([[m.queryIdx, m.trainIdx] for m in good_matches], dtype=int)
-
-            raw_count = len(matches); frame_features_out = frame_features
-            
-            # =================== DEBUG VISUALIZATION CHANGE ===================
+            else:
+                des_crop, des_anchor = frame_features['descriptors'][0].cpu().numpy().T, anchor_data['features']['descriptors'][0].cpu().numpy().T
+                knn_matches = cv2.BFMatcher(cv2.NORM_L2).knnMatch(des_anchor, des_crop, k=2)
+                matches = np.array([[m.queryIdx, m.trainIdx] for m, n in knn_matches if m and n and m.distance < self.args.nn_ratio * n.distance], dtype=int)
+            raw_count, frame_features_out = len(matches), frame_features
             if self.args.show and self.visualization_queue.qsize() < 2:
-                anchor_img = anchor_data['image']
-                kps_anchor_tensor = anchor_data['features']['keypoints'][0]
-                kps_frame_tensor = frame_features['keypoints'][0]
-                
-                kps_anchor = [cv2.KeyPoint(x=p[0], y=p[1], size=1) for p in kps_anchor_tensor.cpu().numpy()]
-                kps_frame = [cv2.KeyPoint(x=p[0], y=p[1], size=1) for p in kps_frame_tensor.cpu().numpy()]
-                
-                dmatches = [cv2.DMatch(_queryIdx=m[0], _trainIdx=m[1], _distance=0) for m in matches]
-                
-                img_matches = cv2.drawMatches(anchor_img, kps_anchor, crop_img, kps_frame, dmatches, None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
+                kps_anchor = [cv2.KeyPoint(p[0],p[1],1) for p in anchor_data['features']['keypoints'][0].cpu().numpy()]
+                kps_frame = [cv2.KeyPoint(p[0],p[1],1) for p in frame_features['keypoints'][0].cpu().numpy()]
+                dmatches = [cv2.DMatch(m[0],m[1],0) for m in matches]
+                img_matches = cv2.drawMatches(anchor_data['image'], kps_anchor, crop_img, kps_frame, dmatches, None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
                 self.visualization_queue.put({'match_image': img_matches})
-            # =================================================================
-
             return matches, raw_count, frame_features_out, metrics
+        return np.empty((0,2),dtype=int),0,None,{}
+    
+    def _update_display(self, result: ProcessingResult):
+        """Draws all visualization overlays onto the frame."""
+        vis_frame = result.frame.copy()
         
-        else: # ORB or SIFT
-            gray_crop = cv2.cvtColor(crop_img, cv2.COLOR_BGR2GRAY)
-            extractor = self.orb if self.args.matcher == 'orb' else self.sift
-            kps_crop, des_crop = extractor.detectAndCompute(gray_crop, None)
+        # Draw the bounding box
+        if result.bbox:
+            cv2.rectangle(vis_frame, (result.bbox[0], result.bbox[1]), (result.bbox[2], result.bbox[3]), (0, 255, 0), 2)
+
+        # Draw the final, filtered pose from the Kalman Filter
+        if result.kf_position is not None and result.kf_quaternion is not None:
+            self._draw_axes(vis_frame, result.kf_position, result.kf_quaternion)
+        
+        # Draw the ground truth pose in bright, distinct colors for comparison
+        if result.gt_available:
+            gt_colors = ((255, 255, 0), (255, 0, 255), (0, 255, 255)) # Cyan, Magenta, Yellow
+            self._draw_axes(vis_frame, result.gt_position, result.gt_quaternion, color_override=gt_colors)
+
+        # Add status text
+        status_color = (0, 255, 0) if result.pose_success else (0, 0, 255)
+        cv2.putText(vis_frame, f"STATUS: {'SUCCESS' if result.pose_success else 'FAILED'}", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.8, status_color, 2)
+        if not result.pose_success and result.gate_rejection_reason:
+            cv2.putText(vis_frame, f"REASON: {result.gate_rejection_reason}", (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (200, 200, 200), 2)
+
+        return vis_frame
+
+    def _draw_axes(self, frame, position, quaternion, color_override=None):
+        """Draws the 3D axes on the frame for a given pose."""
+        try:
+            colors = color_override if color_override else ((0, 0, 255), (0, 255, 0), (255, 0, 0)) # BGR: Red, Green, Blue
             
-            kps_anchor = anchor_data['keypoints']
-            des_anchor = anchor_data['descriptors']
-            frame_features_out = kps_crop
-            metrics["feature_time_ms"] = (time.monotonic() - t_feat_start) * 1000
+            # Ensure quaternion is in [x, y, z, w] format for scipy
+            q = np.asarray(quaternion)
+            if q[3] > 0.999: # Handle potential scalar-first format
+                q_xyzw = np.array([q[0], q[1], q[2], q[3]])
+            else: # Default to assuming it's [w,x,y,z] if unsure, but log a warning
+                q_xyzw = np.array([q[1], q[2], q[3], q[0]])
 
-            if des_anchor is None or des_crop is None or len(des_anchor) < 2 or len(kps_crop) < 2:
-                return np.empty((0, 2), dtype=int), 0, frame_features_out, metrics
-
-            norm = cv2.NORM_HAMMING if self.args.matcher == 'orb' else cv2.NORM_L2
-            bf = cv2.BFMatcher(norm, crossCheck=True)
-            good_matches = bf.match(des_anchor, des_crop)
-            good_matches = sorted(good_matches, key=lambda x: x.distance)
-            raw_count = len(good_matches)
-            matches = np.array([[m.queryIdx, m.trainIdx] for m in good_matches], dtype=int)
+            R = R_scipy.from_quat(q_xyzw).as_matrix()
+            rvec, _ = cv2.Rodrigues(R)
+            tvec = position.reshape(3, 1)
             
-            if self.args.show and self.visualization_queue.qsize() < 2:
-                anchor_img = anchor_data['image']
-                img_matches = cv2.drawMatches(anchor_img, kps_anchor, crop_img, kps_crop, good_matches[:20], None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
-                self.visualization_queue.put({'match_image': img_matches})
-
-            return matches, raw_count, frame_features_out, metrics
+            axis_pts = np.float32([[0,0,0], [0.1,0,0], [0,0.1,0], [0,0,0.1]]).reshape(-1,3)
+            img_pts, _ = cv2.projectPoints(axis_pts, rvec, tvec, self.K, self.dist_coeffs)
+            img_pts = img_pts.reshape(-1, 2).astype(int)
+            
+            origin = tuple(img_pts[0])
+            cv2.line(frame, origin, tuple(img_pts[1]), colors[0], 3) # X-axis
+            cv2.line(frame, origin, tuple(img_pts[2]), colors[1], 3) # Y-axis
+            cv2.line(frame, origin, tuple(img_pts[3]), colors[2], 3) # Z-axis
+        except (cv2.error, AttributeError, ValueError):
+            pass
 
     def _do_pnp(self, pts_3d, pts_2d, K, dist):
         flag = cv2.SOLVEPNP_EPNP if self.args.pnp_solver == 'epnp' else cv2.SOLVEPNP_ITERATIVE
         try:
             ok, rvec, tvec, inliers = cv2.solvePnPRansac(pts_3d, pts_2d, K, dist, flags=flag, reprojectionError=self.args.pnp_reproj, iterationsCount=self.args.pnp_iters, confidence=self.args.pnp_conf)
             if not ok or inliers is None: return False, None
-            if self.args.pnp_refine and len(inliers) > 4:
-                rvec, tvec = cv2.solvePnPRefineVVS(pts_3d[inliers.flatten()], pts_2d[inliers.flatten()], K, dist, rvec, tvec)
+            if self.args.pnp_refine and len(inliers) > 4: rvec, tvec = cv2.solvePnPRefineVVS(pts_3d[inliers.flatten()], pts_2d[inliers.flatten()], K, dist, rvec, tvec)
             return True, (rvec, tvec, inliers)
         except cv2.error: return False, None
     
@@ -1364,58 +903,63 @@ class ProcessingThread(threading.Thread):
         R = np.eye(7); base_pos_noise, base_quat_noise = 1e-4, 1e-4
         mode = self.args.kf_adaptiveR
         if mode == 'none': return R * base_pos_noise
-        inlier_factor = max(0.5, min(2.0, 10.0 / max(1, inliers)))
-        error_factor = max(0.5, min(3.0, reproj_err / 2.0)) if reproj_err else 1.0
+        inlier_factor = max(0.5, min(3.0, 10.0 / max(1, inliers)))
+        error_factor = max(0.5, min(4.0, reproj_err / 2.0)) if reproj_err else 1.0
         latency_factor = 1.0 + self.args.kf_latency_gamma * max(0.0, latency_ms)
-        pos_scale, quat_scale = 1.0, 1.0
-        if mode == 'inliers': pos_scale = quat_scale = inlier_factor
-        elif mode == 'inliers_reproj': pos_scale = quat_scale = inlier_factor * error_factor
-        elif mode == 'full': pos_scale = quat_scale = inlier_factor * error_factor * latency_factor
+        pos_scale = quat_scale = inlier_factor * error_factor * latency_factor if mode == 'full' else inlier_factor * error_factor if mode == 'inliers_reproj' else inlier_factor
         R[0:3, 0:3] *= base_pos_noise * pos_scale; R[3:7, 3:7] *= base_quat_noise * quat_scale
         return R
 
-    def cleanup(self):
-        print("Shutting down processing thread...")
-        self.running = False
-        if self.jsonl_fp: self.jsonl_fp.close()
+    def _update_display(self, result):
+        vis_frame = result.frame
+        if result.bbox: cv2.rectangle(vis_frame, (result.bbox[0], result.bbox[1]), (result.bbox[2], result.bbox[3]), (0, 255, 0), 2)
+        display_pos = result.kf_position if result.kf_position is not None else result.position
+        display_quat = result.kf_quaternion if result.kf_quaternion is not None else result.quaternion
+        if display_pos is not None and display_quat is not None: self._draw_axes(vis_frame, display_pos, display_quat)
+        if result.gt_available: self._draw_axes(vis_frame, result.gt_position, result.gt_quaternion, color_override=((255,255,0),(255,0,255),(0,255,255)))
+        status_color = (0,255,0) if result.pose_success else (0,0,255)
+        cv2.putText(vis_frame, f"STATUS: {'SUCCESS' if result.pose_success else 'FAILED'}", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.8, status_color, 2)
+        try: self.display_queue.put_nowait(vis_frame)
+        except queue.Full: pass
 
-        # 분석 스크립트를 위한 메타데이터 저장
+    def _draw_axes(self, frame, position, quaternion, color_override=None):
+        try:
+            colors = color_override if color_override else ((0,0,255),(0,255,0),(255,0,0))
+            R = R_scipy.from_quat(quaternion).as_matrix()
+            rvec, _ = cv2.Rodrigues(R)
+            tvec = position.reshape(3,1)
+            axis_pts = np.float32([[0,0,0],[0.1,0,0],[0,0.1,0],[0,0,0.1]]).reshape(-1,3)
+            img_pts, _ = cv2.projectPoints(axis_pts, rvec, tvec, self.K, self.dist_coeffs)
+            img_pts = img_pts.reshape(-1,2).astype(int)
+            origin = tuple(img_pts[0])
+            cv2.line(frame, origin, tuple(img_pts[1]), colors[0], 3)
+            cv2.line(frame, origin, tuple(img_pts[2]), colors[1], 3)
+            cv2.line(frame, origin, tuple(img_pts[3]), colors[2], 3)
+        except (cv2.error, AttributeError, ValueError): pass
+
+    def _display_loop(self):
+        window_name = "VAPE MK53 - Pose Estimation"
+        cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+        cv2.resizeWindow(window_name, self.camera_width, self.camera_height)
+        while self.running:
+            try:
+                vis_frame = self.display_queue.get(timeout=1.0)
+                cv2.imshow(window_name, vis_frame)
+            except queue.Empty:
+                if not self.running: break
+                continue
+            if cv2.waitKey(1) & 0xFF == ord('q'): self.running = False
+
+    def cleanup(self):
+        print("Shutting down...")
+        self.running = False
+        if self.video_capture: self.video_capture.release()
+        if self.args.show: cv2.destroyAllWindows()
+        if self.jsonl_fp: self.jsonl_fp.close()
         if self.args.output_dir and self.args.total_video_frames > 0:
             meta_path = Path(self.args.output_dir) / "run_metadata.json"
-            metadata = {
-                "total_video_frames": self.args.total_video_frames
-            }
-            with open(meta_path, 'w') as f:
-                json.dump(metadata, f, indent=2)
+            with open(meta_path, 'w') as f: json.dump({"total_video_frames": self.args.total_video_frames}, f, indent=2)
             print(f"📝 Saved metadata to {meta_path}")
-    # -------------------------------------------
-
-def run_single_experiment(args: argparse.Namespace):
-    try:
-        from lightglue import LightGlue, SuperPoint; from ultralytics import YOLO
-    except ImportError as e:
-        print(f"❌ Critical import error: {e}. Please ensure dependencies are installed.")
-        return
-
-    processing_queue = queue.Queue(maxsize=2)
-    visualization_queue = queue.Queue(maxsize=2)
-    pose_data_lock = threading.Lock()
-    kf = UnscentedKalmanFilter()
-    
-    if args.rate_limits.lower() != 'inf,inf':
-        rot, pos = [float(x) if x != 'inf' else float('inf') for x in args.rate_limits.split(',')]
-        kf.set_rate_limits(max_rotation_dps=rot, max_position_mps=pos)
-    else: kf.set_rate_limits(float('inf'), float('inf'))
-
-    main_thread = MainThread(processing_queue, visualization_queue, pose_data_lock, kf, args)
-    processing_thread = ProcessingThread(processing_queue, visualization_queue, pose_data_lock, kf, args)
-
-    main_thread.start()
-    processing_thread.start()
-    main_thread.join()
-    
-    processing_thread.running = False
-    processing_thread.join()
 
 def main():
     parser = argparse.ArgumentParser(description="VAPE MK53 - Core Ablation Logic")
@@ -1423,49 +967,40 @@ def main():
     group.add_argument('--webcam', action='store_true')
     group.add_argument('--video_file', type=str)
     group.add_argument('--image_dir', type=str)
-    
     parser.add_argument("--output_dir", type=str, default="./run_out")
     parser.add_argument("--log_jsonl", action="store_true")
     parser.add_argument('--show', action='store_true')
     parser.add_argument("--no_det", action="store_true")
     parser.add_argument("--det_every_n", type=int, default=1)
     parser.add_argument("--det_margin_px", type=int, default=20)
-    parser.add_argument("--sp_kpts", type=int, default=2048)
+    parser.add_argument("--sp_kpts", type=int, default=1024)
     parser.add_argument("--matcher", type=str, default="lightglue", choices=["lightglue", "nnrt", "orb", "sift"])
     parser.add_argument("--nn_ratio", type=float, default=0.75)
     parser.add_argument("--orb_nfeatures", type=int, default=1000)
     parser.add_argument("--sift_nfeatures", type=int, default=1000)
     parser.add_argument("--pnp_solver", type=str, default="epnp", choices=["epnp", "iterative"])
     parser.add_argument("--pnp_refine", type=int, default=1, choices=[0, 1])
-    parser.add_argument("--pnp_reproj", type=float, default=8.0)#8.0)
+    parser.add_argument("--pnp_reproj", type=float, default=6.0)
     parser.add_argument("--pnp_iters", type=int, default=7000)
     parser.add_argument("--pnp_conf", type=float, default=0.95)
     parser.add_argument("--gate_logic", type=str, default="or", choices=["or", "and"])
-    #parser.add_argument("--gate_ratio", type=float, default=0.75)
     parser.add_argument("--gate_ratio", type=float, default=0.55)
     parser.add_argument("--gate_ori_deg", type=float, default=30.0)
-    #parser.add_argument("--gate_ori_deg", type=float, default=50.0)
     parser.add_argument("--kf_timeaware", type=int, default=1, choices=[0, 1])
     parser.add_argument("--kf_adaptiveR", type=str, default="full", choices=["none", "inliers", "inliers_reproj", "full"])
     parser.add_argument("--kf_latency_gamma", type=float, default=1e-3)
-    #parser.add_argument("--rate_limits", type=str, default="30,1.5")
-    parser.add_argument("--rate_limits", type=str, default="30,1.5")
+    parser.add_argument("--rate_limits", type=str, default="30,1")
     parser.add_argument("--vp_mode", type=str, default="dynamic", choices=["dynamic", "fixed", "coarse4"])
     parser.add_argument("--fixed_view", type=int, default=1)
     parser.add_argument("--vp_switch_hysteresis", type=int, default=2)
     parser.add_argument("--vp_failures", type=int, default=3)
     parser.add_argument("--calibration", type=str, required=True, help="Path to the calibration JSON file.")
-    # --- MODIFICATION: 새로운 인자 추가 ---
     parser.add_argument("--total_video_frames", type=int, default=0, help="Total frames in the source video for accurate metrics.")
-    # ------------------------------------
     args = parser.parse_args()
-
-    run_single_experiment(args)
-    print("✅ Process finished.")
+    VAPE53_Estimator(args).run()
 
 if __name__ == '__main__':
     try:
-        from lightglue import LightGlue, SuperPoint; from ultralytics import YOLO
         main()
     except KeyboardInterrupt:
         print("\nProcess interrupted by user (Ctrl+C).")

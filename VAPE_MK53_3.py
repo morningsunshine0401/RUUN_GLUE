@@ -227,7 +227,7 @@ class UnscentedKalmanFilter:
         self.wc[0] = self.lambda_ / (self.n + self.lambda_) + (1.0 - self.alpha**2 + self.beta)
 
         # Noise matrices
-        self.Q = np.eye(self.n) * 1e-2  # Process noise
+        self.Q = np.eye(self.n) * 1e-1 #1e-2  # Process noise
         self.R = np.eye(self.m) * 1e-4  # Measurement noise
 
         # NEW: Timestamp and history management
@@ -694,6 +694,18 @@ class MainThread(threading.Thread):
         fx, fy, cx, cy = 1460.10150, 1456.48915, 604.85462, 328.64800
         K = np.array([[fx, 0, cx], [0, fy, cy], [0, 0, 1]], dtype=np.float32)
         return K, None
+    
+    # # For 20250908 outdoor cali
+    # def _get_camera_intrinsics(self) -> Tuple[np.ndarray, None]:
+    #     """Returns the camera intrinsic matrix K and distortion coefficients."""
+    #     fx, fy, cx, cy = 1078.86998, 1074.77105, 640.626268, 377.596433
+    #     K = np.array([[fx, 0, cx], [0, fy, cy], [0, 0, 1]], dtype=np.float32)
+    #     dist_coeffs = np.array([
+    #         0.02692405, -0.03433880, 0.01104186, 0.00124234, -0.12498783
+    #     ], dtype=np.float32)
+    #     return K, dist_coeffs
+    
+    
 
     def _quaternion_to_rotation_matrix(self, q: np.ndarray) -> np.ndarray:
         """Converts a quaternion (x, y, z, w) to a 3x3 rotation matrix."""
@@ -921,7 +933,7 @@ class ProcessingThread(threading.Thread):
             
             # NEW: Check matching ratio
             matching_ratio = best_pose.inliers / best_pose.total_matches
-            ratio_valid = matching_ratio >= 0.75#0.65
+            ratio_valid = matching_ratio >= 0.55#0.75#0.65
             
             if not ratio_valid:
                 print(f"🚫 Frame {frame_id}: Rejected (Matching Ratio: {matching_ratio:.2f} < 0.65)")
@@ -1211,7 +1223,10 @@ def main():
         # Optional: Tune rate limits for your specific scenario
         # For handheld walking around aircraft:
         #kf.set_rate_limits(max_rotation_dps=45.0, max_position_mps=1.0)
+
         kf.set_rate_limits(max_rotation_dps=30.0, max_position_mps=1.5)
+        
+        #kf.set_rate_limits(max_rotation_dps=60.0, max_position_mps=3)
 
         # For faster movements or drone footage:
         # kf.set_rate_limits(max_rotation_dps=90.0, max_position_mps=2.0)
