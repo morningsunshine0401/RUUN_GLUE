@@ -1340,3 +1340,11 @@ python3 VAPE_MK48_comparison.py --video_file 20250908_JINT_outdoor/normal/202509
 
 python3 run_comparison.py
 ###################
+
+
+python3 ablation_runner.py --script VAPE_MK53_Core_GT_V3_ADD.py --video 20250908_JINT_outdoor/normal/20250908_slow_view_change.mp4 --out 20250909_out --show --calibration calibration/tag_to_object_ground_truth_A1_20250908.json
+
+python3 ablation_metrics_ADD.py 20250909_out/
+
+
+python3 VAPE_MK53_Core_GT_V3_ADD_track.py --video_file 20250908_JINT_outdoor/normal/20250908_slow_view_change.mp4 --calibration calibration/tag_to_object_ground_truth_A1_20250908.json --output_dir run_out_20250909_track --show --det_every_n 20
